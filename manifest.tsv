@@ -1,15 +1,11 @@
-global	caveman	vendored
 global	handoff	vendored
-global	zoom-out	vendored
 global	teach	vendored
 global	research	vendored
 global	defuddle	vendored
 global	grilling	vendored
 global	grill-me	vendored
 global	grill-with-docs	vendored
-global	write-a-skill	vendored
 global	writing-great-skills	vendored
-global	ljg-skill-map	vendored
 notes	ljg-book	vendored
 notes	ljg-card	vendored
 notes	ljg-invest	vendored
@@ -27,7 +23,6 @@ notes	ljg-roundtable	vendored
 notes	ljg-think	vendored
 notes	ljg-travel	vendored
 notes	ljg-word	vendored
-notes	ljg-word-flow	vendored
 notes	ljg-writes	vendored
 notes	excalidraw-diagram	vendored
 notes	mermaid-visualizer	vendored
@@ -36,15 +31,12 @@ notes	new-org-project	zzc
 notes	sync-jira-to-denote	zzc
 coding	code-review	vendored
 coding	codebase-design	vendored
-coding	diagnose	vendored
 coding	domain-modeling	vendored
 coding	implement	vendored
 coding	improve-codebase-architecture	vendored
 coding	prototype	vendored
 coding	tdd	vendored
 coding	mcp-builder	vendored
-coding	to-issues	vendored
-coding	to-prd	vendored
 coding	to-spec	vendored
 coding	to-tickets	vendored
 coding	triage	vendored
@@ -52,3 +44,4 @@ coding	wayfinder	vendored
 coding	ask-matt	vendored
 coding	setup-matt-pocock-skills	vendored
 hermes-only	garmin-runcoach	zzc
+coding	diagnosing-bugs	vendored

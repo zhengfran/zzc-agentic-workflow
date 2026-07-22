@@ -112,7 +112,8 @@
       "skillPath": "skills/ljg-paper-flow/SKILL.md",
       "skillFolderHash": "e41170f3846200a190614360ed30442e2a43d2ef",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-06-12T04:21:45.330Z"
+      "updatedAt": "2026-06-12T04:21:45.330Z",
+      "orphaned": true
     },
     "ljg-paper-river": {
       "source": "lijigang/ljg-skills",
@@ -121,7 +122,8 @@
       "skillPath": "skills/ljg-paper-river/SKILL.md",
       "skillFolderHash": "ae7b67105d5f09824c3ceee7147b773d21751e5f",
       "installedAt": "2026-04-05T08:32:37.752Z",
-      "updatedAt": "2026-06-12T04:21:45.332Z"
+      "updatedAt": "2026-06-12T04:21:45.332Z",
+      "orphaned": true
     },
     "ljg-plain": {
       "source": "lijigang/ljg-skills",
@@ -163,15 +165,6 @@
       "updatedAt": "2026-07-22T09:16:06.303904+00:00",
       "folderHash": "7572c41b916a5402114c0597abd44e4b155920d1"
     },
-    "ljg-skill-map": {
-      "source": "lijigang/ljg-skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
-      "skillPath": "skills/ljg-skill-map/SKILL.md",
-      "skillFolderHash": "add5bd00b9d4e153fcf83cea6985c96069956858",
-      "installedAt": "2026-04-05T08:32:37.754Z",
-      "updatedAt": "2026-06-12T04:21:45.338Z"
-    },
     "ljg-travel": {
       "source": "lijigang/ljg-skills",
       "sourceType": "github",
@@ -179,7 +172,8 @@
       "skillPath": "skills/ljg-travel/SKILL.md",
       "skillFolderHash": "cbac4c471a7f24267dc7f49885b7cf24835806cb",
       "installedAt": "2026-04-05T08:32:37.755Z",
-      "updatedAt": "2026-06-12T04:21:45.340Z"
+      "updatedAt": "2026-06-12T04:21:45.340Z",
+      "orphaned": true
     },
     "ljg-word": {
       "source": "lijigang/ljg-skills",
@@ -191,15 +185,6 @@
       "updatedAt": "2026-06-12T04:21:45.340Z",
       "folderHash": "77116e3993322cb72917d87cce2b5f165b7e6768"
     },
-    "ljg-word-flow": {
-      "source": "lijigang/ljg-skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
-      "skillPath": "skills/ljg-word-flow/SKILL.md",
-      "skillFolderHash": "ab75e97f3d0a61a9e8cbfb61ae3baf8e97f3511a",
-      "installedAt": "2026-04-05T08:32:37.756Z",
-      "updatedAt": "2026-06-12T04:21:45.341Z"
-    },
     "ljg-writes": {
       "source": "lijigang/ljg-skills",
       "sourceType": "github",
@@ -209,26 +194,6 @@
       "installedAt": "2026-04-05T08:32:37.757Z",
       "updatedAt": "2026-07-22T09:16:06.309278+00:00",
       "folderHash": "7d59958a2ca75c171f63fee6f26f62003b76ef9b"
-    },
-    "caveman": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/productivity/caveman/SKILL.md",
-      "skillFolderHash": "17972a1bdbf5909b9dbdc435ad348f0bf45f8664",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.818Z",
-      "updatedAt": "2026-06-12T04:16:01.818Z"
-    },
-    "diagnose": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/engineering/diagnose/SKILL.md",
-      "skillFolderHash": "43d464d0e9d1049b9d525975c0f7367ab7e01a5f",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.820Z",
-      "updatedAt": "2026-06-12T04:16:01.820Z"
     },
     "grill-with-docs": {
       "source": "mattpocock/skills",
@@ -307,26 +272,6 @@
       "updatedAt": "2026-07-22T09:16:07.076044+00:00",
       "folderHash": "49ea00b449e76c59baa9c6fbfdca195cc3e0528c"
     },
-    "to-issues": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/engineering/to-issues/SKILL.md",
-      "skillFolderHash": "b38c5aa6ae5d6903e60d3f74a7aafd32d02f2c06",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.843Z",
-      "updatedAt": "2026-06-12T04:16:01.843Z"
-    },
-    "to-prd": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/engineering/to-prd/SKILL.md",
-      "skillFolderHash": "fb4503f54bc618da08df2fd74109fbe57e4d8150",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.844Z",
-      "updatedAt": "2026-06-12T04:16:01.844Z"
-    },
     "triage": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -337,26 +282,6 @@
       "installedAt": "2026-06-12T04:16:01.845Z",
       "updatedAt": "2026-07-22T09:16:07.080817+00:00",
       "folderHash": "0c4a919fc32e3859c3ee439e6ca4d5fffd68459d"
-    },
-    "write-a-skill": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/productivity/write-a-skill/SKILL.md",
-      "skillFolderHash": "2f252b35aa238879afc5a230ac30343708dee0b3",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.845Z",
-      "updatedAt": "2026-06-12T04:16:01.845Z"
-    },
-    "zoom-out": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/engineering/zoom-out/SKILL.md",
-      "skillFolderHash": "6ecebabdea814d12888f56a611da7bf182b5fb26",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-06-12T04:16:01.846Z",
-      "updatedAt": "2026-06-12T04:16:01.846Z"
     },
     "ljg-book": {
       "source": "lijigang/ljg-skills",
@@ -528,6 +453,15 @@
       "installedAt": "2026-07-12T01:05:35.394Z",
       "updatedAt": "2026-07-22T09:16:07.083361+00:00",
       "folderHash": "c79073f976af1ff54f013b36110bc0a0122cb5bd"
+    },
+    "diagnosing-bugs": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/diagnosing-bugs/SKILL.md",
+      "installedAt": "2026-07-22T13:06:37.880609+00:00",
+      "folderHash": "7953c9c6474cd1af5fe04bcc8a8bc41b256301ad",
+      "updatedAt": "2026-07-22T13:06:53.971232+00:00"
     }
   },
   "dismissed": {
