@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# skills-sync — rebuild the assembled/ symlink layer from vendored/ + zzc-skills,
+# driven by manifest.tsv. Idempotent. Optionally --update pulls upstreams first.
+#
+# Usage:
+#   skills-sync            rebuild assembled/ from current sources
+#   skills-sync --update   update vendored upstreams via skills CLI, then rebuild
+#
+# Single source of truth = manifest.tsv (pack \t skill \t source[vendored|zzc]).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # tools/ai/skills
+MANIFEST="$ROOT/manifest.tsv"
+ZZC="${ZZC_SKILLS_DIR:-$HOME/projects/zzc-skills/skills}"
+
+if [[ "${1:-}" == "--update" ]]; then
+  echo "==> updating vendored upstreams (skills CLI, respects vendored/.skill-lock.json)"
+  ( cd "$ROOT/vendored" && npx -y skills@latest update ) \
+    || echo "!! skills CLI update failed — check network / lockfile, rebuild continues"
+fi
+
+echo "==> rebuilding assembled/ from manifest"
+packs=$(cut -f1 "$MANIFEST" | sort -u)
+for pack in $packs; do rm -rf "$ROOT/assembled/$pack"; mkdir -p "$ROOT/assembled/$pack"; done
+
+n=0
+while IFS=$'\t' read -r pack skill src; do
+  [[ -n "${pack:-}" && -n "${skill:-}" ]] || continue
+  dest="$ROOT/assembled/$pack/$skill"
+  case "$src" in
+    vendored)
+      [[ -d "$ROOT/vendored/$pack/$skill" ]] || { echo "!! missing vendored: $pack/$skill"; continue; }
+      ln -sfn "../../vendored/$pack/$skill" "$dest" ;;   # relative → portable within dotconfig
+    zzc)
+      [[ -d "$ZZC/$skill" ]] || { echo "!! missing zzc: $skill"; continue; }
+      ln -sfn "$ZZC/$skill" "$dest" ;;
+    *) echo "!! unknown source '$src' for $skill"; continue ;;
+  esac
+  n=$((n+1))
+done < "$MANIFEST"
+
+echo "==> assembled $n skills:"
+for pack in $packs; do printf "   %-12s %d\n" "$pack" "$(ls "$ROOT/assembled/$pack" | wc -l)"; done

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# skills-install — install an assembled pack into a project's per-agent skill dirs.
+#
+# Usage:
+#   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
+#     pack        one of: global notes coding  (see assembled/)
+#     target-dir  project root (default: current dir)
+#     --agents    comma list: claude,kiro,pi,hermes (default: claude,kiro)
+#     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
+#
+# Symlink mode keeps projects in lockstep with `skills-sync`; copy mode detaches.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+pack="${1:?usage: skills-install <pack> [target-dir] [--agents ...] [--copy]}"; shift || true
+
+target="."; agents="claude,kiro"; mode="symlink"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agents) agents="$2"; shift 2;;
+    --copy)   mode="copy"; shift;;
+    -*)       echo "unknown flag: $1"; exit 2;;
+    *)        target="$1"; shift;;
+  esac
+done
+
+srcdir="$ROOT/assembled/$pack"
+[[ -d "$srcdir" ]] || { echo "no such pack: $pack (run skills-sync first)"; exit 1; }
+target="$(cd "$target" && pwd)"
+
+# per-agent project-level skill subdir. NOTE: pi/hermes project-level paths are best-guess — verify.
+declare -A AGENTDIR=( [claude]=".claude/skills" [kiro]=".kiro/skills" [pi]=".pi/skills" [hermes]=".hermes/skills" )
+
+echo "==> installing pack '$pack' into $target ($mode)"
+IFS=',' read -ra AS <<< "$agents"
+for a in "${AS[@]}"; do
+  sub="${AGENTDIR[$a]:-}"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
+  dst="$target/$sub"; mkdir -p "$dst"
+  for s in "$srcdir"/*; do
+    name="$(basename "$s")"
+    if [[ "$mode" == copy ]]; then rm -rf "$dst/$name"; cp -rL "$s" "$dst/$name"
+    else ln -sfn "$s" "$dst/$name"; fi
+  done
+  echo "   $a → $sub  ($(ls "$dst" | wc -l) skills)"
+done
+echo "note: add the installed agent skill dirs to this repo's .gitignore if you don't want them tracked."
