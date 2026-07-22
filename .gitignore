@@ -1,2 +1,5 @@
 # assembled/ is a derived symlink layer rebuilt by scripts/skills-sync — not tracked.
 /assembled/
+
+# upstream clone cache used by scripts/skills-update
+/.cache/

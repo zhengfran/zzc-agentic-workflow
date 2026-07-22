@@ -14,9 +14,10 @@ MANIFEST="$ROOT/manifest.tsv"
 ZZC="${ZZC_SKILLS_DIR:-$HOME/projects/zzc-skills/skills}"
 
 if [[ "${1:-}" == "--update" ]]; then
-  echo "==> updating vendored upstreams (skills CLI, respects vendored/.skill-lock.json)"
-  ( cd "$ROOT/vendored" && npx -y skills@latest update ) \
-    || echo "!! skills CLI update failed — check network / lockfile, rebuild continues"
+  shift
+  echo "==> updating vendored upstreams (self-contained git updater)"
+  "$ROOT/scripts/skills-update" "$@" \
+    || echo "!! skills-update reported errors — rebuild continues"
 fi
 
 echo "==> rebuilding assembled/ from manifest"

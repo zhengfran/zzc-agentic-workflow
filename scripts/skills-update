@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""skills-update — self-contained git-based updater for vendored skills.
+
+Reads vendored/.skill-lock.json, shallow-clones each upstream repo once, and
+refreshes the local vendored copy of every skill whose upstream folder changed.
+Layout-agnostic: local copies live at vendored/<pack>/<name> (pack from manifest.tsv).
+
+Safety:
+  - our own folder hash (field ``folderHash``) is the change baseline
+  - if a local copy was hand-edited (local != baseline) AND upstream also moved,
+    it's a CONFLICT and is skipped unless --force
+
+Usage:
+  skills-update [--force] [skill ...]
+"""
+import datetime
+import hashlib
+import json
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent          # tools/ai/skills
+VENDORED = ROOT / "vendored"
+LOCK = VENDORED / ".skill-lock.json"
+MANIFEST = ROOT / "manifest.tsv"
+CACHE = ROOT / ".cache" / "repos"
+
+FORCE = "--force" in sys.argv
+ONLY = [a for a in sys.argv[1:] if not a.startswith("-")]
+
+
+def sh(args, cwd=None):
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+
+
+def norm_url(url):
+    """Normalize a git remote to a no-auth https clone URL."""
+    m = re.match(r"git@([^:]+):(.+?)(?:\.git)?$", url)
+    if m:
+        return f"https://{m.group(1)}/{m.group(2)}.git"
+    if re.match(r"^[\w.-]+/[\w.-]+$", url):            # owner/repo shorthand
+        return f"https://github.com/{url}.git"
+    return url if url.endswith(".git") else url + ".git"
+
+
+def slug(url):
+    return re.sub(r"[^\w.-]+", "_", re.sub(r"^https?://", "", url)).strip("_")
+
+
+def folder_hash(d):
+    """Stable content+path hash of a folder, ignoring .git."""
+    h = hashlib.sha1()
+    files = sorted(p for p in d.rglob("*") if p.is_file() and ".git" not in p.parts)
+    for p in files:
+        h.update(str(p.relative_to(d)).encode())
+        h.update(b"\0")
+        h.update(p.read_bytes())
+        h.update(b"\0")
+    return h.hexdigest()
+
+
+def load_manifest():
+    pack_of = {}
+    for line in MANIFEST.read_text().splitlines():
+        parts = line.split("\t")
+        if len(parts) == 3 and parts[2] == "vendored":
+            pack_of[parts[1]] = parts[0]
+    return pack_of
+
+
+def clone_or_fetch(url):
+    """Ensure a fresh shallow clone of url exists in CACHE; return its path or None."""
+    dest = CACHE / slug(url)
+    if dest.exists():
+        r = sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin"])
+        if r.returncode == 0:
+            head = sh(["git", "-C", str(dest), "rev-parse", "origin/HEAD"])
+            ref = "origin/HEAD" if head.returncode == 0 else "FETCH_HEAD"
+            sh(["git", "-C", str(dest), "reset", "--hard", ref])
+            return dest
+        shutil.rmtree(dest, ignore_errors=True)
+    CACHE.mkdir(parents=True, exist_ok=True)
+    r = sh(["git", "clone", "--depth", "1", url, str(dest)])
+    return dest if r.returncode == 0 else None
+
+
+def main():
+    if not LOCK.exists():
+        sys.exit(f"no lockfile at {LOCK}")
+    data = json.loads(LOCK.read_text())
+    skills = data.get("skills", {})
+    pack_of = load_manifest()
+
+    # group skills by normalized upstream url so each repo is cloned once
+    by_url = {}
+    for name, e in skills.items():
+        if ONLY and name not in ONLY:
+            continue
+        if name not in pack_of:
+            print(f"  skip {name}: not a vendored skill in manifest")
+            continue
+        url = norm_url(e.get("sourceUrl") or e.get("source", ""))
+        by_url.setdefault(url, []).append(name)
+
+    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0, "kept": 0,
+             "orphaned": 0, "error": 0}
+    changed = False
+
+    for url, names in sorted(by_url.items()):
+        print(f"==> {url}  ({len(names)} skill(s))")
+        repo = clone_or_fetch(url)
+        if repo is None:
+            print(f"  !! clone failed — skipping {', '.join(names)}")
+            stats["error"] += len(names)
+            continue
+        for name in sorted(names):
+            e = skills[name]
+            src = repo / Path(e["skillPath"]).parent      # upstream skill folder
+            if not src.is_dir():                          # stale skillPath: upstream moved it
+                target = Path(e["skillPath"]).parent.name
+                cands = [p.parent for p in repo.rglob("SKILL.md")
+                         if p.parent.name == target and ".git" not in p.parts]
+                if cands:
+                    src = cands[0]
+                    e["skillPath"] = str(src.relative_to(repo) / "SKILL.md")
+                    changed = True
+                    print(f"  ~  {name}: relocated upstream -> {e['skillPath']}")
+                else:
+                    print(f"  orphan   {name}: gone from upstream — keeping local copy")
+                    stats["orphaned"] += 1
+                    continue
+            local = VENDORED / pack_of[name] / name
+            up = folder_hash(src)
+            baseline = e.get("folderHash")
+            loc = folder_hash(local) if local.is_dir() else None
+
+            def apply(tag):
+                nonlocal changed
+                if local.exists():
+                    shutil.rmtree(local)
+                shutil.copytree(src, local, ignore=shutil.ignore_patterns(".git"))
+                e["folderHash"] = up
+                e["updatedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                changed = True
+                print(f"  {tag} {name}")
+
+            if loc is None:
+                apply("added   "); stats["added"] += 1
+            elif baseline is None:                        # first run: adopt local as baseline
+                if up != loc:
+                    apply("updated "); stats["updated"] += 1
+                else:
+                    e["folderHash"] = loc; changed = True
+                    stats["ok"] += 1
+            elif loc != baseline:                         # local hand-edited
+                if up != baseline and not FORCE:
+                    print(f"  CONFLICT {name}: local edits + upstream changed — skipped (use --force)")
+                    stats["conflict"] += 1
+                elif up != baseline and FORCE:
+                    apply("forced  "); stats["updated"] += 1
+                else:
+                    print(f"  kept    {name}: local edits, upstream unchanged")
+                    stats["kept"] += 1
+            else:                                         # local clean
+                if up != baseline:
+                    apply("updated "); stats["updated"] += 1
+                else:
+                    stats["ok"] += 1
+
+    if changed:
+        LOCK.write_text(json.dumps(data, indent=2) + "\n")
+
+    print("\n== summary ==")
+    print("  " + "  ".join(f"{k}={v}" for k, v in stats.items() if v))
+    if stats["conflict"]:
+        print("  re-run with --force to overwrite conflicting local edits.")
+
+
+if __name__ == "__main__":
+    main()
