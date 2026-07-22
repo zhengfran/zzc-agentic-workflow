@@ -3,15 +3,16 @@
 
 Reads vendored/.skill-lock.json, shallow-clones each upstream repo once, and
 refreshes the local vendored copy of every skill whose upstream folder changed.
-Layout-agnostic: local copies live at vendored/<pack>/<name> (pack from manifest.tsv).
+Local copies live at vendored/<pack>/<name> (pack from manifest.tsv).
 
-Safety:
+Safety / behaviour:
   - our own folder hash (field ``folderHash``) is the change baseline
-  - if a local copy was hand-edited (local != baseline) AND upstream also moved,
-    it's a CONFLICT and is skipped unless --force
+  - a hand-edited local copy + moved upstream = CONFLICT, skipped unless --force
+  - a skill removed upstream is an ORPHAN: you are asked whether to delete the
+    local copy too (interactive), or use --prune (delete all) / --keep-orphans
 
 Usage:
-  skills-update [--force] [skill ...]
+  skills-update [--force] [--prune | --keep-orphans] [skill ...]
 """
 import datetime
 import hashlib
@@ -24,11 +25,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent          # tools/ai/skills
 VENDORED = ROOT / "vendored"
+ASSEMBLED = ROOT / "assembled"
 LOCK = VENDORED / ".skill-lock.json"
 MANIFEST = ROOT / "manifest.tsv"
 CACHE = ROOT / ".cache" / "repos"
+HOME = Path.home()
+ORG = HOME / "org"
+
+# where the global pack is distributed (per-agent), for orphan cleanup
+AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
+                HOME / ".pi/agent/skills", HOME / ".hermes/skills"]
 
 FORCE = "--force" in sys.argv
+PRUNE = "--prune" in sys.argv
+KEEP = "--keep-orphans" in sys.argv
 ONLY = [a for a in sys.argv[1:] if not a.startswith("-")]
 
 
@@ -37,7 +47,6 @@ def sh(args, cwd=None):
 
 
 def norm_url(url):
-    """Normalize a git remote to a no-auth https clone URL."""
     m = re.match(r"git@([^:]+):(.+?)(?:\.git)?$", url)
     if m:
         return f"https://{m.group(1)}/{m.group(2)}.git"
@@ -53,38 +62,81 @@ def slug(url):
 def folder_hash(d):
     """Stable content+path hash of a folder, ignoring .git."""
     h = hashlib.sha1()
-    files = sorted(p for p in d.rglob("*") if p.is_file() and ".git" not in p.parts)
-    for p in files:
-        h.update(str(p.relative_to(d)).encode())
-        h.update(b"\0")
-        h.update(p.read_bytes())
-        h.update(b"\0")
+    for p in sorted(x for x in d.rglob("*") if x.is_file() and ".git" not in x.parts):
+        h.update(str(p.relative_to(d)).encode()); h.update(b"\0")
+        h.update(p.read_bytes()); h.update(b"\0")
     return h.hexdigest()
 
 
-def load_manifest():
-    pack_of = {}
-    for line in MANIFEST.read_text().splitlines():
-        parts = line.split("\t")
-        if len(parts) == 3 and parts[2] == "vendored":
-            pack_of[parts[1]] = parts[0]
-    return pack_of
+def now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
 def clone_or_fetch(url):
-    """Ensure a fresh shallow clone of url exists in CACHE; return its path or None."""
     dest = CACHE / slug(url)
     if dest.exists():
-        r = sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin"])
-        if r.returncode == 0:
+        if sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin"]).returncode == 0:
             head = sh(["git", "-C", str(dest), "rev-parse", "origin/HEAD"])
             ref = "origin/HEAD" if head.returncode == 0 else "FETCH_HEAD"
             sh(["git", "-C", str(dest), "reset", "--hard", ref])
             return dest
         shutil.rmtree(dest, ignore_errors=True)
     CACHE.mkdir(parents=True, exist_ok=True)
-    r = sh(["git", "clone", "--depth", "1", url, str(dest)])
-    return dest if r.returncode == 0 else None
+    return dest if sh(["git", "clone", "--depth", "1", url, str(dest)]).returncode == 0 else None
+
+
+def load_manifest():
+    lines = MANIFEST.read_text().splitlines()
+    pack_of = {}
+    for line in lines:
+        parts = line.split("\t")
+        if len(parts) == 3 and parts[2] == "vendored":
+            pack_of[parts[1]] = parts[0]
+    return pack_of, lines
+
+
+def _rm(path: Path):
+    """Remove a file, symlink, or dir if present."""
+    try:
+        if path.is_symlink() or path.is_file():
+            path.unlink()
+        elif path.is_dir():
+            shutil.rmtree(path)
+    except FileNotFoundError:
+        pass
+
+
+def remove_local(name, pack, data, manifest_lines):
+    """Delete an orphaned skill everywhere we distributed it."""
+    _rm(VENDORED / pack / name)
+    _rm(ASSEMBLED / pack / name)
+    data["skills"].pop(name, None)
+    manifest_lines[:] = [l for l in manifest_lines
+                         if l.split("\t")[1:2] != [name]]
+    if pack == "global":
+        for d in AGENT_GLOBAL:
+            _rm(d / name)
+    elif pack == "notes":
+        _rm(ORG / ".claude/skills" / name)
+        _rm(ORG / ".hermes/skills" / name)
+    elif pack == "hermes-only":
+        _rm(HOME / ".hermes/skills" / name)
+    # coding pack lives per-repo; skills-sync rebuild of assembled/coding suffices
+
+
+def ask_delete(name):
+    """True=delete, False=keep, None=undecided (non-interactive)."""
+    if PRUNE:
+        return True
+    if KEEP:
+        return False
+    if not sys.stdin.isatty():
+        return None
+    try:
+        ans = input(f"  '{name}' removed upstream — delete local copy too? [y/N] ")
+    except EOFError:
+        return None
+    return ans.strip().lower() in ("y", "yes")
 
 
 def main():
@@ -92,9 +144,9 @@ def main():
         sys.exit(f"no lockfile at {LOCK}")
     data = json.loads(LOCK.read_text())
     skills = data.get("skills", {})
-    pack_of = load_manifest()
+    pack_of, manifest_lines = load_manifest()
+    manifest_before = list(manifest_lines)
 
-    # group skills by normalized upstream url so each repo is cloned once
     by_url = {}
     for name, e in skills.items():
         if ONLY and name not in ONLY:
@@ -105,9 +157,12 @@ def main():
         url = norm_url(e.get("sourceUrl") or e.get("source", ""))
         by_url.setdefault(url, []).append(name)
 
-    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0, "kept": 0,
-             "orphaned": 0, "error": 0}
-    changed = False
+    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0,
+             "kept": 0, "orphaned": 0, "pruned": 0, "error": 0}
+    changed = [False]
+
+    def mark_changed():
+        changed[0] = True
 
     for url, names in sorted(by_url.items()):
         print(f"==> {url}  ({len(names)} skill(s))")
@@ -118,65 +173,84 @@ def main():
             continue
         for name in sorted(names):
             e = skills[name]
-            src = repo / Path(e["skillPath"]).parent      # upstream skill folder
-            if not src.is_dir():                          # stale skillPath: upstream moved it
+            src = repo / Path(e["skillPath"]).parent
+            if not src.is_dir():                       # stale path: try relocate by folder name
                 target = Path(e["skillPath"]).parent.name
                 cands = [p.parent for p in repo.rglob("SKILL.md")
                          if p.parent.name == target and ".git" not in p.parts]
                 if cands:
                     src = cands[0]
                     e["skillPath"] = str(src.relative_to(repo) / "SKILL.md")
-                    changed = True
+                    mark_changed()
                     print(f"  ~  {name}: relocated upstream -> {e['skillPath']}")
-                else:
-                    print(f"  orphan   {name}: gone from upstream — keeping local copy")
-                    stats["orphaned"] += 1
+                else:                                   # ORPHAN: gone from upstream
+                    if e.get("orphaned") and not PRUNE:
+                        stats["orphaned"] += 1
+                        print(f"  orphan   {name}: (kept; still gone upstream)")
+                        continue
+                    decision = ask_delete(name)
+                    if decision is True:
+                        remove_local(name, pack_of[name], data, manifest_lines)
+                        mark_changed(); stats["pruned"] += 1
+                        print(f"  pruned   {name}: deleted local copy")
+                    elif decision is False:
+                        e["orphaned"] = True; mark_changed(); stats["orphaned"] += 1
+                        print(f"  orphan   {name}: kept local copy")
+                    else:
+                        stats["orphaned"] += 1
+                        print(f"  orphan   {name}: gone upstream — kept "
+                              f"(run in a terminal, or --prune, to delete)")
                     continue
+
             local = VENDORED / pack_of[name] / name
             up = folder_hash(src)
             baseline = e.get("folderHash")
             loc = folder_hash(local) if local.is_dir() else None
+            if e.pop("orphaned", None):                # reappeared upstream
+                mark_changed()
 
             def apply(tag):
-                nonlocal changed
                 if local.exists():
                     shutil.rmtree(local)
                 shutil.copytree(src, local, ignore=shutil.ignore_patterns(".git"))
                 e["folderHash"] = up
-                e["updatedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-                changed = True
+                e["updatedAt"] = now_iso()
+                mark_changed()
                 print(f"  {tag} {name}")
 
             if loc is None:
                 apply("added   "); stats["added"] += 1
-            elif baseline is None:                        # first run: adopt local as baseline
+            elif baseline is None:                     # first run: adopt local as baseline
                 if up != loc:
                     apply("updated "); stats["updated"] += 1
                 else:
-                    e["folderHash"] = loc; changed = True
-                    stats["ok"] += 1
-            elif loc != baseline:                         # local hand-edited
+                    e["folderHash"] = loc; mark_changed(); stats["ok"] += 1
+            elif loc != baseline:                      # local hand-edited
                 if up != baseline and not FORCE:
-                    print(f"  CONFLICT {name}: local edits + upstream changed — skipped (use --force)")
+                    print(f"  CONFLICT {name}: local edits + upstream changed — skipped (--force)")
                     stats["conflict"] += 1
-                elif up != baseline and FORCE:
+                elif up != baseline:
                     apply("forced  "); stats["updated"] += 1
                 else:
                     print(f"  kept    {name}: local edits, upstream unchanged")
                     stats["kept"] += 1
-            else:                                         # local clean
+            else:                                      # local clean
                 if up != baseline:
                     apply("updated "); stats["updated"] += 1
                 else:
                     stats["ok"] += 1
 
-    if changed:
+    if manifest_lines != manifest_before:
+        MANIFEST.write_text("\n".join(manifest_lines) + "\n")
+    if changed[0]:
         LOCK.write_text(json.dumps(data, indent=2) + "\n")
 
     print("\n== summary ==")
     print("  " + "  ".join(f"{k}={v}" for k, v in stats.items() if v))
     if stats["conflict"]:
         print("  re-run with --force to overwrite conflicting local edits.")
+    if stats["pruned"]:
+        print("  pruned skills removed from vendored/manifest/lockfile + agent dirs.")
 
 
 if __name__ == "__main__":
