@@ -27,7 +27,7 @@ version: "6.3.0"
 - 时间戳：`date +%Y%m%dT%H%M%S`
 - 可读时间：`date "+%Y-%m-%d %a %H:%M"`
 - 文件名：`{时间戳}==z--{标题关键词}__write.org`
-- 输出目录：`~/org/notes/`
+- 输出目录：`~/Documents/notes/`
 
 ### Org 文件头
 
@@ -156,5 +156,5 @@ version: "6.3.0"
 1. 初稿 + 中文重写，两稿择优
 2. `date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"` 获取时间戳
 3. 从观点中提取关键词作为标题
-4. 写入 `~/org/notes/{时间戳}==z--{标题关键词}__write.org`
+4. 写入 `~/Documents/notes/{时间戳}==z--{标题关键词}__write.org`
 5. 报告路径

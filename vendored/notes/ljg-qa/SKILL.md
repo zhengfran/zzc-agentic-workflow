@@ -57,7 +57,7 @@ Running **Extract** in **ljg-qa**...
 ## 输出
 
 - 格式：org-mode（`*bold*`，禁 markdown 语法）
-- 路径：`~/org/notes/`
+- 路径：`~/Documents/notes/`
 - denote 文件名：`{YYYYMMDDTHHMMSS}--qa-{核心主题 5-10 字}__qa.org`
 
 ## Examples

@@ -62,6 +62,6 @@ user_invocable: true
 ## 输出
 
 1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
-2. 写入 `~/org/notes/{时间戳}--追本-{主题}__think.org`
+2. 写入 `~/Documents/notes/{时间戳}--追本-{主题}__think.org`
 3. org-mode 格式，禁止 markdown 语法
 4. 报告文件路径给用户

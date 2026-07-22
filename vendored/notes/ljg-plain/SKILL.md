@@ -27,7 +27,7 @@ version: "5.0.0"
 - 时间戳：`date +%Y%m%dT%H%M%S`
 - 可读时间：`date "+%Y-%m-%d %a %H:%M"`
 - 文件名：`{时间戳}--plain-{简短标题}__plain.org`
-- 输出目录：`~/org/notes/`
+- 输出目录：`~/Documents/notes/`
 
 ### Org 文件头
 
@@ -95,7 +95,7 @@ URL → WebFetch | 文本 → 直接用 | 文件路径 → Read | 概念 → 直
 
 ### 4. 生成 Org 文件
 
-按 Denote 规范获取时间戳，写出文件头 + 正文，存入 `~/org/notes/`。
+按 Denote 规范获取时间戳，写出文件头 + 正文，存入 `~/Documents/notes/`。
 
 ## 验收
 

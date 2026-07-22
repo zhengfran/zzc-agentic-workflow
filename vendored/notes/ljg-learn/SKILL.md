@@ -75,5 +75,5 @@ Assistant: [对"熵"进行八维解剖，生成 org-mode 报告]
 
 写入文件：
 1. 运行 `date +%Y%m%dT%H%M%S` 获取时间戳。
-2. 写入 `~/org/notes/{timestamp}--概念解剖-{概念名}__concept.org`。
+2. 写入 `~/Documents/notes/{timestamp}--概念解剖-{概念名}__concept.org`。
 3. 报告路径，完成。
