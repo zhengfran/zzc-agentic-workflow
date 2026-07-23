@@ -484,5 +484,9 @@
     "claude-code",
     "kiro-cli",
     "pi"
+  ],
+  "followNew": [
+    "https://github.com/lijigang/ljg-skills.git",
+    "https://github.com/mattpocock/skills.git"
   ]
 }

@@ -10,9 +10,24 @@ Safety / behaviour:
   - a hand-edited local copy + moved upstream = CONFLICT, skipped unless --force
   - a skill removed upstream is an ORPHAN: you are asked whether to delete the
     local copy too (interactive), or use --prune (delete all) / --keep-orphans
+  - a skill that exists upstream but not locally is NEW: after each repo is
+    scanned you get the list and are asked whether to fetch each one (into a
+    pack). Declines are remembered so you are not nagged every run.
+
+New-skill discovery runs only for repos in the ``followNew`` list (defaults to
+lijigang/ljg-skills + mattpocock/skills) so big catalog repos we cherry-picked
+from don't flood the prompt. Edit ``followNew`` in the lockfile to change it.
 
 Usage:
-  skills-update [--force] [--prune | --keep-orphans] [skill ...]
+  skills-update [--force] [--prune | --keep-orphans]
+                [--fetch-new | --no-new] [--reconsider-new] [--follow-all]
+                [skill ...]
+
+  --fetch-new       fetch every new upstream skill non-interactively into its
+                    repo's most-common pack (no prompts)
+  --no-new          skip new-upstream-skill discovery entirely
+  --reconsider-new  re-offer skills you previously declined
+  --follow-all      discover new skills in every repo, not just followed ones
 """
 import datetime
 import hashlib
@@ -21,6 +36,7 @@ import re
 import shutil
 import subprocess
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent          # tools/ai/skills
@@ -36,9 +52,22 @@ ORG = HOME / "org"
 AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
                 HOME / ".pi/agent/skills", HOME / ".hermes/skills"]
 
+# Repos we actively follow for NEW upstream skills. Other repos (big catalogs
+# we only cherry-picked one skill from, e.g. awesome-claude-skills) are ignored
+# for new-skill discovery. Persisted as ``followNew`` in the lockfile — edit it
+# there to add/remove followed repos, or pass --follow-all for a one-off sweep.
+DEFAULT_FOLLOW = [
+    "https://github.com/lijigang/ljg-skills.git",
+    "https://github.com/mattpocock/skills.git",
+]
+
 FORCE = "--force" in sys.argv
 PRUNE = "--prune" in sys.argv
 KEEP = "--keep-orphans" in sys.argv
+FETCH_NEW = "--fetch-new" in sys.argv
+NO_NEW = "--no-new" in sys.argv
+RECONSIDER = "--reconsider-new" in sys.argv
+FOLLOW_ALL = "--follow-all" in sys.argv
 ONLY = [a for a in sys.argv[1:] if not a.startswith("-")]
 
 
@@ -139,6 +168,41 @@ def ask_delete(name):
     return ans.strip().lower() in ("y", "yes")
 
 
+def upstream_skills(repo):
+    """{folder_name: skill_dir} for every SKILL.md in the repo (ignoring .git)."""
+    out = {}
+    for p in repo.rglob("SKILL.md"):
+        if ".git" in p.parts:
+            continue
+        out[p.parent.name] = p.parent          # last wins on dup names; rare
+    return out
+
+
+def ask_fetch_pack(name, default_pack, packs):
+    """Ask whether to fetch a new skill and into which pack.
+
+    Returns a pack name to fetch into, or None to skip.
+    In non-interactive mode returns None (report only) unless --fetch-new.
+    """
+    if FETCH_NEW:
+        return default_pack
+    if not sys.stdin.isatty():
+        return None
+    try:
+        ans = input(f"  fetch new skill '{name}'? "
+                    f"pack [{default_pack}] / n to skip: ").strip()
+    except EOFError:
+        return None
+    if ans.lower() in ("n", "no"):
+        return None
+    if ans == "" or ans.lower() in ("y", "yes"):
+        return default_pack
+    if ans not in packs:
+        print(f"     unknown pack '{ans}' — skipping (known: {', '.join(sorted(packs))})")
+        return None
+    return ans
+
+
 def main():
     if not LOCK.exists():
         sys.exit(f"no lockfile at {LOCK}")
@@ -157,9 +221,30 @@ def main():
         url = norm_url(e.get("sourceUrl") or e.get("source", ""))
         by_url.setdefault(url, []).append(name)
 
-    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0,
-             "kept": 0, "orphaned": 0, "pruned": 0, "error": 0}
+    # For new-upstream discovery: every folder we already track per repo, and
+    # each repo's most-common pack (used as the suggested default when fetching).
     changed = [False]
+    known_packs = {l.split("\t")[0] for l in manifest_lines if "\t" in l}
+    tracked_folders = defaultdict(set)
+    pack_counts = defaultdict(Counter)
+    for name, e in skills.items():
+        u = norm_url(e.get("sourceUrl") or e.get("source", ""))
+        tracked_folders[u].add(Path(e["skillPath"]).parent.name)
+        if name in pack_of:
+            pack_counts[u][pack_of[name]] += 1
+    declined = set(data.get("declinedNew", []))
+    follow = {norm_url(u) for u in data.get("followNew", DEFAULT_FOLLOW)}
+    if "followNew" not in data:                 # persist default so it's editable
+        data["followNew"] = sorted(follow)
+        changed[0] = True
+
+    def default_pack(url):
+        c = pack_counts.get(url)
+        return c.most_common(1)[0][0] if c else "coding"
+
+    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0,
+             "kept": 0, "orphaned": 0, "pruned": 0,
+             "new_fetched": 0, "new_found": 0, "error": 0}
 
     def mark_changed():
         changed[0] = True
@@ -240,6 +325,48 @@ def main():
                 else:
                     stats["ok"] += 1
 
+        # --- skills that exist upstream but not locally = NEW --------------
+        if not ONLY and not NO_NEW and (FOLLOW_ALL or url in follow):
+            found = upstream_skills(repo)
+            new = sorted(fn for fn in found
+                         if fn not in tracked_folders[url]
+                         and fn not in skills
+                         and (RECONSIDER or f"{url}::{fn}" not in declined))
+            if new:
+                stats["new_found"] += len(new)
+                print(f"  {len(new)} new upstream skill(s): {', '.join(new)}")
+                dp = default_pack(url)
+                for fn in new:
+                    pack = ask_fetch_pack(fn, dp, known_packs)
+                    if pack is None:
+                        if sys.stdin.isatty() and not FETCH_NEW:
+                            declined.add(f"{url}::{fn}")     # remember the "no"
+                        continue
+                    src = found[fn]
+                    dest = VENDORED / pack / fn
+                    if dest.exists():
+                        shutil.rmtree(dest)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(src, dest, ignore=shutil.ignore_patterns(".git"))
+                    skills[fn] = {
+                        "source": url,
+                        "sourceType": "github",
+                        "sourceUrl": url,
+                        "skillPath": str(src.relative_to(repo) / "SKILL.md"),
+                        "installedAt": now_iso(),
+                        "updatedAt": now_iso(),
+                        "folderHash": folder_hash(src),
+                    }
+                    manifest_lines.append(f"{pack}\t{fn}\tvendored")
+                    tracked_folders[url].add(fn)
+                    declined.discard(f"{url}::{fn}")
+                    mark_changed(); stats["new_fetched"] += 1
+                    print(f"  fetched  {fn} -> {pack}")
+
+    if sorted(declined) != data.get("declinedNew", []):
+        data["declinedNew"] = sorted(declined)
+        changed[0] = True
+
     if manifest_lines != manifest_before:
         MANIFEST.write_text("\n".join(manifest_lines) + "\n")
     if changed[0]:
@@ -251,6 +378,12 @@ def main():
         print("  re-run with --force to overwrite conflicting local edits.")
     if stats["pruned"]:
         print("  pruned skills removed from vendored/manifest/lockfile + agent dirs.")
+    if stats["new_fetched"]:
+        print("  fetched new skills — run 'skills-sync' to rebuild assembled/.")
+    skipped_new = stats["new_found"] - stats["new_fetched"]
+    if skipped_new > 0 and not sys.stdin.isatty():
+        print(f"  {skipped_new} new upstream skill(s) not fetched — "
+              f"run in a terminal, or --fetch-new, to add them.")
 
 
 if __name__ == "__main__":
