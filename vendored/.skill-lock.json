@@ -462,6 +462,150 @@
       "installedAt": "2026-07-22T13:06:37.880609+00:00",
       "folderHash": "7953c9c6474cd1af5fe04bcc8a8bc41b256301ad",
       "updatedAt": "2026-07-22T13:06:53.971232+00:00"
+    },
+    "ljg-blind": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-blind/SKILL.md",
+      "installedAt": "2026-07-23T03:15:44.142016+00:00",
+      "updatedAt": "2026-07-23T03:15:44.142027+00:00",
+      "folderHash": "b4dcfd53472c022657a20be91f72dd95834d6014"
+    },
+    "ljg-constraint": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-constraint/SKILL.md",
+      "installedAt": "2026-07-23T03:15:47.712868+00:00",
+      "updatedAt": "2026-07-23T03:15:47.712878+00:00",
+      "folderHash": "539fd534dcbfb0ffbc89374d90898fb10b253c39"
+    },
+    "ljg-library": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-library/SKILL.md",
+      "installedAt": "2026-07-23T03:15:48.658506+00:00",
+      "updatedAt": "2026-07-23T03:15:48.658514+00:00",
+      "folderHash": "c1f7be288c6ce8d1cb88304e7b1e4894052321d6"
+    },
+    "ljg-map": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-map/SKILL.md",
+      "installedAt": "2026-07-23T03:15:49.384586+00:00",
+      "updatedAt": "2026-07-23T03:15:49.384596+00:00",
+      "folderHash": "f7c31e552480fd8065864280ece8309ef3d9882b"
+    },
+    "ljg-push": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-push/SKILL.md",
+      "installedAt": "2026-07-23T03:15:50.148981+00:00",
+      "updatedAt": "2026-07-23T03:15:50.148990+00:00",
+      "folderHash": "c84002e24e7863f252671917e126707adbe54afc"
+    },
+    "ljg-structure": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-structure/SKILL.md",
+      "installedAt": "2026-07-23T03:15:52.263522+00:00",
+      "updatedAt": "2026-07-23T03:15:52.263533+00:00",
+      "folderHash": "e918e1f8ac6725bb1455da9a1e22c6cda1eadf6f"
+    },
+    "batch-grill-me": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/in-progress/batch-grill-me/SKILL.md",
+      "installedAt": "2026-07-23T03:16:08.417803+00:00",
+      "updatedAt": "2026-07-23T03:16:08.417813+00:00",
+      "folderHash": "9f6f943915c26d5bc98d576d772d44ee5b357366"
+    },
+    "claude-handoff": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/in-progress/claude-handoff/SKILL.md",
+      "installedAt": "2026-07-23T03:16:10.276781+00:00",
+      "updatedAt": "2026-07-23T03:16:10.276790+00:00",
+      "folderHash": "f5bbc2c079573122c6648d5a7ecbf6deb1bf8d76"
+    },
+    "design-an-interface": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/deprecated/design-an-interface/SKILL.md",
+      "installedAt": "2026-07-23T03:16:11.672771+00:00",
+      "updatedAt": "2026-07-23T03:16:11.672781+00:00",
+      "folderHash": "942273efcd9d497b431a9cedcb6113ed6fb58d24"
+    },
+    "edit-article": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/personal/edit-article/SKILL.md",
+      "installedAt": "2026-07-23T03:16:13.428150+00:00",
+      "updatedAt": "2026-07-23T03:16:13.428163+00:00",
+      "folderHash": "e414dc8a64e2a9b1154857366dc86d47a17fc0bb"
+    },
+    "git-guardrails-claude-code": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/misc/git-guardrails-claude-code/SKILL.md",
+      "installedAt": "2026-07-23T03:16:17.736801+00:00",
+      "updatedAt": "2026-07-23T03:16:17.736810+00:00",
+      "folderHash": "c7ce1718c76a92ab9e10aea5b5cc1b358598af37"
+    },
+    "loop-me": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/in-progress/loop-me/SKILL.md",
+      "installedAt": "2026-07-23T03:16:18.927828+00:00",
+      "updatedAt": "2026-07-23T03:16:18.927839+00:00",
+      "folderHash": "71d6d6975a45d1755ca36558fe8881aa3c414cfa"
+    },
+    "migrate-to-shoehorn": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
+      "installedAt": "2026-07-23T03:16:23.135645+00:00",
+      "updatedAt": "2026-07-23T03:16:23.135658+00:00",
+      "folderHash": "fbeafb2954890cb7e3a3e2c59b45cb6e4ebef3e5"
+    },
+    "request-refactor-plan": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/deprecated/request-refactor-plan/SKILL.md",
+      "installedAt": "2026-07-23T03:16:32.303614+00:00",
+      "updatedAt": "2026-07-23T03:16:32.303624+00:00",
+      "folderHash": "091cb400dc22b03049735f400322b3fcecbc9377"
+    },
+    "resolving-merge-conflicts": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
+      "installedAt": "2026-07-23T03:16:34.363758+00:00",
+      "updatedAt": "2026-07-23T03:16:34.363767+00:00",
+      "folderHash": "d9c73073fba85a6a9db6b5939468184b5f20b070"
+    },
+    "scaffold-exercises": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/misc/scaffold-exercises/SKILL.md",
+      "installedAt": "2026-07-23T03:16:41.693991+00:00",
+      "updatedAt": "2026-07-23T03:16:41.694000+00:00",
+      "folderHash": "5e36f9fb44a13be5205d7cf0f85094fbb1dd41ee"
     }
   },
   "dismissed": {
@@ -488,5 +632,17 @@
   "followNew": [
     "https://github.com/lijigang/ljg-skills.git",
     "https://github.com/mattpocock/skills.git"
+  ],
+  "declinedNew": [
+    "https://github.com/mattpocock/skills.git::obsidian-vault",
+    "https://github.com/mattpocock/skills.git::qa",
+    "https://github.com/mattpocock/skills.git::setup-pre-commit",
+    "https://github.com/mattpocock/skills.git::setup-ts-deep-modules",
+    "https://github.com/mattpocock/skills.git::to-questionnaire",
+    "https://github.com/mattpocock/skills.git::ubiquitous-language",
+    "https://github.com/mattpocock/skills.git::wizard",
+    "https://github.com/mattpocock/skills.git::writing-beats",
+    "https://github.com/mattpocock/skills.git::writing-fragments",
+    "https://github.com/mattpocock/skills.git::writing-shape"
   ]
 }
