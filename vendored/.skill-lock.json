@@ -102,8 +102,8 @@
       "skillPath": "skills/ljg-paper/SKILL.md",
       "skillFolderHash": "8e19667982a8ead525a35c323309c458f34af8bf",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-07-22T09:16:06.296867+00:00",
-      "folderHash": "bccd9b1eaf17b2c3692ec37c012923123d81dd05"
+      "updatedAt": "2026-07-26T06:38:37.013382+00:00",
+      "folderHash": "36a9395c57fb4d6d21dfac809d12f929d5e83d97"
     },
     "ljg-paper-flow": {
       "source": "lijigang/ljg-skills",
@@ -192,8 +192,8 @@
       "skillPath": "skills/ljg-writes/SKILL.md",
       "skillFolderHash": "93141fdb54d3b27a1195a937f45635674d18bd9c",
       "installedAt": "2026-04-05T08:32:37.757Z",
-      "updatedAt": "2026-07-22T09:16:06.309278+00:00",
-      "folderHash": "7d59958a2ca75c171f63fee6f26f62003b76ef9b"
+      "updatedAt": "2026-07-26T06:38:37.041322+00:00",
+      "folderHash": "b534a8d10698a6f260d3be462530c252e4bd4df6"
     },
     "grill-with-docs": {
       "source": "mattpocock/skills",
@@ -505,8 +505,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-push/SKILL.md",
       "installedAt": "2026-07-23T03:15:50.148981+00:00",
-      "updatedAt": "2026-07-23T03:15:50.148990+00:00",
-      "folderHash": "c84002e24e7863f252671917e126707adbe54afc"
+      "updatedAt": "2026-07-26T06:38:37.026750+00:00",
+      "folderHash": "f71b7c6082ff729bed1095ce2e5468f233fd8030"
     },
     "ljg-structure": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -514,8 +514,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-structure/SKILL.md",
       "installedAt": "2026-07-23T03:15:52.263522+00:00",
-      "updatedAt": "2026-07-23T03:15:52.263533+00:00",
-      "folderHash": "e918e1f8ac6725bb1455da9a1e22c6cda1eadf6f"
+      "updatedAt": "2026-07-26T06:38:37.035261+00:00",
+      "folderHash": "95c62366091768508f24f35433dab993f1b9238a"
     },
     "batch-grill-me": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -606,6 +606,33 @@
       "installedAt": "2026-07-23T03:16:41.693991+00:00",
       "updatedAt": "2026-07-23T03:16:41.694000+00:00",
       "folderHash": "5e36f9fb44a13be5205d7cf0f85094fbb1dd41ee"
+    },
+    "pdf-to-markdown": {
+      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "skillPath": "plugins/pdf-to-markdown/skills/pdf-to-markdown/SKILL.md",
+      "installedAt": "2026-07-27T02:15:39.337284+00:00",
+      "updatedAt": "2026-07-27T02:15:39.337308+00:00",
+      "folderHash": "1d3fe36063919894a2b271bcc36868711dae1640"
+    },
+    "pdf-to-text": {
+      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "skillPath": "plugins/pdf-to-text/skills/pdf-to-text/SKILL.md",
+      "installedAt": "2026-07-27T02:15:41.345859+00:00",
+      "updatedAt": "2026-07-27T02:15:41.345874+00:00",
+      "folderHash": "9017eb12ba1625aa07fa2a090ee2ced98982d93d"
+    },
+    "query": {
+      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
+      "skillPath": "plugins/query/skills/query/SKILL.md",
+      "installedAt": "2026-07-27T02:15:43.141968+00:00",
+      "updatedAt": "2026-07-27T02:15:43.141979+00:00",
+      "folderHash": "ef2bb21969487c736a8fa5aae8272f76acd7dea0"
     }
   },
   "dismissed": {
@@ -631,7 +658,8 @@
   ],
   "followNew": [
     "https://github.com/lijigang/ljg-skills.git",
-    "https://github.com/mattpocock/skills.git"
+    "https://github.com/mattpocock/skills.git",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git"
   ],
   "declinedNew": [
     "https://github.com/mattpocock/skills.git::obsidian-vault",
@@ -643,6 +671,23 @@
     "https://github.com/mattpocock/skills.git::wizard",
     "https://github.com/mattpocock/skills.git::writing-beats",
     "https://github.com/mattpocock/skills.git::writing-fragments",
-    "https://github.com/mattpocock/skills.git::writing-shape"
+    "https://github.com/mattpocock/skills.git::writing-shape",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::document-extraction-api",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::document-processor-api",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::grounded-rag-ingestion",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::make-pdf",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-android-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-document-authoring",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-document-engine",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-dotnet-server-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-flutter-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-ios-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-java-server-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-maui-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-nodejs-server-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-python-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-react-native-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-web-sdk",
+    "https://github.com/pspdfkit-labs/nutrient-skills.git::remediate-pdf"
   ]
 }

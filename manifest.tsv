@@ -61,4 +61,7 @@ coding	migrate-to-shoehorn	vendored
 coding	request-refactor-plan	vendored
 coding	resolving-merge-conflicts	vendored
 coding	scaffold-exercises	vendored
+notes	pdf-to-markdown	vendored
+notes	pdf-to-text	vendored
+notes	query	vendored
 coding	document-issue	zzc
