@@ -21,13 +21,17 @@ from don't flood the prompt. Edit ``followNew`` in the lockfile to change it.
 Usage:
   skills-update [--force] [--prune | --keep-orphans]
                 [--fetch-new | --no-new] [--reconsider-new] [--follow-all]
-                [skill ...]
+                [--add-repo <url>] [skill ...]
 
   --fetch-new       fetch every new upstream skill non-interactively into its
                     repo's most-common pack (no prompts)
   --no-new          skip new-upstream-skill discovery entirely
   --reconsider-new  re-offer skills you previously declined
   --follow-all      discover new skills in every repo, not just followed ones
+  --add-repo <url>  clone a NEW upstream repo, add it to followNew, and run the
+                    fetch-new prompt over all its skills (bootstrap a new repo).
+                    Only that repo is processed; combine with --fetch-new to
+                    grab everything non-interactively.
 """
 import datetime
 import hashlib
@@ -68,7 +72,11 @@ FETCH_NEW = "--fetch-new" in sys.argv
 NO_NEW = "--no-new" in sys.argv
 RECONSIDER = "--reconsider-new" in sys.argv
 FOLLOW_ALL = "--follow-all" in sys.argv
-ONLY = [a for a in sys.argv[1:] if not a.startswith("-")]
+ADD_REPO = None
+if "--add-repo" in sys.argv:
+    _i = sys.argv.index("--add-repo")
+    ADD_REPO = sys.argv[_i + 1] if _i + 1 < len(sys.argv) else None
+ONLY = [a for a in sys.argv[1:] if not a.startswith("-") and a != ADD_REPO]
 
 
 def sh(args, cwd=None):
@@ -234,9 +242,11 @@ def main():
             pack_counts[u][pack_of[name]] += 1
     declined = set(data.get("declinedNew", []))
     follow = {norm_url(u) for u in data.get("followNew", DEFAULT_FOLLOW)}
-    if "followNew" not in data:                 # persist default so it's editable
-        data["followNew"] = sorted(follow)
-        changed[0] = True
+
+    add_url = norm_url(ADD_REPO) if ADD_REPO else None
+    if add_url:                                 # bootstrap a brand-new repo
+        by_url = {add_url: by_url.get(add_url, [])}   # process only this repo
+        print(f"==> adding repo {add_url}")       # added to followNew iff it has skills
 
     def default_pack(url):
         c = pack_counts.get(url)
@@ -326,8 +336,14 @@ def main():
                     stats["ok"] += 1
 
         # --- skills that exist upstream but not locally = NEW --------------
-        if not ONLY and not NO_NEW and (FOLLOW_ALL or url in follow):
+        if not ONLY and not NO_NEW and (FOLLOW_ALL or url in follow or url == add_url):
             found = upstream_skills(repo)
+            if add_url == url:
+                if found:
+                    follow.add(url)             # real skills repo → follow it
+                else:
+                    print(f"  !! no SKILL.md found — {url} is not a Claude skills "
+                          f"repo (install it as a tool / wrap it in zzc-skills)")
             new = sorted(fn for fn in found
                          if fn not in tracked_folders[url]
                          and fn not in skills
@@ -365,6 +381,9 @@ def main():
 
     if sorted(declined) != data.get("declinedNew", []):
         data["declinedNew"] = sorted(declined)
+        changed[0] = True
+    if sorted(follow) != data.get("followNew", []):     # persist follow list
+        data["followNew"] = sorted(follow)
         changed[0] = True
 
     if manifest_lines != manifest_before:
