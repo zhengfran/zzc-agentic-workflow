@@ -5,7 +5,7 @@
 #   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
 #     pack        one of: global notes coding  (see assembled/)
 #     target-dir  project root (default: current dir)
-#     --agents    comma list: claude,kiro,pi,hermes (default: claude,kiro)
+#     --agents    comma list: claude,kiro,codex,pi,hermes (default: claude,kiro)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #
 # Symlink mode keeps projects in lockstep with `skills-sync`; copy mode detaches.
@@ -29,7 +29,7 @@ srcdir="$ROOT/assembled/$pack"
 target="$(cd "$target" && pwd)"
 
 # per-agent project-level skill subdir. NOTE: pi/hermes project-level paths are best-guess — verify.
-declare -A AGENTDIR=( [claude]=".claude/skills" [kiro]=".kiro/skills" [pi]=".pi/skills" [hermes]=".hermes/skills" )
+declare -A AGENTDIR=( [claude]=".claude/skills" [kiro]=".kiro/skills" [codex]=".codex/skills" [pi]=".pi/skills" [hermes]=".hermes/skills" )
 
 echo "==> installing pack '$pack' into $target ($mode)"
 IFS=',' read -ra AS <<< "$agents"
