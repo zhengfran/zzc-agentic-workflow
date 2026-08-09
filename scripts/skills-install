@@ -29,12 +29,22 @@ srcdir="$ROOT/assembled/$pack"
 target="$(cd "$target" && pwd)"
 
 # per-agent project-level skill subdir. NOTE: pi/hermes project-level paths are best-guess — verify.
-declare -A AGENTDIR=( [claude]=".claude/skills" [kiro]=".kiro/skills" [codex]=".codex/skills" [pi]=".pi/skills" [hermes]=".hermes/skills" )
+# (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
+agentdir() {
+  case "$1" in
+    claude) echo ".claude/skills";;
+    kiro)   echo ".kiro/skills";;
+    codex)  echo ".codex/skills";;
+    pi)     echo ".pi/skills";;
+    hermes) echo ".hermes/skills";;
+    *)      echo "";;
+  esac
+}
 
 echo "==> installing pack '$pack' into $target ($mode)"
 IFS=',' read -ra AS <<< "$agents"
 for a in "${AS[@]}"; do
-  sub="${AGENTDIR[$a]:-}"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
+  sub="$(agentdir "$a")"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
   dst="$target/$sub"; mkdir -p "$dst"
   for s in "$srcdir"/*; do
     name="$(basename "$s")"
