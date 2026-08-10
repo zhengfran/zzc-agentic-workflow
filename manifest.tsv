@@ -26,8 +26,8 @@ notes	ljg-writes	vendored
 notes	excalidraw-diagram	vendored
 notes	mermaid-visualizer	vendored
 notes	obsidian-canvas-creator	vendored
-notes	new-org-project	zzc
-notes	sync-jira-to-denote	zzc
+notes	new-org-project	self
+notes	sync-jira-to-denote	self
 coding	code-review	vendored
 coding	codebase-design	vendored
 coding	domain-modeling	vendored
@@ -42,7 +42,6 @@ coding	triage	vendored
 coding	wayfinder	vendored
 coding	ask-matt	vendored
 coding	setup-matt-pocock-skills	vendored
-hermes-only	garmin-runcoach	zzc
 coding	diagnosing-bugs	vendored
 notes	ljg-blind	vendored
 notes	ljg-constraint	vendored
@@ -58,7 +57,6 @@ coding	scaffold-exercises	vendored
 notes	pdf-to-markdown	vendored
 notes	pdf-to-text	vendored
 notes	query	vendored
-coding	document-issue	zzc
 notes	ljg-is	vendored
 coding	wait-what	vendored
 coding	writing-for-agents	vendored

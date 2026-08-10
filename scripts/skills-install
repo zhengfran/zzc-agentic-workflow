@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
-# skills-install — install an assembled pack into a project's per-agent skill dirs.
+# skills-install — install an assembled pack into per-agent skill dirs.
 #
 # Usage:
 #   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
-#     pack        one of: global notes coding  (see assembled/)
-#     target-dir  project root (default: current dir)
-#     --agents    comma list: claude,kiro,codex,pi,hermes (default: claude,kiro)
+#     pack        notes | coding  → project-level install (see assembled/)
+#                 global          → machine-level install into the 4 agent home dirs,
+#                                   ignores target-dir, also folds in assembled/hermes-only
+#     target-dir  project root for notes/coding (default: current dir); ignored for global
+#     --agents    comma list: claude,kiro,codex,pi,hermes
+#                 (default: claude,kiro for notes/coding; claude,kiro,pi,hermes for global)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #
-# Symlink mode keeps projects in lockstep with `skills-sync`; copy mode detaches.
+# Symlink mode keeps installs in lockstep with `skills-sync`; copy mode detaches.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 pack="${1:?usage: skills-install <pack> [target-dir] [--agents ...] [--copy]}"; shift || true
 
-target="."; agents="claude,kiro"; mode="symlink"
+target="."; agents=""; mode="symlink"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agents) agents="$2"; shift 2;;
@@ -23,10 +26,10 @@ while [[ $# -gt 0 ]]; do
     *)        target="$1"; shift;;
   esac
 done
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,pi,hermes" || agents="claude,kiro"; }
 
 srcdir="$ROOT/assembled/$pack"
 [[ -d "$srcdir" ]] || { echo "no such pack: $pack (run skills-sync first)"; exit 1; }
-target="$(cd "$target" && pwd)"
 
 # per-agent project-level skill subdir. NOTE: pi/hermes project-level paths are best-guess — verify.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
@@ -41,16 +44,52 @@ agentdir() {
   esac
 }
 
-echo "==> installing pack '$pack' into $target ($mode)"
-IFS=',' read -ra AS <<< "$agents"
-for a in "${AS[@]}"; do
-  sub="$(agentdir "$a")"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
-  dst="$target/$sub"; mkdir -p "$dst"
+# per-agent machine-level (home dir) skill dir, used only for pack=global.
+homedir() {
+  case "$1" in
+    claude) echo "$HOME/.claude/skills";;
+    kiro)   echo "$HOME/.kiro/skills";;
+    pi)     echo "$HOME/.pi/agent/skills";;
+    hermes) echo "$HOME/.hermes/skills";;
+    *)      echo "";;
+  esac
+}
+
+install_one() {
+  local dst="$1" srcdir="$2"
+  mkdir -p "$dst"
+  find "$dst" -mindepth 1 -maxdepth 1 -exec rm -rf {} +   # clear stale entries
   for s in "$srcdir"/*; do
-    name="$(basename "$s")"
+    local name; name="$(basename "$s")"
     if [[ "$mode" == copy ]]; then rm -rf "$dst/$name"; cp -rL "$s" "$dst/$name"
     else ln -sfn "$s" "$dst/$name"; fi
   done
-  echo "   $a → $sub  ($(ls "$dst" | wc -l) skills)"
-done
-echo "note: add the installed agent skill dirs to this repo's .gitignore if you don't want them tracked."
+  echo "   → $dst  ($(ls "$dst" | wc -l) skills)"
+}
+
+if [[ "$pack" == global ]]; then
+  echo "==> installing global pack into agent home dirs ($mode)"
+  IFS=',' read -ra AS <<< "$agents"
+  for a in "${AS[@]}"; do
+    dst="$(homedir "$a")"; [[ -n "$dst" ]] || { echo "  ?? unknown/no home dir for agent: $a"; continue; }
+    install_one "$dst" "$srcdir"
+    if [[ "$a" == hermes && -d "$ROOT/assembled/hermes-only" ]]; then
+      for s in "$ROOT/assembled/hermes-only"/*; do
+        [[ -e "$s" ]] || continue
+        name="$(basename "$s")"
+        if [[ "$mode" == copy ]]; then rm -rf "$dst/$name"; cp -rL "$s" "$dst/$name"
+        else ln -sfn "$s" "$dst/$name"; fi
+      done
+      echo "   hermes extras → $dst ($(ls "$ROOT/assembled/hermes-only" 2>/dev/null | wc -l))"
+    fi
+  done
+else
+  echo "==> installing pack '$pack' into $target ($mode)"
+  target="$(cd "$target" && pwd)"
+  IFS=',' read -ra AS <<< "$agents"
+  for a in "${AS[@]}"; do
+    sub="$(agentdir "$a")"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
+    install_one "$target/$sub" "$srcdir"
+  done
+  echo "note: add the installed agent skill dirs to this repo's .gitignore if you don't want them tracked."
+fi
