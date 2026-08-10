@@ -146,12 +146,13 @@ orgfile_to_md() {
 
 # Apply markdown-ization to a skill directory.
 #   1. Every *.org file → converted *.md sibling (orgfile_to_md), .org removed,
-#      references to the renamed file rewritten across all md files.
+#      references to the renamed file rewritten across Markdown and runtime text files.
 #   2. String swaps in all *.md files (assets/ excluded):
 #      - File-extension refs: __qa.org → __qa.md, etc.
 #      - Keywords: org-mode → markdown
 #      - Org-style format instructions: *bold* rule, heading-level rule,
 #        "Org 文件头", #+title:-style example lines → YAML keys
+#      - Org emphasized bullet labels: - *标签*： → - **标签**：
 # Does NOT touch: *bold* markers inside prose (markdown italics ambiguity).
 mdize_skill() {
   local skill_dir="$1"
@@ -169,7 +170,8 @@ mdize_skill() {
   # 2) string swaps across all md files
   local files=()
   while IFS= read -r f; do files+=("$f"); done < <(find "$skill_dir" -name '*.md' -not -path '*/assets/*' 2>/dev/null)
-  local file r
+  local file r skill_name
+  skill_name=$(basename "$skill_dir")
   for file in ${files[@]+"${files[@]}"}; do
     sed -i '' \
       -e 's/__qa\.org/__qa.md/g' \
@@ -178,13 +180,30 @@ mdize_skill() {
       -e 's/__concept\.org/__concept.md/g' \
       -e 's/__rank\.org/__rank.md/g' \
       -e 's/__structure\.org/__structure.md/g' \
+      -e 's/__is\.org/__is.md/g' \
       -e 's/__write\.org/__write.md/g' \
       -e 's/__constraint\.org/__constraint.md/g' \
       -e 's/__plain\.org/__plain.md/g' \
       -e 's/__blind\.org/__blind.md/g' \
+      -e 's/__book\.org/__book.md/g' \
       -e 's/template\.org/template.md/g' \
       -e 's/org-mode/markdown/g' \
       -e 's/Org-mode/Markdown/g' \
+      -e 's/Defaults to a saved org note/Defaults to a saved markdown note/g' \
+      -e 's/保存 org 笔记/保存 Markdown 笔记/g' \
+      -e 's/写 org 文件时/写 Markdown 文件时/g' \
+      -e 's/写入 Org 后运行/写入 Markdown 后运行/g' \
+      -e 's/\/note\.org/\/note.md/g' \
+      -e 's/<note\.org>/<note.md>/g' \
+      -e 's/- \*x\*：/- **x**：/g' \
+      -e 's/- \*f\*：/- **f**：/g' \
+      -e 's/- \*f(x)\*：/- **f(x)**：/g' \
+      -e 's/`\* x：/`# x：/g' \
+      -e 's/`\* f：/`# f：/g' \
+      -e 's/`\* f(x)：/`# f(x)：/g' \
+      -e 's/`\* 资料校准/`# 资料校准/g' \
+      -e 's/org example ASCII 图/Markdown fenced ASCII 图/g' \
+      -e 's/org 的 `#+begin_example` \/ `#+end_example` 块/Markdown 的 fenced code block/g' \
       -e 's/加粗用 `\*bold\*`（单星号），禁止 `\*\*bold\*\*`/加粗用 `**bold**`（双星号）/g' \
       -e 's/标题层级从 `\*` 开始/标题层级从 `#` 开始/g' \
       -e 's/Org 加粗使用单星号，标题从 `\*` 开始且不跳级。/Markdown 加粗使用双星号，标题从 `#` 开始且不跳级。/g' \
@@ -194,12 +213,43 @@ mdize_skill() {
       -e 's/验证 Denote 接受与 `org-lint`/验证 Denote 接受/g' \
       -e 's/再运行 Denote 接受检查和 `org-lint`/再运行 Denote 接受检查/g' \
       "$file"
+    if [ "$skill_name" = "ljg-is" ]; then
+      sed -i '' \
+        -e 's/Org 笔记/Markdown 笔记/g' \
+        -e 's/Denote\/Org/Denote\/Markdown/g' \
+        "$file"
+    fi
     sed -E -i '' \
       -e 's/^#\+(title|subtitle|date|filetags|identifier|source|author|authors|venue):/\1:/' \
       "$file"
+    perl -pi -e 's/^#\+(TITLE|SUBTITLE|DATE|FILETAGS|IDENTIFIER|SOURCE|AUTHOR|AUTHORS|VENUE):/\L$1:/;' "$file"
+    sed -i '' -e 's/^filetags:/tags:/' "$file"
+    # A line-start bullet label followed by a full-width colon is structural,
+    # so it is safe to distinguish from ambiguous prose emphasis.
+    perl -pi -e 's/^- \*([^*\n]+)\*：/- **$1**：/;' "$file"
     # Only relabel Org fences that now contain YAML-style front matter.
     # Real Org examples (headings, #+begin_example, etc.) must keep the org fence.
-    perl -0pi -e 's/```org\n(?=(?:title|subtitle|date|filetags|identifier|source|author|authors|venue):)/```yaml\n/g' "$file"
+    perl -0pi -e 's/```org\n(?=(?:title|subtitle|date|tags|identifier|source|author|authors|venue):)/```yaml\n/g' "$file"
+    perl -0pi -e 's/```org\n#\+begin_example\n(.*?)#\+end_example\n```/```text\n$1```/gs' "$file"
+    perl -0pi -e 's/```org\n(?=- \*\*[^*\n]+\*\*：)/```markdown\n/g' "$file"
+    for r in ${renames[@]+"${renames[@]}"}; do
+      sed -i '' "s/${r//./\\.}/${r%.org}.md/g" "$file"
+    done
+  done
+
+  # 3) Exact references to converted Org files can also live in runtime
+  # consumers (for example a TypeScript test loading ../Template.org).
+  # Rewrite only actual converted basenames, so fixture strings such as
+  # __is.org remain untouched unless that concrete file was converted.
+  local reference_files=()
+  while IFS= read -r f; do reference_files+=("$f"); done < <(
+    find "$skill_dir" -type f -not -path '*/assets/*' \
+      \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' \
+         -o -name '*.cjs' -o -name '*.json' -o -name '*.toml' \
+         -o -name '*.yaml' -o -name '*.yml' -o -name '*.sh' \) \
+      2>/dev/null
+  )
+  for file in ${reference_files[@]+"${reference_files[@]}"}; do
     for r in ${renames[@]+"${renames[@]}"}; do
       sed -i '' "s/${r//./\\.}/${r%.org}.md/g" "$file"
     done
