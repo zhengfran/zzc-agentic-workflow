@@ -1,0 +1,4 @@
+interface:
+  display_name: "Obsidian Task System"
+  short_description: "Operate the Obsidian Task Hub and task maps"
+  default_prompt: "Use $obsidian-task-system to capture this work, update its task metadata, and refresh the related task map."

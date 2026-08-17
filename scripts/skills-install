@@ -49,6 +49,7 @@ homedir() {
   case "$1" in
     claude) echo "$HOME/.claude/skills";;
     kiro)   echo "$HOME/.kiro/skills";;
+    codex)  echo "$HOME/.codex/skills";;
     pi)     echo "$HOME/.pi/agent/skills";;
     hermes) echo "$HOME/.hermes/skills";;
     *)      echo "";;

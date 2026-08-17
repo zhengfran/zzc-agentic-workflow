@@ -62,6 +62,10 @@ setup_repo() {
 detect_updates() {
   for local_skill in "$SKILLS_LOCAL"/ljg-*; do
     [ -d "$local_skill" ] || continue
+    # A prefixed workspace/eval directory is not a publishable skill unless its
+    # root contains the skill entrypoint. This keeps benchmark snapshots such as
+    # ljg-book-workspace out of README checks, rsync, commits, and releases.
+    [ -f "$local_skill/SKILL.md" ] || continue
     local name
     name=$(basename "$local_skill")
     local repo_skill="$SKILLS_REPO/skills/$name"
@@ -77,6 +81,7 @@ detect_updates() {
 list_all_local() {
   for local_skill in "$SKILLS_LOCAL"/ljg-*; do
     [ -d "$local_skill" ] || continue
+    [ -f "$local_skill/SKILL.md" ] || continue
     local name
     name=$(basename "$local_skill")
     echo "$name"
@@ -123,6 +128,12 @@ orgfile_to_md() {
     }
     { if (inhdr == 1) { print "---"; inhdr = 0 } }
     /^#\+ATTR/ { next }
+    /^# / {
+      line = $0
+      sub(/^# /, "", line)
+      print "<!-- " line " -->"
+      next
+    }
     /^#\+begin_src/ { sub(/^#\+begin_src[ \t]*/, "```"); print; next }
     /^#\+end_src/ { print "```"; next }
     /^#\+begin_quote/ { next }
@@ -189,10 +200,23 @@ mdize_skill() {
       -e 's/template\.org/template.md/g' \
       -e 's/org-mode/markdown/g' \
       -e 's/Org-mode/Markdown/g' \
+      -e 's/文件必须是 markdown，禁止 Markdown。/文件必须是 Markdown，禁止 Org 格式。/g' \
       -e 's/Defaults to a saved org note/Defaults to a saved markdown note/g' \
+      -e 's/Defaults to a saved Org note/Defaults to a saved Markdown note/g' \
+      -e 's/Produces natural, content-led Org notes/Produces natural, content-led Markdown notes/g' \
       -e 's/保存 org 笔记/保存 Markdown 笔记/g' \
+      -e 's/保存 Org 笔记/保存 Markdown 笔记/g' \
+      -e 's/生成由论文内容命名的 Org 笔记/生成由论文内容命名的 Markdown 笔记/g' \
       -e 's/写 org 文件时/写 Markdown 文件时/g' \
+      -e 's/写 Org 文件时/写 Markdown 文件时/g' \
+      -e 's/所有生成的 Org 文件/所有生成的 Markdown 文件/g' \
       -e 's/写入 Org 后运行/写入 Markdown 后运行/g' \
+      -e 's/`#+DESCRIPTION`/`description`/g' \
+      -e 's/`#+description`/`description`/g' \
+      -e 's/`#+source`/`source`/g' \
+      -e 's/Org 的 `#+begin_example` \/ `#+end_example`/Markdown 围栏代码块/g' \
+      -e 's/Org 的 #+begin_example \/ #+end_example/Markdown 围栏代码块/g' \
+      -e 's/Org example 块/Markdown 围栏代码块/g' \
       -e 's/\/note\.org/\/note.md/g' \
       -e 's/<note\.org>/<note.md>/g' \
       -e 's/- \*x\*：/- **x**：/g' \
@@ -256,6 +280,31 @@ mdize_skill() {
   done
 }
 
+# Fail the md publish if an output-format instruction survived conversion.
+# Mentions of Org as an accepted input remain valid; this targets only phrases
+# that would make an md-branch skill emit Org or expose Org markup.
+audit_md_skill() {
+  local skill_dir="$1"
+  local org_files output_residuals markup_residuals
+
+  org_files=$(find "$skill_dir" -type f -name '*.org' -not -path '*/assets/*' 2>/dev/null || true)
+  output_residuals=$(find "$skill_dir" -type f -name '*.md' -not -path '*/assets/*' -print0 \
+    | xargs -0 grep -En \
+      'Defaults to a saved Org note|Produces natural, content-led Org notes|保存 Org 笔记|生成由论文内容命名的 Org 笔记|写 Org 文件时|所有生成的 Org 文件|Org 文件统一保存|写入 Org 后运行|文件必须是 (markdown|Markdown)，禁止 Markdown|`#\+(DESCRIPTION|description|source)`|Org 的 (`)?#\+begin_example|Org example 块' \
+      2>/dev/null || true)
+  markup_residuals=$(find "$skill_dir" -type f -name '*.md' -not -path '*/assets/*' -print0 \
+    | xargs -0 grep -En '^#\+(TITLE|SUBTITLE|DESCRIPTION|DATE|FILETAGS|IDENTIFIER|begin_|end_)' \
+      2>/dev/null || true)
+
+  if [ -n "$org_files$output_residuals$markup_residuals" ]; then
+    err "markdown conversion residuals in $(basename "$skill_dir")"
+    [ -n "$org_files" ] && printf '%s\n' "$org_files" >&2
+    [ -n "$output_residuals" ] && printf '%s\n' "$output_residuals" >&2
+    [ -n "$markup_residuals" ] && printf '%s\n' "$markup_residuals" >&2
+    return 1
+  fi
+}
+
 # Sync one skill: rsync local → repo path, optionally apply mdize.
 sync_skill() {
   local name="$1"
@@ -314,6 +363,13 @@ push_branch() {
   if [ "$DRY_RUN" = "1" ]; then
     log "  [dry-run] skipping bump/commit/push"
     return 0
+  fi
+
+  if [ "$mdize" = "1" ]; then
+    for name in $skills; do
+      audit_md_skill "$SKILLS_REPO/skills/$name"
+    done
+    ok "markdown residual audit passed"
   fi
 
   if [ -z "$(git status --porcelain)" ]; then

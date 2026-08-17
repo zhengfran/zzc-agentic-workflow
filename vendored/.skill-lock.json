@@ -72,8 +72,8 @@
       "skillPath": "skills/ljg-card/SKILL.md",
       "skillFolderHash": "1b3408eb71a2f0bf2a8f2c2d0569d4b7320e68ad",
       "installedAt": "2026-04-05T08:32:37.742Z",
-      "updatedAt": "2026-08-09T07:13:37.864510+00:00",
-      "folderHash": "b5b3c5a9bc7fa7a15933ddd661631412fed3f59a"
+      "updatedAt": "2026-08-15T06:57:38.894274+00:00",
+      "folderHash": "a6e07cc877ed1493b880a396b3866d0305639b1f"
     },
     "ljg-invest": {
       "source": "lijigang/ljg-skills",
@@ -102,8 +102,8 @@
       "skillPath": "skills/ljg-paper/SKILL.md",
       "skillFolderHash": "8e19667982a8ead525a35c323309c458f34af8bf",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-07-26T06:38:37.013382+00:00",
-      "folderHash": "36a9395c57fb4d6d21dfac809d12f929d5e83d97"
+      "updatedAt": "2026-08-15T06:57:38.904633+00:00",
+      "folderHash": "1776389fa554cf11b9f2474935e0ae56e0735c61"
     },
     "ljg-paper-flow": {
       "source": "lijigang/ljg-skills",
@@ -192,8 +192,8 @@
       "skillPath": "skills/ljg-writes/SKILL.md",
       "skillFolderHash": "93141fdb54d3b27a1195a937f45635674d18bd9c",
       "installedAt": "2026-04-05T08:32:37.757Z",
-      "updatedAt": "2026-08-09T07:13:55.937547+00:00",
-      "folderHash": "d37359cd6c0a92c6a8afc6fec9299b9672a947d0"
+      "updatedAt": "2026-08-15T06:57:38.923880+00:00",
+      "folderHash": "ca8f33e955d374ca10d6d56d383bcfa18b872eb1"
     },
     "grill-with-docs": {
       "source": "mattpocock/skills",
@@ -290,8 +290,8 @@
       "skillPath": "skills/ljg-book/SKILL.md",
       "skillFolderHash": "c51205bf495b3d31dfe86a236083a459fec31cc9",
       "installedAt": "2026-06-12T04:18:37.799Z",
-      "updatedAt": "2026-08-09T07:13:37.846572+00:00",
-      "folderHash": "b85a67a70b7b97f581e78988dd055c5059438731"
+      "updatedAt": "2026-08-15T06:57:38.880653+00:00",
+      "folderHash": "66906d650fbdc5c0dee4fbfcb342d03a547dfbbe"
     },
     "ljg-present": {
       "source": "lijigang/ljg-skills",
@@ -374,8 +374,8 @@
       "skillFolderHash": "028a0e44b23909cbdd715aa00546d5c1c46ae4d6",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.382Z",
-      "updatedAt": "2026-07-22T09:16:07.068428+00:00",
-      "folderHash": "66acaf88a80b849331fa0d2781e0135b32ea7aff"
+      "updatedAt": "2026-08-15T06:57:50.950286+00:00",
+      "folderHash": "a64a220c9b5a6f8fb53fc075a5b2e98f83133263"
     },
     "grilling": {
       "source": "mattpocock/skills",
@@ -486,8 +486,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-push/SKILL.md",
       "installedAt": "2026-07-23T03:15:50.148981+00:00",
-      "updatedAt": "2026-08-09T07:13:55.922552+00:00",
-      "folderHash": "aec264b4e75e3645f8f7bbd9bd884b0f8dcb28b4"
+      "updatedAt": "2026-08-15T06:57:38.914574+00:00",
+      "folderHash": "60d4dabdd594ef0249d8c8c38749ce1cb748bece"
     },
     "ljg-structure": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -495,8 +495,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-structure/SKILL.md",
       "installedAt": "2026-07-23T03:15:52.263522+00:00",
-      "updatedAt": "2026-07-26T06:38:37.035261+00:00",
-      "folderHash": "95c62366091768508f24f35433dab993f1b9238a"
+      "updatedAt": "2026-08-15T06:57:38.919631+00:00",
+      "folderHash": "628ca741ad6ef97cbfa9af88175bff2e3c80895d"
     },
     "claude-handoff": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -634,6 +634,7 @@
     "https://github.com/pspdfkit-labs/nutrient-skills.git"
   ],
   "declinedNew": [
+    "https://github.com/lijigang/ljg-skills.git::ljg-classic",
     "https://github.com/mattpocock/skills.git::obsidian-vault",
     "https://github.com/mattpocock/skills.git::qa",
     "https://github.com/mattpocock/skills.git::setup-pre-commit",

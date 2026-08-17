@@ -3,3 +3,10 @@
 
 # upstream clone cache used by scripts/skills-update
 /.cache/
+
+# Local coding-agent state (normally stored under ~/.<agent>).
+/.claude/
+/.codex/
+/.pi/
+/.copilot/
+/.kiro/
