@@ -32,7 +32,7 @@ user_invocable: true
 
 - **杠杆**——补上它，下一步打开的可能性最多。
 - **真盲**——是他自己看不见的，不是知道了在拖的。
-- **对位 mission**——贴 M0（找新取景框）/ M1（求本质）。盲区若正好挡在他的主线上，优先。读 `~/.claude/PAI/USER/TELOS/MISSION.md` 确认主线。
+- **对位 mission**——贴 M0（找新取景框）/ M1（求本质）。盲区若正好挡在他的主线上，优先。读 `${LIFEOS_DIR:-$HOME/.codex/LIFEOS}/USER/TELOS/PRINCIPAL_TELOS.md` 确认主线。
 
 ---
 
@@ -47,25 +47,46 @@ target=${1:-$(date -v-1d +%Y-%m-%d)}
 
 ### 第二步 · 捞当天的对话
 
-会话文件在 `~/.claude/projects/-Users-lijigang*/*.jsonl`，每行一条消息（type=user / assistant / system）。只要继刚的真人发言，滤掉工具回显和子 agent 噪声：
+会话文件在 `$HOME/.codex/sessions/YYYY/MM/DD/*.jsonl`。目录日期按本机时间记录 session 的开始日，行内 `timestamp` 是 UTC；因此同时扫目标日与前一日目录，再按本机日期过滤消息。只读取顶层 task 的 `response_item / message / user / input_text`，排除 `session_meta.payload.source.subagent` 存在的子 agent 会话，以及 harness 包装和本次调用自身：
 
 ```bash
 target=<上一步的日期>
 out=/tmp/ljg-blind-${target}.txt
 : > "$out"
-# 只取顶层会话文件（排除 subagents/workflows），只留真人纯文本
-for f in $(rg -l "\"timestamp\":\"${target}" ~/.claude/projects/-Users-lijigang*/ 2>/dev/null | grep -vE 'subagents/|workflows/'); do
-  jq -r 'select(.type=="user" and ((.timestamp // "") | startswith("'"${target}"'"))) |
-    (.message.content) as $c |
-    (if ($c|type)=="string" then $c
-     elif ($c|type)=="array" then ([$c[] | select(.type=="text") | .text] | join(" "))
-     else "" end) as $t |
-    select($t|length>0) |
-    "[" + (.timestamp|.[11:16]) + "] " + $t' "$f" 2>/dev/null >> "$out"
+previous_dir=$(date -j -v-1d -f '%Y-%m-%d' "$target" '+%Y/%m/%d')
+target_dir=$(date -j -f '%Y-%m-%d' "$target" '+%Y/%m/%d')
+
+for day_dir in "$previous_dir" "$target_dir"; do
+  session_dir="$HOME/.codex/sessions/$day_dir"
+  [ -d "$session_dir" ] || continue
+  find "$session_dir" -type f -name '*.jsonl' -print0
+done | while IFS= read -r -d '' session_file; do
+  # Codex 将子 agent 与顶层 task 放在同一日期目录；从 session_meta 排除它们。
+  if jq -e 'select(.type=="session_meta") |
+      (.payload.source | type == "object" and has("subagent"))' \
+      "$session_file" >/dev/null 2>&1; then
+    continue
+  fi
+
+  jq -r --arg target "$target" '
+    def local_epoch:
+      sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;
+    select(.type=="response_item"
+      and .payload.type=="message"
+      and .payload.role=="user")
+    | (.timestamp | local_epoch) as $epoch
+    | select(($epoch | strflocaltime("%Y-%m-%d")) == $target)
+    | ([.payload.content[]?
+        | select(.type=="input_text")
+        | .text] | join("\n")) as $text
+    | select($text | length > 0)
+    | select(($text | test("^(<recommended_plugins>|<environment_context>|<task-notification>)")) | not)
+    | select(($text | test("(?i)(ljg-blind|扫盲区)")) | not)
+    | "[" + ($epoch | strflocaltime("%H:%M")) + "] " + $text
+  ' "$session_file" 2>/dev/null >> "$out"
 done
-# 滤掉工具回显 / 系统噪声 / 本次调用请求自身
-grep -vE 'tool_use_id|system-reminder|caveat|Caveat|local-command|command-name|command-message|<task-notification>|ljg-blind|扫盲区' "$out" > "${out}.f" && mv "${out}.f" "$out"
-wc -c "$out"
+
+wc -m "$out"
 ```
 
 材料若 >50KB，按对话分段读，先识别每段在讨论什么主题，再往下看。可辅助看几条相邻的 assistant 回复定上下文。
@@ -130,7 +151,7 @@ bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" "<bookId>"
 
 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`（时间用当前，不是 target）。
 
-写入 `~/Documents/notes/{时间戳}--盲区-{主题}__blind.org`。org-mode 格式，禁止 markdown 语法。
+写入 `~/Context/{时间戳}--盲区-{主题}__blind.org`。org-mode 格式，禁止 markdown 语法。
 
 正文模板：
 

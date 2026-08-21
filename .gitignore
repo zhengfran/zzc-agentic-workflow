@@ -10,3 +10,7 @@
 /.pi/
 /.copilot/
 /.kiro/
+
+# Python bytecode cache (scripts/skills-update is a py script run in place).
+__pycache__/
+*.pyc

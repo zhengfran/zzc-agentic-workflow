@@ -54,11 +54,12 @@ ORG = HOME / "org"
 
 # where the global pack is distributed (per-agent), for orphan cleanup
 AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
-                HOME / ".pi/agent/skills", HOME / ".hermes/skills"]
+                HOME / ".codex/skills", HOME / ".pi/agent/skills",
+                HOME / ".hermes/skills"]
 
 # Repos we actively follow for NEW upstream skills. Other repos (big catalogs
-# we only cherry-picked one skill from, e.g. awesome-claude-skills) are ignored
-# for new-skill discovery. Persisted as ``followNew`` in the lockfile — edit it
+# we only cherry-picked one or two skills from) are ignored for new-skill
+# discovery. Persisted as ``followNew`` in the lockfile — edit it
 # there to add/remove followed repos, or pass --follow-all for a one-off sweep.
 DEFAULT_FOLLOW = [
     "https://github.com/lijigang/ljg-skills.git",
@@ -155,6 +156,8 @@ def remove_local(name, pack, data, manifest_lines):
             _rm(d / name)
     elif pack == "notes":
         _rm(ORG / ".claude/skills" / name)
+        _rm(ORG / ".kiro/skills" / name)
+        _rm(ORG / ".codex/skills" / name)
         _rm(ORG / ".hermes/skills" / name)
     elif pack == "hermes-only":
         _rm(HOME / ".hermes/skills" / name)

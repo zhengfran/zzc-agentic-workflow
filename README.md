@@ -1,13 +1,10 @@
 # zzc-skills
 
 AI agent skills — vendored from upstream repos plus self-authored — assembled into
-packs and distributed across Claude Code, Kiro, Pi, and Hermes.
+packs and distributed across Claude Code, Kiro, Codex, Pi, and Hermes.
 
-Extracted from [dotconfig](https://github.com/zhengfran/dotconfig)'s `tools/ai/skills/`
-on 2026-08-10 ([migration plan](https://github.com/zhengfran/dotconfig/issues/1)),
-history preserved via `git subtree split`. Canonical clone location: `~/projects/zzc-skills`
-— other repos' setup instructions can reference this path directly, e.g.
-`~/projects/zzc-skills/scripts/skills-install coding .`.
+Canonical clone location: `~/projects/zzc-skills` — other repos' setup instructions
+can reference this path directly, e.g. `~/projects/zzc-skills/scripts/skills-install coding .`.
 
 ## Layout
 
@@ -31,13 +28,29 @@ into either `vendored/<pack>/<skill>` or `self/<pack>/<skill>`, whichever the ro
 - **coding** — installed per-project, on demand, via `skills-install coding <repo>`.
 - **hermes-only** — extras that only make sense for the hermes agent (currently empty).
 
+## Upstream sources
+
+Every skill under `vendored/` is an unmodified copy from one of these repos, tracked in
+`vendored/.skill-lock.json` and refreshed by `scripts/skills-update`.
+
+| Upstream | Skills | Packs | Followed for new skills |
+| --- | --- | --- | --- |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 28 | coding, global | yes |
+| [lijigang/ljg-skills](https://github.com/lijigang/ljg-skills) | 24 | notes | yes |
+| [axtonliu/axton-obsidian-visual-skills](https://github.com/axtonliu/axton-obsidian-visual-skills) | 3 | notes | no |
+| [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | 1 | global | no |
+
+"Followed" repos are scanned for *new* upstream skills on every `skills-update` run
+(the `followNew` list in the lockfile); the others are cherry-picked only, so their
+catalogs don't flood the prompt. Add a repo with `skills-update --add-repo <url>`.
+
 ## Usage
 
 Fresh clone / after a pull:
 
 ```bash
 scripts/skills-sync                  # rebuild assembled/ from vendored/ + self/
-scripts/skills-install global        # distribute the global pack into all 4 agent home dirs
+scripts/skills-install global        # distribute the global pack into the default agent home dirs
 ```
 
 Add `--update` to `skills-sync` to pull the latest vendored upstreams first
@@ -50,19 +63,14 @@ Per-project install (coding or notes pack, into a specific repo):
 ~/projects/zzc-skills/scripts/skills-install notes ~/org --copy   # detached copy, for cloud-synced dirs
 ```
 
-`--agents claude,kiro,pi,hermes` narrows which agents get installed; defaults are
-`claude,kiro` for project-level packs and `claude,kiro,pi,hermes` for `global`.
+`--agents` narrows which agents get installed. Supported: `claude`, `kiro`, `codex`,
+`pi`, `hermes`. Defaults are `claude,kiro,codex` for project-level packs and all five
+for `global`:
 
-## Notes
+```bash
+scripts/skills-install coding /path/to/repo --agents claude,codex
+```
 
-- Known tech debt: `pi`/`hermes` project-level skill directory conventions
-  (`.pi/skills`, `.hermes/skills`) are best-guess, unverified against those agents'
-  actual behavior. Machine-level paths (`~/.pi/agent/skills`, `~/.hermes/skills`) are
-  confirmed.
-- No repo-wide `LICENSE` — matches dotconfig's own convention. Individual vendored
-  skills may carry their own license file (e.g. `vendored/coding/mcp-builder/LICENSE.txt`);
-  those are redistributed as vendored, unmodified.
-- This repo does not publish itself as a Claude Code plugin marketplace
-  (`.claude-plugin/marketplace.json`) — the wholesale-install model doesn't map onto
-  per-skill/per-pack selection or the symlink-lockstep convention above. Revisit if
-  this repo ever needs to be shared/discovered by others.
+Each agent has a project-level dir (`<project>/.codex/skills`) and a machine-level one
+(`~/.codex/skills`); `skills-update` sweeps the machine-level dirs when pruning a skill
+that disappeared upstream.

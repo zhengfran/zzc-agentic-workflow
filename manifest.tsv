@@ -36,7 +36,6 @@ coding	implement	vendored
 coding	improve-codebase-architecture	vendored
 coding	prototype	vendored
 coding	tdd	vendored
-coding	mcp-builder	vendored
 coding	to-spec	vendored
 coding	to-tickets	vendored
 coding	triage	vendored
@@ -55,9 +54,6 @@ coding	loop-me	vendored
 coding	migrate-to-shoehorn	vendored
 coding	resolving-merge-conflicts	vendored
 coding	scaffold-exercises	vendored
-notes	pdf-to-markdown	vendored
-notes	pdf-to-text	vendored
-notes	query	vendored
 notes	ljg-is	vendored
 coding	wait-what	vendored
 coding	writing-for-agents	vendored

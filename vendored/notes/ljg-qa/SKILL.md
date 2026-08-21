@@ -68,7 +68,7 @@ Running **Extract** in **ljg-qa**...
 User: /ljg-qa https://example.com/article
 → WebFetch 获取
 → 找观点骨架 → 设计 Q 链 → 写 A 三段
-→ org-mode 输出到 ~/Downloads/
+→ org-mode 输出到 ~/Documents/notes/
 ```
 
 *Example 2: 论文 PDF*

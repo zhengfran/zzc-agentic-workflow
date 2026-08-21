@@ -4,11 +4,11 @@
 # Usage:
 #   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
 #     pack        notes | coding  → project-level install (see assembled/)
-#                 global          → machine-level install into the 4 agent home dirs,
+#                 global          → machine-level install into the 5 agent home dirs,
 #                                   ignores target-dir, also folds in assembled/hermes-only
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
 #     --agents    comma list: claude,kiro,codex,pi,hermes
-#                 (default: claude,kiro for notes/coding; claude,kiro,pi,hermes for global)
+#                 (default: claude,kiro,codex for notes/coding; all five for global)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #
 # Symlink mode keeps installs in lockstep with `skills-sync`; copy mode detaches.
@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     *)        target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,pi,hermes" || agents="claude,kiro"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,pi,hermes" || agents="claude,kiro,codex"; }
 
 srcdir="$ROOT/assembled/$pack"
 [[ -d "$srcdir" ]] || { echo "no such pack: $pack (run skills-sync first)"; exit 1; }

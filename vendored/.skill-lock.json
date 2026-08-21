@@ -1,16 +1,6 @@
 {
   "version": 3,
   "skills": {
-    "mcp-builder": {
-      "source": "ComposioHQ/awesome-claude-skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/ComposioHQ/awesome-claude-skills.git",
-      "skillPath": "mcp-builder/SKILL.md",
-      "skillFolderHash": "",
-      "installedAt": "2026-03-10T05:43:48.861Z",
-      "updatedAt": "2026-03-10T05:43:48.861Z",
-      "folderHash": "98aae6f9449ec16ea0290e6722634f2b1b7bb934"
-    },
     "grill-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -19,8 +9,8 @@
       "skillFolderHash": "8320e7b87f7b208f50ce165b1dd43d1e93c8e801",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-03-31T06:19:20.135Z",
-      "updatedAt": "2026-07-22T09:16:07.068973+00:00",
-      "folderHash": "4547f10d042fade1b1bc35b75e6f56cccc957786"
+      "updatedAt": "2026-08-21T03:51:14.412772+00:00",
+      "folderHash": "ea336dab64be61cc38435288f5d32b1ada1bdb2a"
     },
     "defuddle": {
       "source": "git@github.com:kepano/obsidian-skills.git",
@@ -72,8 +62,8 @@
       "skillPath": "skills/ljg-card/SKILL.md",
       "skillFolderHash": "1b3408eb71a2f0bf2a8f2c2d0569d4b7320e68ad",
       "installedAt": "2026-04-05T08:32:37.742Z",
-      "updatedAt": "2026-08-15T06:57:38.894274+00:00",
-      "folderHash": "a6e07cc877ed1493b880a396b3866d0305639b1f"
+      "updatedAt": "2026-08-21T03:51:12.346243+00:00",
+      "folderHash": "9f329d232f67d560f2244f3221df00f2f05fe446"
     },
     "ljg-invest": {
       "source": "lijigang/ljg-skills",
@@ -102,8 +92,8 @@
       "skillPath": "skills/ljg-paper/SKILL.md",
       "skillFolderHash": "8e19667982a8ead525a35c323309c458f34af8bf",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-08-15T06:57:38.904633+00:00",
-      "folderHash": "1776389fa554cf11b9f2474935e0ae56e0735c61"
+      "updatedAt": "2026-08-21T03:51:12.350968+00:00",
+      "folderHash": "175d6aa83725a9fc6975872ae18866383a5df7fc"
     },
     "ljg-paper-flow": {
       "source": "lijigang/ljg-skills",
@@ -162,8 +152,8 @@
       "skillPath": "skills/ljg-roundtable/SKILL.md",
       "skillFolderHash": "8ec1ec0b86f2eda41f1fc934de544a51813c0223",
       "installedAt": "2026-04-05T08:32:37.753Z",
-      "updatedAt": "2026-07-22T09:16:06.303904+00:00",
-      "folderHash": "7572c41b916a5402114c0597abd44e4b155920d1"
+      "updatedAt": "2026-08-21T03:51:12.358336+00:00",
+      "folderHash": "4dc9e96757414178789360302f01d4f036eda6a8"
     },
     "ljg-travel": {
       "source": "lijigang/ljg-skills",
@@ -203,8 +193,8 @@
       "skillFolderHash": "21adba95de7d93065d9fec725ddf37f871e01d05",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.834Z",
-      "updatedAt": "2026-07-22T09:16:07.069491+00:00",
-      "folderHash": "c38f08eaba88329e91785477be8b0debb027818e"
+      "updatedAt": "2026-08-21T03:51:14.413481+00:00",
+      "folderHash": "dc4bd7b9f35b0185f68caa181d40344db2c1ae14"
     },
     "handoff": {
       "source": "mattpocock/skills",
@@ -214,8 +204,8 @@
       "skillFolderHash": "3f7df8e717e41dfd6eacd03d47319a2e01248ffb",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.836Z",
-      "updatedAt": "2026-07-22T09:16:07.070613+00:00",
-      "folderHash": "f98e5a4ca3b71faaf53a0bacede50b60e431ff48"
+      "updatedAt": "2026-08-21T03:51:14.414925+00:00",
+      "folderHash": "46aac636644fe60cfd079d33677b192163469ba5"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
@@ -225,8 +215,8 @@
       "skillFolderHash": "e5beae48471adf87c513b5cbcb0ca347467546da",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.837Z",
-      "updatedAt": "2026-08-09T07:19:07.693815+00:00",
-      "folderHash": "17b486fb0b61f8ec34203c090cdf89e64a7810dd"
+      "updatedAt": "2026-08-21T03:51:14.416142+00:00",
+      "folderHash": "95aec7712be5c9dc432ff047093f9cbdd216cd90"
     },
     "prototype": {
       "source": "mattpocock/skills",
@@ -236,8 +226,8 @@
       "skillFolderHash": "e50d76191bf197e3d947eb8c780c7009269ba589",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.838Z",
-      "updatedAt": "2026-08-09T07:19:07.703125+00:00",
-      "folderHash": "ce4cc32fa880d98b36a95f071a555f17be6c752f"
+      "updatedAt": "2026-08-21T03:51:14.418268+00:00",
+      "folderHash": "105561dd836fb8601ab4b814ab2bd6660946a1c1"
     },
     "setup-matt-pocock-skills": {
       "source": "mattpocock/skills",
@@ -247,8 +237,8 @@
       "skillFolderHash": "ed1bbe6a06bb049aaa95bfe2c487bdb7a8300838",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.839Z",
-      "updatedAt": "2026-08-09T07:19:10.003940+00:00",
-      "folderHash": "0957bc82e19ad30a8e61bf2c792922d27b1afffe"
+      "updatedAt": "2026-08-21T03:51:14.421630+00:00",
+      "folderHash": "79a0360b3d32b149cbbe2c196aa8f28c8c0dc59c"
     },
     "tdd": {
       "source": "mattpocock/skills",
@@ -258,8 +248,8 @@
       "skillFolderHash": "57e1bee887816ed2af745e5fd388f224f6e61ada",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.839Z",
-      "updatedAt": "2026-08-09T07:19:10.009716+00:00",
-      "folderHash": "90c633b4ee323868a38dc59dd787b6a527cedf49"
+      "updatedAt": "2026-08-21T03:51:14.422711+00:00",
+      "folderHash": "b803cf3ab203503365630ea378cda45a858818ef"
     },
     "teach": {
       "source": "mattpocock/skills",
@@ -269,8 +259,8 @@
       "skillFolderHash": "3b6a4245e2aaeacb308ba6175ab3e7f2e43b0c47",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.841Z",
-      "updatedAt": "2026-07-22T09:16:07.076044+00:00",
-      "folderHash": "49ea00b449e76c59baa9c6fbfdca195cc3e0528c"
+      "updatedAt": "2026-08-21T03:51:14.424162+00:00",
+      "folderHash": "9f4d52bd42d5da7b8cf72a7c7a7ac8137e742b9c"
     },
     "triage": {
       "source": "mattpocock/skills",
@@ -280,8 +270,8 @@
       "skillFolderHash": "3e7a49151929d884365035cb322de099c15b33d3",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-06-12T04:16:01.845Z",
-      "updatedAt": "2026-08-09T07:19:10.023062+00:00",
-      "folderHash": "bd87e54165a98f11ed62b2c682a42d909a850dd8"
+      "updatedAt": "2026-08-21T03:51:14.426711+00:00",
+      "folderHash": "11700fd5915f2803f85340141bf7921e8e6b23a9"
     },
     "ljg-book": {
       "source": "lijigang/ljg-skills",
@@ -290,8 +280,8 @@
       "skillPath": "skills/ljg-book/SKILL.md",
       "skillFolderHash": "c51205bf495b3d31dfe86a236083a459fec31cc9",
       "installedAt": "2026-06-12T04:18:37.799Z",
-      "updatedAt": "2026-08-15T06:57:38.880653+00:00",
-      "folderHash": "66906d650fbdc5c0dee4fbfcb342d03a547dfbbe"
+      "updatedAt": "2026-08-21T03:51:12.341547+00:00",
+      "folderHash": "7e4f3037c65276d7198c7e3416d2cc008c585476"
     },
     "ljg-present": {
       "source": "lijigang/ljg-skills",
@@ -310,8 +300,8 @@
       "skillPath": "skills/ljg-qa/SKILL.md",
       "skillFolderHash": "3986230ff27612532b72cd5085012358dbad0f93",
       "installedAt": "2026-06-12T04:18:37.813Z",
-      "updatedAt": "2026-07-22T09:16:06.300828+00:00",
-      "folderHash": "25eaae2e34375ae452e734bc72b69e642d0f6ef4"
+      "updatedAt": "2026-08-21T03:51:12.356968+00:00",
+      "folderHash": "d2d82402f5ffb83459370163cd6713d1ec1eaf2e"
     },
     "ljg-read": {
       "source": "lijigang/ljg-skills",
@@ -341,8 +331,8 @@
       "skillFolderHash": "a8673d3dac18d59cf4b05c6ae64ebc7d82042d02",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.378Z",
-      "updatedAt": "2026-08-09T07:17:09.874887+00:00",
-      "folderHash": "74e713d48cf1565bdfca04b8987db4b9f84d0ee0"
+      "updatedAt": "2026-08-21T03:51:14.406215+00:00",
+      "folderHash": "dbe183c3d291656128d1f2bd8658bf4f8096550d"
     },
     "code-review": {
       "source": "mattpocock/skills",
@@ -352,8 +342,8 @@
       "skillFolderHash": "9df6fdac9c49f20944411ee45e1582e718d9a657",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.379Z",
-      "updatedAt": "2026-08-09T07:19:03.683823+00:00",
-      "folderHash": "7b9fbd274d946247d1cee80e6ace440f9b255ec0"
+      "updatedAt": "2026-08-21T03:51:14.407684+00:00",
+      "folderHash": "67fe12c7bb1e2cf2a08d30fe0d05094e2e8f2b3f"
     },
     "codebase-design": {
       "source": "mattpocock/skills",
@@ -363,8 +353,8 @@
       "skillFolderHash": "c5dfc023e5ae146a4ceb9c509024f6ffe13db4a3",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.380Z",
-      "updatedAt": "2026-08-09T07:19:03.689694+00:00",
-      "folderHash": "77040f3fcbf8fb681e271b1802fd97cf975d204f"
+      "updatedAt": "2026-08-21T03:51:14.408790+00:00",
+      "folderHash": "aaa8651273a54fe5dd582225307b6bc27511df2a"
     },
     "domain-modeling": {
       "source": "mattpocock/skills",
@@ -374,8 +364,8 @@
       "skillFolderHash": "028a0e44b23909cbdd715aa00546d5c1c46ae4d6",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.382Z",
-      "updatedAt": "2026-08-15T06:57:50.950286+00:00",
-      "folderHash": "a64a220c9b5a6f8fb53fc075a5b2e98f83133263"
+      "updatedAt": "2026-08-21T03:51:14.410975+00:00",
+      "folderHash": "077839170c628502d9934a45ba5632a572e9e12f"
     },
     "grilling": {
       "source": "mattpocock/skills",
@@ -385,8 +375,8 @@
       "skillFolderHash": "0ace40ac10f5c0b1534324e4e109ebfa831fb361",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.385Z",
-      "updatedAt": "2026-08-09T07:19:07.685477+00:00",
-      "folderHash": "e793bfbbb6f0efeb4733a80efe860e4780f388d8"
+      "updatedAt": "2026-08-21T03:51:14.414206+00:00",
+      "folderHash": "1f54fdd37697c197e1a08efe5c2be169645d616c"
     },
     "implement": {
       "source": "mattpocock/skills",
@@ -407,8 +397,8 @@
       "skillFolderHash": "06c848c1a1f3ae7afd88f040f73a8f3efee3494d",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.388Z",
-      "updatedAt": "2026-07-22T09:16:07.073295+00:00",
-      "folderHash": "fe1b92dabe528520124fa0476379c72336f28f4e"
+      "updatedAt": "2026-08-21T03:51:14.418979+00:00",
+      "folderHash": "082ad8e2c2ffe9705c320ade135809a6757c0cf6"
     },
     "to-spec": {
       "source": "mattpocock/skills",
@@ -418,8 +408,8 @@
       "skillFolderHash": "b2f449aa3da9578b08dcea74afd9adee20285586",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.391Z",
-      "updatedAt": "2026-08-09T07:19:10.016443+00:00",
-      "folderHash": "cba612483bbfe083cec059e0937072294a6e218e"
+      "updatedAt": "2026-08-21T03:51:14.424882+00:00",
+      "folderHash": "87b4258c607329c4b1fd7cabaf89da2ca780c4c6"
     },
     "to-tickets": {
       "source": "mattpocock/skills",
@@ -429,8 +419,8 @@
       "skillFolderHash": "c0bc0e58663eec76e769c1496fe124be4545a2ff",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.392Z",
-      "updatedAt": "2026-07-22T09:16:07.080046+00:00",
-      "folderHash": "13230d80229d8fb05573f3b59ae36ff88c77d435"
+      "updatedAt": "2026-08-21T03:51:14.425613+00:00",
+      "folderHash": "18fe1ee1389632f9f92f7bef20cbc8d0ad7a553d"
     },
     "wayfinder": {
       "source": "mattpocock/skills",
@@ -440,8 +430,8 @@
       "skillFolderHash": "83a96a4454c069148d8648fd21ca62a58ac15db2",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-12T01:05:35.393Z",
-      "updatedAt": "2026-08-09T07:19:10.026502+00:00",
-      "folderHash": "e279ce83d22ac683b55282bea72693fbf085a48e"
+      "updatedAt": "2026-08-21T03:51:14.428184+00:00",
+      "folderHash": "324558796b4a885734895d10ef258f8bcd3f9e91"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
@@ -449,8 +439,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/engineering/diagnosing-bugs/SKILL.md",
       "installedAt": "2026-07-22T13:06:37.880609+00:00",
-      "folderHash": "8d68eb52fa6c366363139c07d31af68c2aa101a8",
-      "updatedAt": "2026-08-09T07:19:06.038161+00:00"
+      "folderHash": "788270005085612b4bb65d575016dcef501cd1f1",
+      "updatedAt": "2026-08-21T03:51:14.409884+00:00"
     },
     "ljg-blind": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -458,8 +448,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-blind/SKILL.md",
       "installedAt": "2026-07-23T03:15:44.142016+00:00",
-      "updatedAt": "2026-07-23T03:15:44.142027+00:00",
-      "folderHash": "b4dcfd53472c022657a20be91f72dd95834d6014"
+      "updatedAt": "2026-08-21T03:51:12.339235+00:00",
+      "folderHash": "6b3e0519292b68712dc3ac144ff1e036e82cb9af"
     },
     "ljg-constraint": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -486,8 +476,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-push/SKILL.md",
       "installedAt": "2026-07-23T03:15:50.148981+00:00",
-      "updatedAt": "2026-08-15T06:57:38.914574+00:00",
-      "folderHash": "60d4dabdd594ef0249d8c8c38749ce1cb748bece"
+      "updatedAt": "2026-08-21T03:51:12.355914+00:00",
+      "folderHash": "08378ebdca2a01e6241204815aba36370a6a70e0"
     },
     "ljg-structure": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -504,8 +494,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/in-progress/claude-handoff/SKILL.md",
       "installedAt": "2026-07-23T03:16:10.276781+00:00",
-      "updatedAt": "2026-08-09T07:19:03.678978+00:00",
-      "folderHash": "95350a883b7b883cec7881c0317f62efd2a6bc6a"
+      "updatedAt": "2026-08-21T03:51:14.406951+00:00",
+      "folderHash": "ddc51ed5936e69739737c0120b384eaed07299c5"
     },
     "git-guardrails-claude-code": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -513,8 +503,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/misc/git-guardrails-claude-code/SKILL.md",
       "installedAt": "2026-07-23T03:16:17.736801+00:00",
-      "updatedAt": "2026-07-23T03:16:17.736810+00:00",
-      "folderHash": "c7ce1718c76a92ab9e10aea5b5cc1b358598af37"
+      "updatedAt": "2026-08-21T03:51:14.412053+00:00",
+      "folderHash": "d1b24a541d9182d4d5134ea4f0000917a70a2405"
     },
     "loop-me": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -522,8 +512,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/in-progress/loop-me/SKILL.md",
       "installedAt": "2026-07-23T03:16:18.927828+00:00",
-      "updatedAt": "2026-08-09T07:19:07.697337+00:00",
-      "folderHash": "f7d8bf663a991336d689e7448abddc056b1a339a"
+      "updatedAt": "2026-08-21T03:51:14.416876+00:00",
+      "folderHash": "a65edcdc2cd39f482545292adccef0004fe887fb"
     },
     "migrate-to-shoehorn": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -540,8 +530,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "installedAt": "2026-07-23T03:16:34.363758+00:00",
-      "updatedAt": "2026-07-23T03:16:34.363767+00:00",
-      "folderHash": "d9c73073fba85a6a9db6b5939468184b5f20b070"
+      "updatedAt": "2026-08-21T03:51:14.419704+00:00",
+      "folderHash": "21433b16f8beded5603e417ca91eeb440ac34414"
     },
     "scaffold-exercises": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -551,33 +541,6 @@
       "installedAt": "2026-07-23T03:16:41.693991+00:00",
       "updatedAt": "2026-07-23T03:16:41.694000+00:00",
       "folderHash": "5e36f9fb44a13be5205d7cf0f85094fbb1dd41ee"
-    },
-    "pdf-to-markdown": {
-      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "skillPath": "plugins/pdf-to-markdown/skills/pdf-to-markdown/SKILL.md",
-      "installedAt": "2026-07-27T02:15:39.337284+00:00",
-      "updatedAt": "2026-07-27T02:15:39.337308+00:00",
-      "folderHash": "1d3fe36063919894a2b271bcc36868711dae1640"
-    },
-    "pdf-to-text": {
-      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "skillPath": "plugins/pdf-to-text/skills/pdf-to-text/SKILL.md",
-      "installedAt": "2026-07-27T02:15:41.345859+00:00",
-      "updatedAt": "2026-07-27T02:15:41.345874+00:00",
-      "folderHash": "9017eb12ba1625aa07fa2a090ee2ced98982d93d"
-    },
-    "query": {
-      "source": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/pspdfkit-labs/nutrient-skills.git",
-      "skillPath": "plugins/query/skills/query/SKILL.md",
-      "installedAt": "2026-07-27T02:15:43.141968+00:00",
-      "updatedAt": "2026-07-27T02:15:43.141979+00:00",
-      "folderHash": "ef2bb21969487c736a8fa5aae8272f76acd7dea0"
     },
     "ljg-is": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -594,8 +557,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/productivity/wait-what/SKILL.md",
       "installedAt": "2026-08-09T07:19:15.682976+00:00",
-      "updatedAt": "2026-08-09T07:19:15.683017+00:00",
-      "folderHash": "e87041454f59258ad1faa5a3fd7802f01573a081"
+      "updatedAt": "2026-08-21T03:51:14.427428+00:00",
+      "folderHash": "42597391f3d51a1de49587d5d7b8e167b4d5e239"
     },
     "writing-for-agents": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -603,8 +566,8 @@
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
       "installedAt": "2026-08-09T07:19:17.965265+00:00",
-      "updatedAt": "2026-08-09T07:19:17.965308+00:00",
-      "folderHash": "15c767b2a94168b7902293a2ea3e1d2854a17239"
+      "updatedAt": "2026-08-21T03:51:14.429109+00:00",
+      "folderHash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa"
     }
   },
   "dismissed": {
@@ -630,8 +593,7 @@
   ],
   "followNew": [
     "https://github.com/lijigang/ljg-skills.git",
-    "https://github.com/mattpocock/skills.git",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git"
+    "https://github.com/mattpocock/skills.git"
   ],
   "declinedNew": [
     "https://github.com/lijigang/ljg-skills.git::ljg-classic",
@@ -644,25 +606,6 @@
     "https://github.com/mattpocock/skills.git::wizard",
     "https://github.com/mattpocock/skills.git::writing-beats",
     "https://github.com/mattpocock/skills.git::writing-fragments",
-    "https://github.com/mattpocock/skills.git::writing-shape",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::document-extraction-api",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::document-processor-api",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::dws-viewer-api",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::grounded-rag-ingestion",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::make-pdf",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-ai-assistant",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-android-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-document-authoring",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-document-engine",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-dotnet-server-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-flutter-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-ios-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-java-server-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-maui-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-nodejs-server-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-python-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-react-native-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::nutrient-web-sdk",
-    "https://github.com/pspdfkit-labs/nutrient-skills.git::remediate-pdf"
+    "https://github.com/mattpocock/skills.git::writing-shape"
   ]
 }
