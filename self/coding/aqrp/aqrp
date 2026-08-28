@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""aqrp -- AQRP checkout, build, flash, and deploy.
+
+Targets python3.8: that is where paramiko is installed on this machine, and
+/usr/bin/python3.10 has none.
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from aqrp_lib.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main())
