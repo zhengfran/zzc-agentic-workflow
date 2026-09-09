@@ -568,6 +568,15 @@
       "installedAt": "2026-08-09T07:19:17.965265+00:00",
       "updatedAt": "2026-08-21T03:51:14.429109+00:00",
       "folderHash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa"
+    },
+    "i-have-adhd": {
+      "source": "https://github.com/ayghri/i-have-adhd.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/ayghri/i-have-adhd.git",
+      "skillPath": "skills/i-have-adhd/SKILL.md",
+      "installedAt": "2026-08-21T05:32:23.945370+00:00",
+      "updatedAt": "2026-08-21T05:32:23.945383+00:00",
+      "folderHash": "bc6cb299166fc7be37f593580209cd31a395b794"
     }
   },
   "dismissed": {
@@ -592,6 +601,7 @@
     "pi"
   ],
   "followNew": [
+    "https://github.com/ayghri/i-have-adhd.git",
     "https://github.com/lijigang/ljg-skills.git",
     "https://github.com/mattpocock/skills.git"
   ],
