@@ -577,6 +577,15 @@
       "installedAt": "2026-08-21T05:32:23.945370+00:00",
       "updatedAt": "2026-08-21T05:32:23.945383+00:00",
       "folderHash": "bc6cb299166fc7be37f593580209cd31a395b794"
+    },
+    "archify": {
+      "source": "https://github.com/tt-a1i/archify.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/tt-a1i/archify.git",
+      "skillPath": "archify/SKILL.md",
+      "installedAt": "2026-09-09T04:46:47.631269+00:00",
+      "updatedAt": "2026-09-09T04:46:47.631577+00:00",
+      "folderHash": "c91ecb4061cf9ebd66b0051d48ae37bd87ee185a"
     }
   },
   "dismissed": {
@@ -603,7 +612,8 @@
   "followNew": [
     "https://github.com/ayghri/i-have-adhd.git",
     "https://github.com/lijigang/ljg-skills.git",
-    "https://github.com/mattpocock/skills.git"
+    "https://github.com/mattpocock/skills.git",
+    "https://github.com/tt-a1i/archify.git"
   ],
   "declinedNew": [
     "https://github.com/lijigang/ljg-skills.git::ljg-classic",
