@@ -40,6 +40,7 @@ Every skill under `vendored/` is an unmodified copy from one of these repos, tra
 | [axtonliu/axton-obsidian-visual-skills](https://github.com/axtonliu/axton-obsidian-visual-skills) | 3 | notes | no |
 | [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | 1 | global | no |
 | [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | 1 | global | yes |
+| [tt-a1i/archify](https://github.com/tt-a1i/archify) | 1 | coding | yes |
 
 "Followed" repos are scanned for *new* upstream skills on every `skills-update` run
 (the `followNew` list in the lockfile); the others are cherry-picked only, so their
