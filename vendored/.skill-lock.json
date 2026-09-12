@@ -62,8 +62,8 @@
       "skillPath": "skills/ljg-card/SKILL.md",
       "skillFolderHash": "1b3408eb71a2f0bf2a8f2c2d0569d4b7320e68ad",
       "installedAt": "2026-04-05T08:32:37.742Z",
-      "updatedAt": "2026-08-21T03:51:12.346243+00:00",
-      "folderHash": "9f329d232f67d560f2244f3221df00f2f05fe446"
+      "updatedAt": "2026-09-10T02:52:39.068839+00:00",
+      "folderHash": "ae1cc9082e2d4ca78f87de44816fc9786a4b0181"
     },
     "ljg-invest": {
       "source": "lijigang/ljg-skills",
@@ -92,8 +92,8 @@
       "skillPath": "skills/ljg-paper/SKILL.md",
       "skillFolderHash": "8e19667982a8ead525a35c323309c458f34af8bf",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-08-21T03:51:12.350968+00:00",
-      "folderHash": "175d6aa83725a9fc6975872ae18866383a5df7fc"
+      "updatedAt": "2026-09-10T02:52:39.078135+00:00",
+      "folderHash": "fd065226d9e33a7678824ae2503a6adca99b448c"
     },
     "ljg-paper-flow": {
       "source": "lijigang/ljg-skills",
@@ -182,8 +182,8 @@
       "skillPath": "skills/ljg-writes/SKILL.md",
       "skillFolderHash": "93141fdb54d3b27a1195a937f45635674d18bd9c",
       "installedAt": "2026-04-05T08:32:37.757Z",
-      "updatedAt": "2026-08-15T06:57:38.923880+00:00",
-      "folderHash": "ca8f33e955d374ca10d6d56d383bcfa18b872eb1"
+      "updatedAt": "2026-09-10T02:52:39.093499+00:00",
+      "folderHash": "c09bad5f4c31dd61a606eed3329173631c580f7d"
     },
     "grill-with-docs": {
       "source": "mattpocock/skills",
@@ -280,8 +280,8 @@
       "skillPath": "skills/ljg-book/SKILL.md",
       "skillFolderHash": "c51205bf495b3d31dfe86a236083a459fec31cc9",
       "installedAt": "2026-06-12T04:18:37.799Z",
-      "updatedAt": "2026-08-21T03:51:12.341547+00:00",
-      "folderHash": "7e4f3037c65276d7198c7e3416d2cc008c585476"
+      "updatedAt": "2026-09-10T02:52:39.053205+00:00",
+      "folderHash": "ee09d58df33fafeb7f9db1265b6c8bbda7453038"
     },
     "ljg-present": {
       "source": "lijigang/ljg-skills",
@@ -476,8 +476,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-push/SKILL.md",
       "installedAt": "2026-07-23T03:15:50.148981+00:00",
-      "updatedAt": "2026-08-21T03:51:12.355914+00:00",
-      "folderHash": "08378ebdca2a01e6241204815aba36370a6a70e0"
+      "updatedAt": "2026-09-10T02:52:39.087055+00:00",
+      "folderHash": "9f5c4f9518704cb7d5eaa7234805a18fe7d26aa0"
     },
     "ljg-structure": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -548,8 +548,8 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-is/SKILL.md",
       "installedAt": "2026-08-09T07:17:05.852104+00:00",
-      "updatedAt": "2026-08-09T07:17:05.852136+00:00",
-      "folderHash": "03c328d20c8c357faafb1f4ae122aa11dbd6f69d"
+      "updatedAt": "2026-09-10T02:52:39.072216+00:00",
+      "folderHash": "a8f488c9fa8544134bc0c2d7572000cc4fec8b1d"
     },
     "wait-what": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -575,8 +575,35 @@
       "sourceUrl": "https://github.com/ayghri/i-have-adhd.git",
       "skillPath": "skills/i-have-adhd/SKILL.md",
       "installedAt": "2026-08-21T05:32:23.945370+00:00",
-      "updatedAt": "2026-08-21T05:32:23.945383+00:00",
-      "folderHash": "bc6cb299166fc7be37f593580209cd31a395b794"
+      "updatedAt": "2026-09-10T02:52:34.859718+00:00",
+      "folderHash": "dfe110085dbb99748c90dbf025556686aa4dc0aa"
+    },
+    "ljg-teach": {
+      "source": "https://github.com/lijigang/ljg-skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
+      "skillPath": "skills/ljg-teach/SKILL.md",
+      "installedAt": "2026-09-10T02:52:44.195997+00:00",
+      "updatedAt": "2026-09-10T02:52:44.196012+00:00",
+      "folderHash": "bc91b73ca898dbf626c03ea8846a35ea1d19c339"
+    },
+    "implement-spec": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/in-progress/implement-spec/SKILL.md",
+      "installedAt": "2026-09-10T02:52:52.821016+00:00",
+      "updatedAt": "2026-09-10T02:52:52.821034+00:00",
+      "folderHash": "f1fba5bd56eb0cdb79c685cf924c84498c180217"
+    },
+    "retro": {
+      "source": "https://github.com/mattpocock/skills.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/in-progress/retro/SKILL.md",
+      "installedAt": "2026-09-10T02:52:53.877639+00:00",
+      "updatedAt": "2026-09-10T02:52:53.877654+00:00",
+      "folderHash": "bc9db4d9e6c8d2684851e8294fa0c5aef269786f"
     },
     "archify": {
       "source": "https://github.com/tt-a1i/archify.git",

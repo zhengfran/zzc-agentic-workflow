@@ -184,7 +184,20 @@ bump_version() {
 orgfile_to_md() {
   local src="$1" dst="$2"
   awk '
-    BEGIN { inhdr = -1 }   # -1 not started, 1 inside header, 0 closed
+    BEGIN { inhdr = -1; inexample = 0 }   # -1 not started, 1 inside header, 0 closed
+    tolower($0) ~ /^#\+begin_example([ \t]|$)/ && !inexample {
+      if (inhdr == 1) { print "---" }
+      inhdr = 0
+      inexample = 1
+      print "```text"
+      next
+    }
+    tolower($0) ~ /^#\+end_example([ \t]|$)/ && inexample {
+      inexample = 0
+      print "```"
+      next
+    }
+    inexample { print; next }
     /^#\+[A-Za-z_]+:/ && inhdr != 0 {
       if (inhdr == -1) { print "---"; inhdr = 1 }
       line = $0
@@ -316,14 +329,26 @@ mdize_skill() {
       -e 's/保存一份由论文内容命名的 Org 与后台 paper-map/保存一份由论文内容命名的 Markdown 与后台 paper-map/g' \
       -e 's/保存同一 Org 与 paper-map/保存同一 Markdown 与 paper-map/g' \
       -e 's/保存 Org 与 paper-map/保存 Markdown 与 paper-map/g' \
+      -e 's/Org 笔记和 paper-map/Markdown 笔记和 paper-map/g' \
       -e 's/Org 默认保存到/Markdown 默认保存到/g' \
       -e 's/Denote\/consult-notes\/Org lint 与确定性 validator/Denote\/consult-notes 与确定性 validator/g' \
       -e 's/、consult-notes 与 `org-lint`。/与 consult-notes。/g' \
       -e 's/Org example 图块/Markdown 围栏图块/g' \
+      -e 's/Org example 图/Markdown 围栏图/g' \
+      -e 's/Org 解读/Markdown 解读/g' \
+      -e 's/Org 输出合同/Markdown 输出合同/g' \
+      -e 's/<Org 文件路径>/<Markdown 文件路径>/g' \
+      -e 's/Org 的后台检查/Markdown 的后台检查/g' \
       -e 's/`#+DESCRIPTION`/`description`/g' \
       -e 's/`#+description`/`description`/g' \
       -e 's/`#+source`/`source`/g' \
       -e 's/`#+IDENTIFIER`/`identifier`/g' \
+      -e 's/`#+definition`/`definition`/g' \
+      -e 's/`#+operation`/`operation`/g' \
+      -e 's/`#+recognition`/`recognition`/g' \
+      -e 's/`#+guidance`/`guidance`/g' \
+      -e 's/`#+basis`/`basis`/g' \
+      -e 's/`#+falsifier`/`falsifier`/g' \
       -e 's/Org 的 `#+begin_example` \/ `#+end_example`/Markdown 围栏代码块/g' \
       -e 's/Org 的 #+begin_example \/ #+end_example/Markdown 围栏代码块/g' \
       -e 's/Org example 块/Markdown 围栏代码块/g' \
@@ -355,12 +380,17 @@ mdize_skill() {
       -e 's/真实 Emacs 负责 Denote、consult-notes 与 Org lint/真实 Emacs 负责 Denote 与 consult-notes/g' \
       -e 's/，并实际运行 `org-lint`。保留真实 lint 结果，不把未执行或非阻断提示说成零问题。/。/g' \
       -e 's/，并实际运行 `org-lint`。若正在运行的 Emacs 服务不可用，就使用能加载本机 Denote、consult、consult-notes 与 Org 的批处理 Emacs；/。若正在运行的 Emacs 服务不可用，就使用能加载本机 Denote、consult 与 consult-notes 的批处理 Emacs；/g' \
+      -e 's/，并实际运行 `org-lint`。如实报告 lint 结果；/。如实报告检查结果；/g' \
+      -e 's/，并实际运行 `org-lint`。/。/g' \
+      -e 's/Denote、consult、consult-notes 与 Org 的批处理 Emacs/Denote、consult 与 consult-notes 的批处理 Emacs/g' \
+      -e 's/检查 Denote 与 org-lint/检查 Denote/g' \
       "$file"
     if [ "$skill_name" = "ljg-is" ]; then
       sed -i '' \
         -e 's/Org 笔记/Markdown 笔记/g' \
         -e 's/Denote\/Org/Denote\/Markdown/g' \
         -e 's/`#+schema: ljg-is-v2`/`schema: ljg-is-v2`/g' \
+        -e 's/标签包含 `:is:act:`/tags 同时包含 `is` 与 `act`/g' \
         "$file"
     fi
     if [ "$skill_name" = "ljg-invest" ]; then
@@ -438,8 +468,10 @@ mdize_skill() {
         -e 's/保存 Org 与 coverage/保存 Markdown 与 coverage/g' \
         -e 's/保存同一 Org 与 paper-map/保存同一 Markdown 与 paper-map/g' \
         -e 's/保存 Org 与 paper-map/保存 Markdown 与 paper-map/g' \
+        -e 's/不要求生成 Org 或 paper-map/不要求生成 Markdown 或 paper-map/g' \
         -e 's/的 Org；/的 Markdown；/g' \
         -e 's/的 Org：/的 Markdown：/g' \
+        -e 's/Org[[:space:]]*及[[:space:]]*coverage/Markdown 及 coverage/g' \
         "$file"
     fi
     # Runtime-facing usage and validation messages must describe the generated
@@ -475,13 +507,13 @@ audit_md_skill() {
   fi
   output_residuals=$(find "$skill_dir" -type f -name '*.md' -not -path '*/assets/*' -print0 \
     | xargs -0 grep -En \
-      'Defaults to a saved Org note|Produces natural, content-led Org notes|生成 Org 文件|保存(为)? (Org|org)(笔记|文件)?|保存(一份由[^[:cntrl:]]+|同一 )?Org 与(后台 )?paper-map|存入 (Org|org)|写进 (Org|org)|写入 (Org|org) 文件|写成 org 笔记|(Org|org) 文件结构|指定的 org 路径|不入 org|Org 默认保存到|Org 严格语法|org 严格语法|禁混 markdown|禁 markdown 语法|禁止任何 markdown 语法|__[a-z0-9_-]+\.org|命名按 denote[^[:cntrl:]]*\.org|生成由论文内容命名的 Org 笔记|写 Org 文件时|写 Org 时|Org 使用|所有生成的 Org 文件|Org 文件统一保存|写入 Org 后运行|Org lint|org-lint|文件必须是 (markdown|Markdown)，禁止 Markdown|(markdown|Markdown) 格式，禁止 (markdown|Markdown) 语法|加粗用 `\*bold\*`|代码用 `~code~`|不用反引号|`#\+(DESCRIPTION|description|source|IDENTIFIER|identifier|schema)`|(嵌入|ASCII 图)[^[:cntrl:]]*#\+begin_example|Org 的 (`)?#\+begin_example|Org example (块|图块)' \
+      'Defaults to a saved Org note|Produces natural, content-led Org notes|生成 Org 文件|保存(为)? (Org|org)(笔记|文件)?|保存(一份由[^[:cntrl:]]+|同一 )?Org 与(后台 )?paper-map|存入 (Org|org)|写进 (Org|org)|写入 (Org|org) 文件|写成 org 笔记|(Org|org) 文件结构|指定的 org 路径|不入 org|Org 默认保存到|Org 严格语法|org 严格语法|Org 解读|Org 输出合同|Org 的后台检查|<Org 文件路径>|标签包含 `:[^`]+:`|禁混 markdown|禁 markdown 语法|禁止任何 markdown 语法|__[a-z0-9_-]+\.org|命名按 denote[^[:cntrl:]]*\.org|生成由论文内容命名的 Org 笔记|写 Org 文件时|写 Org 时|Org 使用|所有生成的 Org 文件|Org 文件统一保存|写入 Org 后运行|Org lint|org-lint|文件必须是 (markdown|Markdown)，禁止 Markdown|(markdown|Markdown) 格式，禁止 (markdown|Markdown) 语法|加粗用 `\*bold\*`|代码用 `~code~`|不用反引号|`#\+(DESCRIPTION|description|source|IDENTIFIER|identifier|schema|definition|operation|recognition|guidance|basis|falsifier)`|(嵌入|ASCII 图)[^[:cntrl:]]*#\+begin_example|Org 的 (`)?#\+begin_example|Org example (块|图块)' \
       2>/dev/null || true)
   markup_residuals=$(find "$skill_dir" -type f -name '*.md' -not -path '*/assets/*' -print0 \
     | xargs -0 grep -En '^[[:space:]]*#\+[A-Za-z_]+:|^[[:space:]]*#\+(begin|end)_(example|src|quote)([[:space:]]|$)|^[[:space:]]*```org[[:space:]]*$|^- \*[^*]+\*：|\[\[[^]]+\]\[[^]]+\]\]' \
       2>/dev/null || true)
   eval_residuals=$(find "$skill_dir" -type f -path '*/evals/*.json' -print0 \
-    | xargs -0 grep -En '把 Org 与 coverage|保存 Org 与 coverage|保存(同一)? Org 与 paper-map|的 Org(；|：)' \
+    | xargs -0 grep -En '把 Org 与 coverage|保存 Org 与 coverage|保存(同一)? Org 与 paper-map|的 Org(；|：)|Org[[:space:]]*及[[:space:]]*coverage' \
       2>/dev/null || true)
   runtime_default_residuals=$(find "$skill_dir" -type f -not -path '*/assets/*' \
     \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' \

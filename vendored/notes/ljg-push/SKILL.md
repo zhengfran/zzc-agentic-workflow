@@ -58,6 +58,8 @@ REPO_URL="git@github.com:lijigang/ljg-skills.git"
 
 md 分支同步时自动转换（2026-06-12 起含 org 文件本体）：
 
+Org 文件中的 `#+begin_example` / `#+end_example` 图块转为 `text` 围栏，保留块内文字，不将其中的星号或井号误当标题和注释。标记兼容大小写。
+
 - *org 文件本体*：skill 内每个 `.org` 文件（assets/ 除外）转成同名 `.md` 并删除原件——org 头块→YAML frontmatter（含 `---` 围栏，`filetags`→`tags`）、`*` 标题→`#` 标题（层级保留）、`#+ATTR_*` 行删除、`[[file:x]]`→`![](x)`、`#+begin_src`→``` 围栏。Markdown 与运行时文本文件（如 `.ts` / `.js` / `.json` / `.sh`）里对实际被改名文件的引用同步改写
 - *Markdown 内嵌的完整 Org 示例*：` ```org ` 模板，以及首行就是 `#+key:` 的无语言围栏模板，都会转为 ` ```markdown `；连续头块变为带 `---` 的 YAML frontmatter，标题、链接、强调、等宽文本与分隔线随模板一起转换；原文件使用纯 CRLF 时保留其换行风格
 - 文件扩展引用：`__qa.org` → `__qa.md`、`__paper.org` → `__paper.md` 等（denote 命名约定）
@@ -65,7 +67,7 @@ md 分支同步时自动转换（2026-06-12 起含 org 文件本体）：
 - org 式格式指令：`加粗用 *bold*（单星号）…` → `加粗用 **bold**（双星号）`、`标题层级从 * 开始` → `从 # 开始`、`Org 文件头` → `Markdown 文件头`、行首 `#+title:` 等 8 个示例键 → YAML 键行
 - 结构化强调标签：行首 `- *标签*：` → `- **标签**：`；紧邻这类标签的 `org` 围栏同步改为 `markdown`
 - 输出契约与运行时默认值：`evals/*.json` 中明确要求保存 Org 的提示与期望改为 Markdown；`stdin__*.org` 默认值改为 `.md`，同时保留显式 Org 输入与测试夹具
-- `ljg-is` 的双格式验收句：整句折叠为 Markdown/YAML + Denote 验收，并删除两种 Org 专用 lint 阻断表述；提交前残留审计仍拒绝任何未转换的 Org 专用 lint 调用
+- `ljg-is` 的生成合同：输出标题、默认文件扩展、路径称谓、元数据名、tags 与双格式验收句统一切到 Markdown/YAML + Denote，并删除 Org 专用 lint 阻断表述；提交前残留审计拒绝任何未转换的 Org 输出指令
 
 检测与同步共用同一文件边界：按校验和比较内容，可靠识别文件新增、删除、内容和可执行位变化；纯时间戳、目录元数据、空目录不会单独触发发布，任意层级的 `.git/`、`node_modules/`、`.DS_Store` 不进入同步。忽略清单只含这三类明确杂物，`.bak`、`.backup` 等真实备份仍会触发同步和发布审查。
 
