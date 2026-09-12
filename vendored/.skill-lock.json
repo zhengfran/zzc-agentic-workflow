@@ -422,17 +422,6 @@
       "updatedAt": "2026-08-21T03:51:14.425613+00:00",
       "folderHash": "18fe1ee1389632f9f92f7bef20cbc8d0ad7a553d"
     },
-    "wayfinder": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/mattpocock/skills.git",
-      "skillPath": "skills/engineering/wayfinder/SKILL.md",
-      "skillFolderHash": "83a96a4454c069148d8648fd21ca62a58ac15db2",
-      "pluginName": "mattpocock-skills",
-      "installedAt": "2026-07-12T01:05:35.393Z",
-      "updatedAt": "2026-08-21T03:51:14.428184+00:00",
-      "folderHash": "324558796b4a885734895d10ef258f8bcd3f9e91"
-    },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -650,6 +639,7 @@
     "https://github.com/mattpocock/skills.git::setup-ts-deep-modules",
     "https://github.com/mattpocock/skills.git::to-questionnaire",
     "https://github.com/mattpocock/skills.git::ubiquitous-language",
+    "https://github.com/mattpocock/skills.git::wayfinder",
     "https://github.com/mattpocock/skills.git::wizard",
     "https://github.com/mattpocock/skills.git::writing-beats",
     "https://github.com/mattpocock/skills.git::writing-fragments",

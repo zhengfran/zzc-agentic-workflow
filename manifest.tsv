@@ -39,7 +39,7 @@ coding	tdd	vendored
 coding	to-spec	vendored
 coding	to-tickets	vendored
 coding	triage	vendored
-coding	wayfinder	vendored
+coding	wayfinder	self
 coding	ask-matt	vendored
 coding	setup-matt-pocock-skills	vendored
 coding	diagnosing-bugs	vendored
