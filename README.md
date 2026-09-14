@@ -35,8 +35,8 @@ Every skill under `vendored/` is an unmodified copy from one of these repos, tra
 
 | Upstream | Skills | Packs | Followed for new skills |
 | --- | --- | --- | --- |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | 28 | coding, global | yes |
-| [lijigang/ljg-skills](https://github.com/lijigang/ljg-skills) | 24 | notes | yes |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | 29 | coding, global | yes |
+| [lijigang/ljg-skills](https://github.com/lijigang/ljg-skills) (`md` branch) | 25 | notes | yes |
 | [axtonliu/axton-obsidian-visual-skills](https://github.com/axtonliu/axton-obsidian-visual-skills) | 3 | notes | no |
 | [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | 1 | global | no |
 | [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | 1 | global | yes |
@@ -45,6 +45,19 @@ Every skill under `vendored/` is an unmodified copy from one of these repos, tra
 "Followed" repos are scanned for *new* upstream skills on every `skills-update` run
 (the `followNew` list in the lockfile); the others are cherry-picked only, so their
 catalogs don't flood the prompt. Add a repo with `skills-update --add-repo <url>`.
+
+### Branches
+
+A repo is fetched at its default branch unless the lockfile entry carries a `ref`.
+`lijigang/ljg-skills` publishes Org-mode output on its default `master` branch and
+Markdown output on `md`; we track `md`, so every `ljg-*` entry pins `"ref": "md"`.
+
+Switch a whole repo to another branch with the `url#branch` form — it re-clones at
+that branch, re-fetches every skill of that repo, and repins their `ref`:
+
+```bash
+scripts/skills-update --add-repo https://github.com/lijigang/ljg-skills.git#md
+```
 
 ## Usage
 

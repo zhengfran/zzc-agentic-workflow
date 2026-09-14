@@ -151,26 +151,27 @@ bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" "<bookId>"
 
 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`（时间用当前，不是 target）。
 
-写入 `~/Context/{时间戳}--盲区-{主题}__blind.org`。org-mode 格式，禁止 markdown 语法。
+写入 `~/Context/{时间戳}--盲区-{主题}__blind.md`。Markdown 格式，禁止 Org 语法。
 
 正文模板：
 
-```org
-#+title: 盲区扫描 · {一句话点出这个盲区}
-#+date: [YYYY-MM-DD Weekday HH:MM]
-#+filetags: :blind:weread:topology:
-
-* 昨天你在想什么
+```markdown
+---
+title: 盲区扫描 · {一句话点出这个盲区}
+date: [YYYY-MM-DD Weekday HH:MM]
+tags: blind weread topology
+---
+# 昨天你在想什么
 <1-2 段。当天对话的思维地形——哪几件事、绕着哪个核心在转。给证据：哪几句话看出来的。不流水账，抓主线。>
 
-* 照出来的盲区
+# 照出来的盲区
 <挑出的那 1 个盲区。先一句话点破它是哪种（绕开点 / 空转框架 / 单一取景框 / 未检前提 / 相邻空缺）。再 2-3 段说清：它具体长什么样、昨天哪几处暴露了它、为什么你自己看不见。要点到杠杆——补上之后会打开什么。>
 
-* 这一章给你
+# 这一章给你
 - 书：《书名》 — 作者
 - 章节：<章节标题>
 - 时长：约 N 分钟
-- 链接：[[https://weread.qq.com/web/reader/ENCODED_BOOKkENCODED_CHAPTER][在微信读书网页版阅读本章]]
+- 链接：[在微信读书网页版阅读本章](https://weread.qq.com/web/reader/ENCODED_BOOKkENCODED_CHAPTER)
 - 为什么是它：<3-4 句。把盲区和这一章对上——这章具体讲什么、怎么补这个盲区。不要泛泛说"开阔视野"，要说清这一章的哪个东西正对这个盲区的哪个缺口。>
 ```
 
@@ -186,13 +187,13 @@ bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" "<bookId>"
 - **禁切痕风金属比喻**。不写「这一刀」「再狠一层」「锋利的话」「砸实」「钉死」「硬话」这一整套自夸元修辞。盲区照得准不准，读者看得出，不用作者吆喝力度。
 - **有温度、有毛刺、有判断**。可以有立场，别装中立到虚伪；但标清楚这是判断，不是客观事实。
 
-## org 严格语法（禁混 markdown）
+## Markdown 严格语法（禁混 Org）
 
-- 标题用 `*` / `**` / `***`，不要 `#`
-- 加粗 `*字*`，斜体 `/字/`，等宽 `~code~`
-- 列表用 `-`，不要 `*`（`*` 在 org 是标题）
-- 链接 `[[url][text]]`，不要 `[text](url)`
-- 分隔线 `-----`，不要 `---`；不要 markdown 的 `>` 引用
+- 标题用 `#` / `##` / `###`，不要用星号充当标题
+- 加粗 `**字**`，斜体 `*字*`，等宽 `code`
+- 列表用 `-`；标题使用 `#`
+- 链接使用 `[text](url)`
+- 分隔线使用 `---`；引用使用 `>`
 
 ## 自检（写完前过一遍）
 

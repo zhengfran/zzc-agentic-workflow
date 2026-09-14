@@ -1,6 +1,6 @@
 ---
 name: ljg-paper
-description: "Explain research papers to readers without a specialist background: what the paper studies, what the authors contribute, how the findings follow, and what the evidence does not establish. USE WHEN the user shares an arXiv link, paper URL, PDF, local paper, or paper title, or asks to read, explain, analyze, or understand a paper. Defaults to a saved Org note. NOT FOR reproduction, formal peer review, benchmark tables, or literature surveys."
+description: "Explain research papers to readers without a specialist background: what the paper studies, what the authors contribute, how the findings follow, and what the evidence does not establish. USE WHEN the user shares an arXiv link, paper URL, PDF, local paper, or paper title, or asks to read, explain, analyze, or understand a paper. Defaults to a saved Markdown note. NOT FOR reproduction, formal peer review, benchmark tables, or literature surveys."
 ---
 
 # ljg-paper：讲清论文，让读者理解结论是怎样得来的
@@ -19,11 +19,11 @@ description: "Explain research papers to readers without a specialist background
 
 | 输入 | 必读材料 | 输出 |
 |---|---|---|
-| arXiv、PDF、论文链接、本地论文 | `ReadingGuide.md`、`references/template.org`、`references/paper-map.md` | 一份 Org 解读笔记和一份 paper-map 研究记录 |
-| 只有论文标题 | 找到可靠原文后，读同一组文件 | Org 笔记和 paper-map |
+| arXiv、PDF、论文链接、本地论文 | `ReadingGuide.md`、`references/template.md`、`references/paper-map.md` | 一份 Markdown 解读笔记和一份 paper-map 研究记录 |
+| 只有论文标题 | 找到可靠原文后，读同一组文件 | Markdown 笔记和 paper-map |
 | 明确只要口头解释 | `ReadingGuide.md` | 直接解释，不保存文件；仍满足下面三个目标 |
 
-Org 默认保存到 `~/Context/`。文件名沿用 Denote：`{YYYYMMDDTHHMMSS}--paper-{方法名或论文关键词}__paper.org`；时间戳由 `date +%Y%m%dT%H%M%S` 生成。改写已有笔记时，保留原文件与 identifier，核对原文，不另建重复笔记。
+Markdown 默认保存到 `~/Context/`。文件名沿用 Denote：`{YYYYMMDDTHHMMSS}--paper-{方法名或论文关键词}__paper.md`；时间戳由 `date +%Y%m%dT%H%M%S` 生成。改写已有笔记时，保留原文件与 identifier，核对原文，不另建重复笔记。
 
 ## 解读要达到的三个目标
 
@@ -53,15 +53,15 @@ Org 默认保存到 `~/Context/`。文件名沿用 Denote：`{YYYYMMDDTHHMMSS}--
 
 ## 保存与检查
 
-具体写法见 `ReadingGuide.md`。正文使用 `references/template.org`，研究与取舍记录使用 `references/paper-map.md`。新记录使用格式版本 3；验证脚本兼容旧版本 1、2，旧记录不必为了本次升级批量改写。
+具体写法见 `ReadingGuide.md`。正文使用 `references/template.md`，研究与取舍记录使用 `references/paper-map.md`。新记录使用格式版本 3；验证脚本兼容旧版本 1、2，旧记录不必为了本次升级批量改写。
 
 写入后运行：
 
 ```sh
-bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.org \
+bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.md \
   --map /absolute/path/to/paper-map.md
 ```
 
-用真实 Emacs 读回 identifier、文件名、目录索引、consult-notes 与 `org-lint`。再按指南完成独立阅读检查，记录全文复述、研究问题与贡献、认识变化、结果解释四项结果。全部通过后重新运行脚本，确认最终文件与检查记录一致。
+用真实 Emacs 读回 identifier、文件名、目录索引与 consult-notes。再按指南完成独立阅读检查，记录全文复述、研究问题与贡献、认识变化、结果解释四项结果。全部通过后重新运行脚本，确认最终文件与检查记录一致。
 
 验证脚本接受尚未填写阅读检查结果的记录用于诊断，但会返回失败；不能先写 PASS 再请人检查。验证器或独立评估不可用时，明确报告哪项尚未完成。

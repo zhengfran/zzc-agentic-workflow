@@ -5,7 +5,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "请用 ljg-paper 解读这篇方法论文 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请用 ljg-paper 解读这篇方法论文 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "读者理解研究问题、新方法、比较条件和结论限制。",
       "files": [
         "<source_path>"
@@ -20,7 +20,7 @@
     },
     {
       "id": 2,
-      "prompt": "请解读这篇提出新评测的论文 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请解读这篇提出新评测的论文 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "说明新评测区分了什么，以及哪些原因仍未解释。",
       "files": [
         "<source_path>"
@@ -35,7 +35,7 @@
     },
     {
       "id": 3,
-      "prompt": "请解读这篇理论论文 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请解读这篇理论论文 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "解释假设、关系、不同推论和适用条件。",
       "files": [
         "<source_path>"
@@ -50,7 +50,7 @@
     },
     {
       "id": 4,
-      "prompt": "请解读这篇系统或资源论文 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请解读这篇系统或资源论文 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "说明新增能力、关键组件和成本、速度或规模限制。",
       "files": [
         "<source_path>"
@@ -64,7 +64,7 @@
     },
     {
       "id": 5,
-      "prompt": "请解读这篇包含多个研究问题的论文 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请解读这篇包含多个研究问题的论文 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "完整交代必要主线，允许案例更换和独立实验并列。",
       "files": [
         "<source_path>"
@@ -115,7 +115,7 @@
         "<source_path>"
       ],
       "assertions": [
-        "不要求生成 Org 或 paper-map",
+        "不要求生成 Markdown 或 paper-map",
         "不运行文件检查或伪造通过结果",
         "方法名中的数字不影响全文复述检查",
         "无法独立评估时如实说明"
@@ -123,7 +123,7 @@
     },
     {
       "id": 9,
-      "prompt": "请解读这篇没有统一机制的观察研究 <source_path>，保存 Org 与 paper-map。",
+      "prompt": "请解读这篇没有统一机制的观察研究 <source_path>，保存 Markdown 与 paper-map。",
       "expected_output": "解释不同发现及关系，保留相关性和因果性的区别。",
       "files": [
         "<source_path>"

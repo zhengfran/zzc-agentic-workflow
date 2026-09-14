@@ -418,7 +418,7 @@ describe("version 3 evidence-based writing rules", () => {
   });
   test("unfilled shipped templates do not pass", () => {
     const map = readFileSync(new URL("../references/paper-map.md", import.meta.url), "utf8");
-    const note = readFileSync(new URL("../references/template.org", import.meta.url), "utf8");
+    const note = readFileSync(new URL("../references/template.md", import.meta.url), "utf8");
     expect(validate(note, filename, map).ok).toBe(false);
     expect(validate(validNote, filename, map).ok).toBe(false);
   });

@@ -63,7 +63,8 @@
       "skillFolderHash": "1b3408eb71a2f0bf2a8f2c2d0569d4b7320e68ad",
       "installedAt": "2026-04-05T08:32:37.742Z",
       "updatedAt": "2026-09-10T02:52:39.068839+00:00",
-      "folderHash": "ae1cc9082e2d4ca78f87de44816fc9786a4b0181"
+      "folderHash": "ae1cc9082e2d4ca78f87de44816fc9786a4b0181",
+      "ref": "md"
     },
     "ljg-invest": {
       "source": "lijigang/ljg-skills",
@@ -72,8 +73,9 @@
       "skillPath": "skills/ljg-invest/SKILL.md",
       "skillFolderHash": "a4ef15eb45da709807e2a4bc6a63f539a02ed054",
       "installedAt": "2026-04-05T08:32:37.750Z",
-      "updatedAt": "2026-07-22T09:16:06.295374+00:00",
-      "folderHash": "4889e7a7bdba68857bef6be1b5662e81b2d79120"
+      "updatedAt": "2026-09-14T09:34:29.667655+00:00",
+      "folderHash": "8823a854911228316ebe31b14c14ee23f0c7ae96",
+      "ref": "md"
     },
     "ljg-learn": {
       "source": "lijigang/ljg-skills",
@@ -82,8 +84,9 @@
       "skillPath": "skills/ljg-learn/SKILL.md",
       "skillFolderHash": "242fd8da1a8b5d36edc74df28c2e81aade5c3756",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-07-22T09:16:06.295882+00:00",
-      "folderHash": "9ea01d3663a4754af332c20326946d425dfd1f86"
+      "updatedAt": "2026-09-14T09:34:29.673846+00:00",
+      "folderHash": "c11e78281ef02712b8949e7278cfdfea6455fd44",
+      "ref": "md"
     },
     "ljg-paper": {
       "source": "lijigang/ljg-skills",
@@ -92,8 +95,9 @@
       "skillPath": "skills/ljg-paper/SKILL.md",
       "skillFolderHash": "8e19667982a8ead525a35c323309c458f34af8bf",
       "installedAt": "2026-04-05T08:32:37.751Z",
-      "updatedAt": "2026-09-10T02:52:39.078135+00:00",
-      "folderHash": "fd065226d9e33a7678824ae2503a6adca99b448c"
+      "updatedAt": "2026-09-14T09:34:29.683966+00:00",
+      "folderHash": "66afce7bc85d0d63ebaec8cf56f8d96c5aad892f",
+      "ref": "md"
     },
     "ljg-paper-flow": {
       "source": "lijigang/ljg-skills",
@@ -103,7 +107,8 @@
       "skillFolderHash": "e41170f3846200a190614360ed30442e2a43d2ef",
       "installedAt": "2026-04-05T08:32:37.751Z",
       "updatedAt": "2026-06-12T04:21:45.330Z",
-      "orphaned": true
+      "orphaned": true,
+      "ref": "md"
     },
     "ljg-paper-river": {
       "source": "lijigang/ljg-skills",
@@ -113,7 +118,8 @@
       "skillFolderHash": "ae7b67105d5f09824c3ceee7147b773d21751e5f",
       "installedAt": "2026-04-05T08:32:37.752Z",
       "updatedAt": "2026-06-12T04:21:45.332Z",
-      "orphaned": true
+      "orphaned": true,
+      "ref": "md"
     },
     "ljg-plain": {
       "source": "lijigang/ljg-skills",
@@ -122,8 +128,9 @@
       "skillPath": "skills/ljg-plain/SKILL.md",
       "skillFolderHash": "bf6c0148071f10de6ab8d6f9f927a60a52893438",
       "installedAt": "2026-04-05T08:32:37.752Z",
-      "updatedAt": "2026-07-22T09:14:11.848484Z",
-      "folderHash": "544b897379fba1488ac7c049660f5ff2f0400319"
+      "updatedAt": "2026-09-14T09:34:29.689145+00:00",
+      "folderHash": "b38fba43ca25a7724850467c100554db2c4d8ed6",
+      "ref": "md"
     },
     "ljg-rank": {
       "source": "lijigang/ljg-skills",
@@ -132,8 +139,9 @@
       "skillPath": "skills/ljg-rank/SKILL.md",
       "skillFolderHash": "0f4faacf3224c1f9f2bd8b1ca79f22b9721672a3",
       "installedAt": "2026-04-05T08:32:37.752Z",
-      "updatedAt": "2026-07-22T09:16:06.301491+00:00",
-      "folderHash": "ac1ea8e9928ad3e20f11296f59831810005373be"
+      "updatedAt": "2026-09-14T09:34:29.699596+00:00",
+      "folderHash": "cac6ef84d530f46c595dc0543a7d11a57a5d553d",
+      "ref": "md"
     },
     "ljg-relationship": {
       "source": "lijigang/ljg-skills",
@@ -142,8 +150,9 @@
       "skillPath": "skills/ljg-relationship/SKILL.md",
       "skillFolderHash": "1f9f573d3c287de43f05a3a77888bd2ace28d3ac",
       "installedAt": "2026-04-05T08:32:37.753Z",
-      "updatedAt": "2026-07-22T09:16:06.302773+00:00",
-      "folderHash": "06d60e88f4ceb3f8ee5d81176b9de0d7d408eab3"
+      "updatedAt": "2026-09-14T09:34:29.701384+00:00",
+      "folderHash": "d6bddd3081d86db7acbb9834663fafb6f59ee522",
+      "ref": "md"
     },
     "ljg-roundtable": {
       "source": "lijigang/ljg-skills",
@@ -152,8 +161,9 @@
       "skillPath": "skills/ljg-roundtable/SKILL.md",
       "skillFolderHash": "8ec1ec0b86f2eda41f1fc934de544a51813c0223",
       "installedAt": "2026-04-05T08:32:37.753Z",
-      "updatedAt": "2026-08-21T03:51:12.358336+00:00",
-      "folderHash": "4dc9e96757414178789360302f01d4f036eda6a8"
+      "updatedAt": "2026-09-14T09:34:29.703137+00:00",
+      "folderHash": "aef20e1ef2e272627983ee97e888ba33742ad388",
+      "ref": "md"
     },
     "ljg-travel": {
       "source": "lijigang/ljg-skills",
@@ -163,7 +173,8 @@
       "skillFolderHash": "cbac4c471a7f24267dc7f49885b7cf24835806cb",
       "installedAt": "2026-04-05T08:32:37.755Z",
       "updatedAt": "2026-06-12T04:21:45.340Z",
-      "orphaned": true
+      "orphaned": true,
+      "ref": "md"
     },
     "ljg-word": {
       "source": "lijigang/ljg-skills",
@@ -173,7 +184,8 @@
       "skillFolderHash": "8664843b53eb20368cad384c88e7aee21f08e747",
       "installedAt": "2026-04-05T08:32:37.756Z",
       "updatedAt": "2026-06-12T04:21:45.340Z",
-      "folderHash": "77116e3993322cb72917d87cce2b5f165b7e6768"
+      "folderHash": "77116e3993322cb72917d87cce2b5f165b7e6768",
+      "ref": "md"
     },
     "ljg-writes": {
       "source": "lijigang/ljg-skills",
@@ -182,8 +194,9 @@
       "skillPath": "skills/ljg-writes/SKILL.md",
       "skillFolderHash": "93141fdb54d3b27a1195a937f45635674d18bd9c",
       "installedAt": "2026-04-05T08:32:37.757Z",
-      "updatedAt": "2026-09-10T02:52:39.093499+00:00",
-      "folderHash": "c09bad5f4c31dd61a606eed3329173631c580f7d"
+      "updatedAt": "2026-09-14T09:34:29.713751+00:00",
+      "folderHash": "a9d2ca861b36eed2240d0b1cbbe012305931b1ca",
+      "ref": "md"
     },
     "grill-with-docs": {
       "source": "mattpocock/skills",
@@ -280,8 +293,9 @@
       "skillPath": "skills/ljg-book/SKILL.md",
       "skillFolderHash": "c51205bf495b3d31dfe86a236083a459fec31cc9",
       "installedAt": "2026-06-12T04:18:37.799Z",
-      "updatedAt": "2026-09-10T02:52:39.053205+00:00",
-      "folderHash": "ee09d58df33fafeb7f9db1265b6c8bbda7453038"
+      "updatedAt": "2026-09-14T09:34:29.654801+00:00",
+      "folderHash": "0e195359bce5dbff56eb89dd30abf5a88ed69335",
+      "ref": "md"
     },
     "ljg-present": {
       "source": "lijigang/ljg-skills",
@@ -291,7 +305,8 @@
       "skillFolderHash": "5c15ed268b1d72eef26921bb1aeda6104532dc00",
       "installedAt": "2026-06-12T04:18:37.811Z",
       "updatedAt": "2026-08-09T07:13:55.917512+00:00",
-      "folderHash": "b69e762a0585989a55d9c78b549ec65e828b41c9"
+      "folderHash": "b69e762a0585989a55d9c78b549ec65e828b41c9",
+      "ref": "md"
     },
     "ljg-qa": {
       "source": "lijigang/ljg-skills",
@@ -300,8 +315,9 @@
       "skillPath": "skills/ljg-qa/SKILL.md",
       "skillFolderHash": "3986230ff27612532b72cd5085012358dbad0f93",
       "installedAt": "2026-06-12T04:18:37.813Z",
-      "updatedAt": "2026-08-21T03:51:12.356968+00:00",
-      "folderHash": "d2d82402f5ffb83459370163cd6713d1ec1eaf2e"
+      "updatedAt": "2026-09-14T09:34:29.697576+00:00",
+      "folderHash": "2ba3e97baa8869460ff406d405cc82eb188b178c",
+      "ref": "md"
     },
     "ljg-read": {
       "source": "lijigang/ljg-skills",
@@ -310,8 +326,9 @@
       "skillPath": "skills/ljg-read/SKILL.md",
       "skillFolderHash": "2f3a3d3a4c85a15d2f7f8b0461451d87fb659a35",
       "installedAt": "2026-06-12T04:18:37.815Z",
-      "updatedAt": "2026-07-22T09:16:06.301989+00:00",
-      "folderHash": "1f34742d409dddaa4e4ae6e0390f6f3516ae2a34"
+      "updatedAt": "2026-09-14T09:34:29.700491+00:00",
+      "folderHash": "321377db1759365cdb0dd62b383f592204f70a19",
+      "ref": "md"
     },
     "ljg-think": {
       "source": "lijigang/ljg-skills",
@@ -320,8 +337,9 @@
       "skillPath": "skills/ljg-think/SKILL.md",
       "skillFolderHash": "3499a59a7644233dc11d8a8abe937c515feca36d",
       "installedAt": "2026-06-12T04:18:37.821Z",
-      "updatedAt": "2026-07-22T09:16:06.305852+00:00",
-      "folderHash": "e033887dfbf5ae30315c182057fa287f3e0e04d8"
+      "updatedAt": "2026-09-14T09:34:29.708016+00:00",
+      "folderHash": "89ce4c70240f5be1c2003e193701ff2a02501760",
+      "ref": "md"
     },
     "ask-matt": {
       "source": "mattpocock/skills",
@@ -437,8 +455,9 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-blind/SKILL.md",
       "installedAt": "2026-07-23T03:15:44.142016+00:00",
-      "updatedAt": "2026-08-21T03:51:12.339235+00:00",
-      "folderHash": "6b3e0519292b68712dc3ac144ff1e036e82cb9af"
+      "updatedAt": "2026-09-14T09:34:29.645166+00:00",
+      "folderHash": "9f8922a66904f1b52911f610069a56f3f77f8502",
+      "ref": "md"
     },
     "ljg-constraint": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -446,8 +465,9 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-constraint/SKILL.md",
       "installedAt": "2026-07-23T03:15:47.712868+00:00",
-      "updatedAt": "2026-07-23T03:15:47.712878+00:00",
-      "folderHash": "539fd534dcbfb0ffbc89374d90898fb10b253c39"
+      "updatedAt": "2026-09-14T09:34:29.666294+00:00",
+      "folderHash": "ae38f652f53c006d0e092c9a059ad4ebea64f048",
+      "ref": "md"
     },
     "ljg-map": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -457,7 +477,8 @@
       "installedAt": "2026-07-23T03:15:49.384586+00:00",
       "updatedAt": "2026-07-23T03:15:49.384596+00:00",
       "folderHash": "f7c31e552480fd8065864280ece8309ef3d9882b",
-      "orphaned": true
+      "orphaned": true,
+      "ref": "md"
     },
     "ljg-push": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -466,7 +487,8 @@
       "skillPath": "skills/ljg-push/SKILL.md",
       "installedAt": "2026-07-23T03:15:50.148981+00:00",
       "updatedAt": "2026-09-10T02:52:39.087055+00:00",
-      "folderHash": "9f5c4f9518704cb7d5eaa7234805a18fe7d26aa0"
+      "folderHash": "9f5c4f9518704cb7d5eaa7234805a18fe7d26aa0",
+      "ref": "md"
     },
     "ljg-structure": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -474,8 +496,9 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-structure/SKILL.md",
       "installedAt": "2026-07-23T03:15:52.263522+00:00",
-      "updatedAt": "2026-08-15T06:57:38.919631+00:00",
-      "folderHash": "628ca741ad6ef97cbfa9af88175bff2e3c80895d"
+      "updatedAt": "2026-09-14T09:34:29.705327+00:00",
+      "folderHash": "cae890eec08476a44e9b3c186e0d4e1f82cc0fc1",
+      "ref": "md"
     },
     "claude-handoff": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -537,8 +560,9 @@
       "sourceUrl": "https://github.com/lijigang/ljg-skills.git",
       "skillPath": "skills/ljg-is/SKILL.md",
       "installedAt": "2026-08-09T07:17:05.852104+00:00",
-      "updatedAt": "2026-09-10T02:52:39.072216+00:00",
-      "folderHash": "a8f488c9fa8544134bc0c2d7572000cc4fec8b1d"
+      "updatedAt": "2026-09-14T09:34:29.672987+00:00",
+      "folderHash": "3da014ed15377bcdde8bac252b3fc89479480ff2",
+      "ref": "md"
     },
     "wait-what": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -574,7 +598,8 @@
       "skillPath": "skills/ljg-teach/SKILL.md",
       "installedAt": "2026-09-10T02:52:44.195997+00:00",
       "updatedAt": "2026-09-10T02:52:44.196012+00:00",
-      "folderHash": "bc91b73ca898dbf626c03ea8846a35ea1d19c339"
+      "folderHash": "bc91b73ca898dbf626c03ea8846a35ea1d19c339",
+      "ref": "md"
     },
     "implement-spec": {
       "source": "https://github.com/mattpocock/skills.git",
@@ -627,7 +652,7 @@
   ],
   "followNew": [
     "https://github.com/ayghri/i-have-adhd.git",
-    "https://github.com/lijigang/ljg-skills.git",
+    "https://github.com/lijigang/ljg-skills.git#md",
     "https://github.com/mattpocock/skills.git",
     "https://github.com/tt-a1i/archify.git"
   ],

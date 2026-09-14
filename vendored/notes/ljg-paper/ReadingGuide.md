@@ -96,7 +96,7 @@
 
 ## 图表应减少理解负担
 
-当读者需要同时追踪角色、信息流向、前后状态或不同维度时，优先考虑 ASCII 图；并列属性比较可用表格。判断依据是图能否减少读者在脑中自行拼装关系的负担，不必等到文字难以说明才画。关系已清楚时无需添图，也不规定图数。ASCII 图用 Org example 块，宽度不超过 80 显示列。
+当读者需要同时追踪角色、信息流向、前后状态或不同维度时，优先考虑 ASCII 图；并列属性比较可用表格。判断依据是图能否减少读者在脑中自行拼装关系的负担，不必等到文字难以说明才画。关系已清楚时无需添图，也不规定图数。ASCII 图用 Markdown 围栏代码块，宽度不超过 80 显示列。
 
 图中沿用正文已解释的对象，交代箭头、位置与遮挡的含义。示意图与实测数据分清；观察关系不能画成已证实的因果，局部改变不能画成整个过程被替换。不同维度分开呈现，避免把时间先后与层级等关系混在一起。
 
@@ -141,13 +141,13 @@
 
 ## 写入与验证
 
-使用 `references/template.org`，正文写完后补 `#+description`。`#+source` 只放一个最接近原论文的裸 URL 或绝对本地路径，identifier 与 Denote 文件名一致，研究记录的「原文位置」与笔记 #+source 使用相同位置。
+使用 `references/template.md`，正文写完后补 `description`。`source` 只放一个最接近原论文的裸 URL 或绝对本地路径，identifier 与 Denote 文件名一致，研究记录的「原文位置」与笔记 #+source 使用相同位置。
 
 ```sh
-bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.org \
+bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.md \
   --map /absolute/path/to/paper-map.md
 ```
 
 脚本检查元数据、研究记录、正文对应表述、格式和阅读检查结果是否填写，并提示数字或段落可能过密的位置。它不判断论证正确、语言自然或读者是否真正理解。检查结果未填时，脚本会报告未通过；这可以帮助定位问题，不能当作交付通过。
 
-保存后用真实 Emacs 确认 identifier、文件名、`denote-directory-files`、consult-notes 与 `org-lint`。阅读检查完成后重新验证最终文件。某项检查无法运行时说明缺项，不将未执行写成通过。
+保存后用真实 Emacs 确认 identifier、文件名、`denote-directory-files`与 consult-notes。阅读检查完成后重新验证最终文件。某项检查无法运行时说明缺项，不将未执行写成通过。

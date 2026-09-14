@@ -12,7 +12,7 @@ user_invocable: true
 
 | Trigger | Workflow |
 |---|---|
-| 给领域、专业、角色、产品找本质约束 | 执行本文工序，写成一篇中文散文分析，保存为 org 文件 |
+| 给领域、专业、角色、产品找本质约束 | 执行本文工序，写成一篇中文散文分析，保存为 Markdown 文件 |
 | 分析一场方案争论为什么说不清 | 先找各方默认约束，再说明他们其实是不是同一道题 |
 | 判断某条边界是真硬约束还是旧解释 | 走三层硬度和真伪定性，不急着给突破方案 |
 
@@ -31,7 +31,7 @@ user_invocable: true
 User: "投资经理的约束是什么？"
 -> 找出资金期限、LP 信任、信息不对称、上行/下行分配等约束
 -> 说明这些约束如何逼出追热点、重共识、怕错过等行为
--> 写入 notes 里的 org 文件
+-> 写入 notes 里的 Markdown 文件
 ```
 
 **Example 2: 分析一场争论**
@@ -240,5 +240,5 @@ User: "这个行业必须重销售吗？"
 ## 输出
 
 1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
-2. 写入 `~/Documents/notes/{时间戳}--{领域}的约束__constraint.org`，frontmatter 见 `references/template.org`
+2. 写入 `~/Documents/notes/{时间戳}--{领域}的约束__constraint.md`，frontmatter 见 `references/template.md`
 3. 报告文件路径给用户

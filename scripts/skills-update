@@ -18,10 +18,16 @@ New-skill discovery runs only for repos in the ``followNew`` list (defaults to
 lijigang/ljg-skills + mattpocock/skills) so big catalog repos we cherry-picked
 from don't flood the prompt. Edit ``followNew`` in the lockfile to change it.
 
+A repo is cloned at its default branch unless the lockfile entry carries a
+``ref`` (branch/tag) — e.g. ljg-skills publishes Org-mode output on its default
+``master`` branch and Markdown output on ``md``, so every ljg-* entry pins
+``"ref": "md"``. ``--add-repo <url>#<branch>`` sets the ref for a whole repo,
+existing skills included, which is also how you switch a repo to another branch.
+
 Usage:
   skills-update [--force] [--prune | --keep-orphans]
                 [--fetch-new | --no-new] [--reconsider-new] [--follow-all]
-                [--add-repo <url>] [skill ...]
+                [--add-repo <url>[#branch]] [skill ...]
 
   --fetch-new       fetch every new upstream skill non-interactively into its
                     repo's most-common pack (no prompts)
@@ -31,7 +37,10 @@ Usage:
   --add-repo <url>  clone a NEW upstream repo, add it to followNew, and run the
                     fetch-new prompt over all its skills (bootstrap a new repo).
                     Only that repo is processed; combine with --fetch-new to
-                    grab everything non-interactively.
+                    grab everything non-interactively. Suffix the url with
+                    ``#<branch>`` to track a non-default branch; for a repo that
+                    is already vendored this re-fetches its skills from that
+                    branch and repins their ``ref``.
 """
 import datetime
 import hashlib
@@ -62,7 +71,7 @@ AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
 # discovery. Persisted as ``followNew`` in the lockfile — edit it
 # there to add/remove followed repos, or pass --follow-all for a one-off sweep.
 DEFAULT_FOLLOW = [
-    "https://github.com/lijigang/ljg-skills.git",
+    "https://github.com/lijigang/ljg-skills.git#md",
     "https://github.com/mattpocock/skills.git",
 ]
 
@@ -110,17 +119,41 @@ def now_iso():
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def clone_or_fetch(url):
-    dest = CACHE / slug(url)
+def parse_ref(spec):
+    """Split a ``url#ref`` spec into ``(url, ref)``; ref is None when absent."""
+    url, _, ref = spec.partition("#")
+    return norm_url(url.strip()), (ref.strip() or None)
+
+
+def ref_spec(url, ref):
+    """Inverse of parse_ref: canonical ``url`` / ``url#ref`` string."""
+    return f"{url}#{ref}" if ref else url
+
+
+def clone_key(url, ref):
+    """Cache dir name for one repo at one ref."""
+    return slug(url) + (("#" + re.sub(r"[^\w.-]+", "_", ref)) if ref else "")
+
+
+def clone_or_fetch(url, ref=None):
+    """Shallow clone/fetch of ``url`` at ``ref`` (its default branch if None)."""
+    dest = CACHE / clone_key(url, ref)
     if dest.exists():
-        if sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin"]).returncode == 0:
-            head = sh(["git", "-C", str(dest), "rev-parse", "origin/HEAD"])
-            ref = "origin/HEAD" if head.returncode == 0 else "FETCH_HEAD"
-            sh(["git", "-C", str(dest), "reset", "--hard", ref])
+        if sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin",
+               ref or "HEAD"]).returncode == 0:
+            target = "FETCH_HEAD"
+            if ref is None:
+                head = sh(["git", "-C", str(dest), "rev-parse", "origin/HEAD"])
+                target = "origin/HEAD" if head.returncode == 0 else "FETCH_HEAD"
+            sh(["git", "-C", str(dest), "reset", "--hard", target])
             return dest
         shutil.rmtree(dest, ignore_errors=True)
     CACHE.mkdir(parents=True, exist_ok=True)
-    return dest if sh(["git", "clone", "--depth", "1", url, str(dest)]).returncode == 0 else None
+    args = ["git", "clone", "--depth", "1"]
+    if ref:
+        args += ["--branch", ref]
+    args += [url, str(dest)]
+    return dest if sh(args).returncode == 0 else None
 
 
 def load_manifest():
@@ -222,7 +255,7 @@ def main():
     pack_of, manifest_lines = load_manifest()
     manifest_before = list(manifest_lines)
 
-    by_url = {}
+    by_ref = {}
     for name, e in skills.items():
         if ONLY and name not in ONLY:
             continue
@@ -230,7 +263,7 @@ def main():
             print(f"  skip {name}: not a vendored skill in manifest")
             continue
         url = norm_url(e.get("sourceUrl") or e.get("source", ""))
-        by_url.setdefault(url, []).append(name)
+        by_ref.setdefault((url, e.get("ref") or None), []).append(name)
 
     # For new-upstream discovery: every folder we already track per repo, and
     # each repo's most-common pack (used as the suggested default when fetching).
@@ -244,12 +277,15 @@ def main():
         if name in pack_of:
             pack_counts[u][pack_of[name]] += 1
     declined = set(data.get("declinedNew", []))
-    follow = {norm_url(u) for u in data.get("followNew", DEFAULT_FOLLOW)}
+    follow = {ref_spec(*parse_ref(u)) for u in data.get("followNew", DEFAULT_FOLLOW)}
 
-    add_url = norm_url(ADD_REPO) if ADD_REPO else None
-    if add_url:                                 # bootstrap a brand-new repo
-        by_url = {add_url: by_url.get(add_url, [])}   # process only this repo
-        print(f"==> adding repo {add_url}")       # added to followNew iff it has skills
+    add_ref = None
+    if ADD_REPO:                                # bootstrap / re-pin a repo
+        add_url, add_ref = parse_ref(ADD_REPO)
+        existing = [n for (u, _), ns in by_ref.items() if u == add_url for n in ns]
+        by_ref = {(add_url, add_ref): sorted(existing)}   # process only this repo
+        follow = {f for f in follow if parse_ref(f)[0] != add_url}   # one spec per repo
+        print(f"==> adding repo {ref_spec(add_url, add_ref)}")
 
     def default_pack(url):
         c = pack_counts.get(url)
@@ -262,15 +298,21 @@ def main():
     def mark_changed():
         changed[0] = True
 
-    for url, names in sorted(by_url.items()):
-        print(f"==> {url}  ({len(names)} skill(s))")
-        repo = clone_or_fetch(url)
+    for (url, ref), names in sorted(by_ref.items(),
+                                    key=lambda kv: (kv[0][0], kv[0][1] or "")):
+        print(f"==> {ref_spec(url, ref)}  ({len(names)} skill(s))")
+        repo = clone_or_fetch(url, ref)
         if repo is None:
             print(f"  !! clone failed — skipping {', '.join(names)}")
             stats["error"] += len(names)
             continue
         for name in sorted(names):
             e = skills[name]
+            if ref:                                    # pin entry to this repo ref
+                if e.get("ref") != ref:
+                    e["ref"] = ref; mark_changed()
+            elif e.pop("ref", None) is not None:       # back on the default branch
+                mark_changed()
             src = repo / Path(e["skillPath"]).parent
             if not src.is_dir():                       # stale path: try relocate by folder name
                 target = Path(e["skillPath"]).parent.name
@@ -339,11 +381,12 @@ def main():
                     stats["ok"] += 1
 
         # --- skills that exist upstream but not locally = NEW --------------
-        if not ONLY and not NO_NEW and (FOLLOW_ALL or url in follow or url == add_url):
+        if not ONLY and not NO_NEW and (FOLLOW_ALL or ref_spec(url, ref) in follow
+                                        or (url, ref) == (add_url, add_ref)):
             found = upstream_skills(repo)
-            if add_url == url:
+            if (url, ref) == (add_url, add_ref):
                 if found:
-                    follow.add(url)             # real skills repo → follow it
+                    follow.add(ref_spec(url, ref))   # real skills repo → follow it
                 else:
                     print(f"  !! no SKILL.md found — {url} is not a Claude skills "
                           f"repo (install it as a tool / wrap it in zzc-skills)")
@@ -376,6 +419,8 @@ def main():
                         "updatedAt": now_iso(),
                         "folderHash": folder_hash(src),
                     }
+                    if ref:
+                        skills[fn]["ref"] = ref
                     manifest_lines.append(f"{pack}\t{fn}\tvendored")
                     tracked_folders[url].add(fn)
                     declined.discard(f"{url}::{fn}")
