@@ -1,7 +1,7 @@
 # zzc-skills
 
 AI agent skills — vendored from upstream repos plus self-authored — assembled into
-packs and distributed across Claude Code, Kiro, Codex, Pi, and Hermes.
+packs and distributed across Claude Code, Kiro, Codex, Pi, Hermes, and DeepSeek Harness (dsh).
 
 Canonical clone location: `~/projects/zzc-skills` — other repos' setup instructions
 can reference this path directly, e.g. `~/projects/zzc-skills/scripts/skills-install coding .`.
@@ -88,7 +88,7 @@ Per-project install (coding or notes pack, into a specific repo):
 ```
 
 `--agents` narrows which agents get installed. Supported: `claude`, `kiro`, `codex`,
-`pi`, `hermes`. Defaults are `claude,kiro,codex` for project-level packs and all five
+`pi`, `hermes`, `dsh`. Defaults are `claude,kiro,codex` for project-level packs and all six
 for `global`:
 
 ```bash
@@ -97,4 +97,4 @@ scripts/skills-install coding /path/to/repo --agents claude,codex
 
 Each agent has a project-level dir (`<project>/.codex/skills`) and a machine-level one
 (`~/.codex/skills`); `skills-update` sweeps the machine-level dirs when pruning a skill
-that disappeared upstream.
+that disappeared upstream. dsh's machine-level dir honours `$DSH_HOME` (default `~/.dsh`).

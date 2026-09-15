@@ -45,6 +45,7 @@ Usage:
 import datetime
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -64,7 +65,8 @@ ORG = HOME / "org"
 # where the global pack is distributed (per-agent), for orphan cleanup
 AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
                 HOME / ".codex/skills", HOME / ".pi/agent/skills",
-                HOME / ".hermes/skills"]
+                HOME / ".hermes/skills",
+                Path(os.environ.get("DSH_HOME", HOME / ".dsh")) / "skills"]
 
 # Repos we actively follow for NEW upstream skills. Other repos (big catalogs
 # we only cherry-picked one or two skills from) are ignored for new-skill

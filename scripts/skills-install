@@ -4,11 +4,11 @@
 # Usage:
 #   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
 #     pack        notes | coding  → project-level install (see assembled/)
-#                 global          → machine-level install into the 5 agent home dirs,
+#                 global          → machine-level install into the 6 agent home dirs,
 #                                   ignores target-dir, also folds in assembled/hermes-only
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
-#     --agents    comma list: claude,kiro,codex,pi,hermes
-#                 (default: claude,kiro,codex for notes/coding; all five for global)
+#     --agents    comma list: claude,kiro,codex,pi,hermes,dsh
+#                 (default: claude,kiro,codex for notes/coding; all six for global)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #
 # Symlink mode keeps installs in lockstep with `skills-sync`; copy mode detaches.
@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     *)        target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,pi,hermes" || agents="claude,kiro,codex"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,pi,hermes,dsh" || agents="claude,kiro,codex"; }
 
 srcdir="$ROOT/assembled/$pack"
 [[ -d "$srcdir" ]] || { echo "no such pack: $pack (run skills-sync first)"; exit 1; }
@@ -40,6 +40,7 @@ agentdir() {
     codex)  echo ".codex/skills";;
     pi)     echo ".pi/skills";;
     hermes) echo ".hermes/skills";;
+    dsh)    echo ".dsh/skills";;
     *)      echo "";;
   esac
 }
@@ -52,6 +53,7 @@ homedir() {
     codex)  echo "$HOME/.codex/skills";;
     pi)     echo "$HOME/.pi/agent/skills";;
     hermes) echo "$HOME/.hermes/skills";;
+    dsh)    echo "${DSH_HOME:-$HOME/.dsh}/skills";;
     *)      echo "";;
   esac
 }
