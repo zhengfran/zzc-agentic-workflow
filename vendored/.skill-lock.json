@@ -588,8 +588,8 @@
       "sourceUrl": "https://github.com/ayghri/i-have-adhd.git",
       "skillPath": "skills/i-have-adhd/SKILL.md",
       "installedAt": "2026-08-21T05:32:23.945370+00:00",
-      "updatedAt": "2026-09-10T02:52:34.859718+00:00",
-      "folderHash": "dfe110085dbb99748c90dbf025556686aa4dc0aa"
+      "updatedAt": "2026-09-15T02:23:49.602281+00:00",
+      "folderHash": "1991dfaa8b90c922cdf80507248edd79aa3460be"
     },
     "ljg-teach": {
       "source": "https://github.com/lijigang/ljg-skills.git",
@@ -711,6 +711,7 @@
     "https://github.com/tt-a1i/archify.git"
   ],
   "declinedNew": [
+    "https://github.com/lijigang/ljg-skills.git::fix-ljg-org-to-md",
     "https://github.com/lijigang/ljg-skills.git::ljg-classic",
     "https://github.com/mattpocock/skills.git::obsidian-vault",
     "https://github.com/mattpocock/skills.git::qa",
