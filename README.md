@@ -1,100 +1,89 @@
 # zzc-skills
 
-AI agent skills — vendored from upstream repos plus self-authored — assembled into
-packs and distributed across Claude Code, Kiro, Codex, Pi, Hermes, and DeepSeek Harness (dsh).
-
-Canonical clone location: `~/projects/zzc-skills` — other repos' setup instructions
-can reference this path directly, e.g. `~/projects/zzc-skills/scripts/skills-install coding .`.
+Curated AI-agent skills for Claude Code, Kiro, Codex, Pi, Hermes, and DeepSeek Harness.
+The repository keeps authored skills and pinned upstream snapshots in one portable tree; there is no generated assembly layer.
 
 ## Layout
 
-```
-vendored/{global,notes,coding}/   # upstream skill copies, tracked, managed by vendored/.skill-lock.json
-self/{global,notes,coding}/       # self-authored skills, tracked directly (no lockfile)
-assembled/{global,notes,coding}/  # derived symlink layer, gitignored, rebuilt by skills-sync
-manifest.tsv                       # pack \t skill \t source(vendored|self) — single source of truth
-scripts/{skills-install,skills-sync,skills-update}
+```text
+self/{global,notes,coding}/<skill>/      # locally owned skills
+vendored/{global,notes,coding}/<skill>/  # unmodified upstream snapshots
+upstreams.json                           # provenance for vendored snapshots
+scripts/skills-install                   # safe destination reconciliation
+scripts/skills-update                    # explicit upstream refresh
 ```
 
-`manifest.tsv` drives assembly: `skills-sync` rebuilds `assembled/<pack>/` as symlinks
-into either `vendored/<pack>/<skill>` or `self/<pack>/<skill>`, whichever the row says.
+The directory tree is the active catalog. Every immediate child containing `SKILL.md` is installed; removing or moving that directory disables it. `skills-install` rejects duplicate `<pack>/<skill>` names across `self/` and `vendored/`.
 
 ## Packs
 
-- **global** — cross-scenario meta-skills (grilling, research, handoff, teach, defuddle,
-  Nowledge Mem memory skills, …).
-  Installed into every agent's home-level skill dir.
-- **notes** — installed into `~/org` (copy mode, detached, synced across machines via
-  cloud drive — see `--copy` below).
-- **coding** — installed per-project, on demand, via `skills-install coding <repo>`.
-- **hermes-only** — extras that only make sense for the hermes agent (currently empty).
+- **global** — cross-scenario skills installed in agent home directories.
+- **notes** — note and knowledge workflows, normally copied into `~/org`.
+- **coding** — project-specific engineering skills installed on demand.
 
-## Upstream sources
+## Install
 
-Every skill under `vendored/` is an unmodified copy from one of these repos, tracked in
-`vendored/.skill-lock.json` and refreshed by `scripts/skills-update`.
-
-| Upstream | Skills | Packs | Followed for new skills |
-| --- | --- | --- | --- |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | 29 | coding, global | yes |
-| [lijigang/ljg-skills](https://github.com/lijigang/ljg-skills) (`md` branch) | 25 | notes | yes |
-| [axtonliu/axton-obsidian-visual-skills](https://github.com/axtonliu/axton-obsidian-visual-skills) | 3 | notes | no |
-| [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | 1 | global | no |
-| [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | 1 | global | yes |
-| [tt-a1i/archify](https://github.com/tt-a1i/archify) | 1 | coding | yes |
-| [nowledge-co/community](https://github.com/nowledge-co/community) (`nowledge-mem-npx-skills/`) | 6 | global | no |
-
-`nowledge-co/community` is a monorepo of per-agent Nowledge Mem plugins that reuse the
-same skill names in many folders, so it is cherry-picked only: each lockfile entry pins
-`skillPath` under `nowledge-mem-npx-skills/skills/`, the agent-neutral copies. Its
-deprecated `save-thread` is deliberately not vendored — use `save-handoff`, or a native
-connector for real transcript capture. Don't follow it for new skills (`--add-repo`
-would pick arbitrary duplicates).
-
-"Followed" repos are scanned for *new* upstream skills on every `skills-update` run
-(the `followNew` list in the lockfile); the others are cherry-picked only, so their
-catalogs don't flood the prompt. Add a repo with `skills-update --add-repo <url>`.
-
-### Branches
-
-A repo is fetched at its default branch unless the lockfile entry carries a `ref`.
-`lijigang/ljg-skills` publishes Org-mode output on its default `master` branch and
-Markdown output on `md`; we track `md`, so every `ljg-*` entry pins `"ref": "md"`.
-
-Switch a whole repo to another branch with the `url#branch` form — it re-clones at
-that branch, re-fetches every skill of that repo, and repins their `ref`:
+The scripts resolve the repository from their own location, so commands do not depend on a canonical clone path. When this repository's `scripts/` directory is on `PATH`:
 
 ```bash
-scripts/skills-update --add-repo https://github.com/lijigang/ljg-skills.git#md
+skills-install global
+skills-install coding /path/to/repo
+skills-install notes ~/org --copy
 ```
 
-## Usage
+For a one-time migration of an old copied install or broken assembly symlink that has no ownership file, add `--adopt-existing`. Ordinary runs reject unmanaged same-name entries. Live symlinks resolving to the same source are adopted automatically.
 
-Fresh clone / after a pull:
+Project packs default to Claude Code, Kiro, and Codex. Global installs default to all supported agents. Narrow the targets when needed:
 
 ```bash
-scripts/skills-sync                  # rebuild assembled/ from vendored/ + self/
-scripts/skills-install global        # distribute the global pack into the default agent home dirs
+skills-install coding /path/to/repo --agents claude,kiro
 ```
 
-Add `--update` to `skills-sync` to pull the latest vendored upstreams first
-(`scripts/skills-sync --update`).
+Symlink mode is the default. `--copy` creates detached files for cloud-synced directories.
 
-Per-project install (coding or notes pack, into a specific repo):
+Each destination receives `.zzc-skills-managed`, an ownership record scoped by package and pack. Reinstallation updates and prunes only entries owned by that scope; unrelated skills, another pack, and agent-owned directories such as `.system` are preserved.
+
+## Update vendored skills
 
 ```bash
-~/projects/zzc-skills/scripts/skills-install coding /path/to/repo
-~/projects/zzc-skills/scripts/skills-install notes ~/org --copy   # detached copy, for cloud-synced dirs
+skills-update                 # refresh every explicit upstream entry
+skills-update tdd research    # refresh selected entries
 ```
 
-`--agents` narrows which agents get installed. Supported: `claude`, `kiro`, `codex`,
-`pi`, `hermes`, `dsh`. Defaults are `claude,kiro,codex` for project-level packs and all six
-for `global`:
+The updater:
 
-```bash
-scripts/skills-install coding /path/to/repo --agents claude,codex
+1. reads only explicitly declared entries from `upstreams.json`;
+2. validates cached origins, fetches each repository once, and resets to the fetched commit;
+3. compares content, executable modes, symlinks, and file types;
+4. replaces snapshots atomically with rollback;
+5. records per-skill commits and exits nonzero on malformed metadata, missing paths, fetch failures, or unresolved conflicts.
+
+A locally edited vendored snapshot is preserved while upstream is unchanged. If both changed, resolve the conflict or intentionally overwrite it with `--force`. Locally maintained variants belong under `self/`, not `vendored/`.
+
+`upstreams.json` groups shared repository data and records each skill's repository, pack, upstream path, baseline hash, and last refreshed commit. A repository-wide commit is updated only after a successful full-source refresh. The committed files under `vendored/` remain the reproducible runtime snapshot.
+
+## Add or remove a skill
+
+### Self-authored
+
+Create or delete:
+
+```text
+self/<pack>/<name>/SKILL.md
 ```
 
-Each agent has a project-level dir (`<project>/.codex/skills`) and a machine-level one
-(`~/.codex/skills`); `skills-update` sweeps the machine-level dirs when pruning a skill
-that disappeared upstream. dsh's machine-level dir honours `$DSH_HOME` (default `~/.dsh`).
+### Vendored
+
+1. Copy the upstream runtime directory to `vendored/<pack>/<name>/`.
+2. Add its repository and skill mapping to `upstreams.json`.
+3. Set `hash` to the stable content hash used by `scripts/skills-update`.
+4. Run `skills-update <name>` and `skills-install <pack> ...`.
+
+New upstream skills are never auto-discovered or assigned to a pack. Selection is an explicit repository decision.
+
+## Ownership policy
+
+- `self/` may be simplified, forked, and tailored to this environment.
+- `vendored/` follows the exact upstream path recorded in `upstreams.json`.
+- A removed upstream skill must be deleted or promoted to `self/`; there is no permanent orphan state.
+- Full applications should ship a runtime artifact. Archify is therefore self-owned and excludes upstream tests and pre-rendered examples while retaining its complete runtime.

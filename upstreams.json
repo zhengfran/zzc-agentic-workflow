@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "repositories": {
+    "i-have-adhd": {
+      "url": "https://github.com/ayghri/i-have-adhd.git",
+      "commit": "4092de07ce3ed88389d77c0d623b7af89b40ac0e"
+    },
+    "mattpocock-skills": {
+      "url": "https://github.com/mattpocock/skills.git",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "obsidian-skills": {
+      "url": "https://github.com/kepano/obsidian-skills.git",
+      "commit": "8ccef29ae8624eccc734e77ced4a6e54baf5d83a"
+    }
+  },
+  "skills": {
+    "code-review": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/code-review",
+      "hash": "67fe12c7bb1e2cf2a08d30fe0d05094e2e8f2b3f",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "codebase-design": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/codebase-design",
+      "hash": "aaa8651273a54fe5dd582225307b6bc27511df2a",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "defuddle": {
+      "repository": "obsidian-skills",
+      "pack": "global",
+      "path": "skills/defuddle",
+      "hash": "1bba128d8a8918583de27930d2a80560d7f53792",
+      "commit": "8ccef29ae8624eccc734e77ced4a6e54baf5d83a"
+    },
+    "diagnosing-bugs": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/diagnosing-bugs",
+      "hash": "788270005085612b4bb65d575016dcef501cd1f1",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "domain-modeling": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/domain-modeling",
+      "hash": "077839170c628502d9934a45ba5632a572e9e12f",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "git-guardrails-claude-code": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/misc/git-guardrails-claude-code",
+      "hash": "e11065c4318a1dc6d42a1a15cc5bf3fbdadfc574",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "i-have-adhd": {
+      "repository": "i-have-adhd",
+      "pack": "global",
+      "path": "skills/i-have-adhd",
+      "hash": "1991dfaa8b90c922cdf80507248edd79aa3460be",
+      "commit": "4092de07ce3ed88389d77c0d623b7af89b40ac0e"
+    },
+    "implement-spec": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/in-progress/implement-spec",
+      "hash": "f1fba5bd56eb0cdb79c685cf924c84498c180217",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "improve-codebase-architecture": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/improve-codebase-architecture",
+      "hash": "95aec7712be5c9dc432ff047093f9cbdd216cd90",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "loop-me": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/in-progress/loop-me",
+      "hash": "a65edcdc2cd39f482545292adccef0004fe887fb",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "migrate-to-shoehorn": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/misc/migrate-to-shoehorn",
+      "hash": "fbeafb2954890cb7e3a3e2c59b45cb6e4ebef3e5",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "prototype": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/prototype",
+      "hash": "105561dd836fb8601ab4b814ab2bd6660946a1c1",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "research": {
+      "repository": "mattpocock-skills",
+      "pack": "global",
+      "path": "skills/engineering/research",
+      "hash": "082ad8e2c2ffe9705c320ade135809a6757c0cf6",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "resolving-merge-conflicts": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/resolving-merge-conflicts",
+      "hash": "21433b16f8beded5603e417ca91eeb440ac34414",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "retro": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/in-progress/retro",
+      "hash": "bc9db4d9e6c8d2684851e8294fa0c5aef269786f",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "tdd": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/tdd",
+      "hash": "b803cf3ab203503365630ea378cda45a858818ef",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "teach": {
+      "repository": "mattpocock-skills",
+      "pack": "global",
+      "path": "skills/productivity/teach",
+      "hash": "9f4d52bd42d5da7b8cf72a7c7a7ac8137e742b9c",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "to-spec": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/to-spec",
+      "hash": "87b4258c607329c4b1fd7cabaf89da2ca780c4c6",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "to-tickets": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/to-tickets",
+      "hash": "18fe1ee1389632f9f92f7bef20cbc8d0ad7a553d",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "triage": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/engineering/triage",
+      "hash": "11700fd5915f2803f85340141bf7921e8e6b23a9",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "wait-what": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/productivity/wait-what",
+      "hash": "42597391f3d51a1de49587d5d7b8e167b4d5e239",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    "writing-for-agents": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/productivity/writing-for-agents",
+      "hash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    }
+  }
+}

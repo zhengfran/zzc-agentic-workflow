@@ -1,6 +1,6 @@
 ---
 name: obsidian-task-system
-description: Operate and maintain the personal Obsidian Task System. Use when capturing or promoting todos, creating or updating Task notes, working with Task Hub or project Bases, changing task status/WIP/dependencies/completion dates, adding or refreshing Excalidraw task cards and relations, running daily or weekly reviews, or diagnosing and migrating this system.
+description: "Manage the personal Obsidian Task System: tasks, status, WIP, dependencies, views, drawings, reviews, and migrations."
 ---
 
 # Obsidian Task System

@@ -22,7 +22,7 @@ The map is a single note in the Obsidian vault at `~/obsidian`, the canonical ar
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Every map lives in the Obsidian vault at `~/obsidian`, whatever repo the session is running in.** Planning is one system across all of this dev's work, so wayfinding ignores the current repo's issue tracker; that tracker still owns implementation tickets, and the map links out to it when a decision lands there.
+**Every map lives in the Obsidian vault at `~/obsidian`, whatever repo the session is running in.** Planning is one system across all of this dev's work. External implementation trackers may still own build tickets, and the map can link to them without adopting their persistence model.
 
 ### Where it lives
 
@@ -53,18 +53,19 @@ A ticket, numbered from `01`:
 ---
 type: grilling        # research | prototype | grilling | task
 status: open          # open | claimed | resolved
-blocked-by: ["[[02-ticket-sizing]]"]
+claimed_by: null      # agent/session identifier while claimed
+blocked_by: ["[[02-ticket-sizing]]"]
 map: "[[map]]"
 ---
 ```
 
-`blocked-by` holds wikilinks, so Obsidian's graph view draws the dependency edges and renames stay correct. A ticket is unblocked when every ticket it lists is `resolved`.
+`blocked_by` holds wikilinks, so Obsidian's graph view draws the dependency edges and renames stay correct. A ticket is unblocked when every ticket it lists is `resolved`.
 
 **Frontier scan**: the notes under `<Effort>/issues/` that are `open`, unblocked, and unclaimed; first by number wins. The map's `## Frontier` block shows the human the same set without opening a ticket.
 
 ### The map body
 
-The whole map at low resolution, loaded once per session. Open tickets are **not** listed: they are open child issues, found by query.
+The whole map at low resolution, loaded once per session. Open ticket notes are not listed manually; the query finds them from `issues/`.
 
 ````markdown
 ## Destination
@@ -77,9 +78,9 @@ The whole map at low resolution, loaded once per session. Open tickets are **not
 
 ## Decisions so far
 
-<!-- the index: one line per closed ticket, enough to judge relevance, then zoom the link for the detail the ticket holds -->
+<!-- the index: one line per resolved ticket, enough to judge relevance, then follow the link for its full answer -->
 
-- [<closed ticket title>](link): <one-line gist of the answer>
+- [[<resolved ticket>|<ticket title>]]: <one-line gist of the answer>
 
 ## Not yet specified
 
@@ -91,7 +92,7 @@ The whole map at low resolution, loaded once per session. Open tickets are **not
 
 ## Minimap
 
-<!-- see "The minimap": regenerated from the tracker, never hand-edited -->
+<!-- see "Minimap": regenerated from map and ticket notes, never hand-edited -->
 
 <!-- minimap:begin -->
 <!-- minimap:end -->
@@ -102,13 +103,14 @@ The whole map at low resolution, loaded once per session. Open tickets are **not
 LIST
 FROM "06-Spaces/03-Projects/<Project>/<Effort>/issues"
 WHERE status = "open"
+  AND all(default(blocked_by, []), (b) => b.status = "resolved")
 SORT file.name ASC
 ```
 ````
 
 ### Tickets
 
-Each ticket is a **child issue** of the map; the tracker's issue id is its identity. Its body is the question, sized to one 100K token agent session:
+Each ticket is a child Markdown note under the map's `issues/` directory; its numbered filename and wikilink are its identity. Its body is the question, sized to one agent session:
 
 ```markdown
 ## Question
@@ -116,13 +118,13 @@ Each ticket is a **child issue** of the map; the tracker's issue id is its ident
 <the decision or investigation this ticket resolves>
 ```
 
-Each ticket records its type, one of `research`, `prototype`, `grilling`, `task` (see [Ticket Types](#ticket-types)), the way the tracker doc says.
+Each ticket records one type: `research`, `prototype`, `grilling`, or `task` (see [Ticket Types](#ticket-types)).
 
-A session **claims** a ticket by setting `status: claimed` and saving, **first**, before any work, so concurrent sessions skip it. That mark _is_ the claim: an `open` ticket is takeable.
+A session claims a ticket before any work by setting `status: claimed`, writing its agent/session identifier to `claimed_by`, and saving. Concurrent sessions take only `open` tickets.
 
-Blocking uses the tracker's **native** dependency relationship: essential because it renders the frontier _visually_ in the tracker's own UI, so the human sees what's takeable without opening the map. Only a tracker that lacks native blocking falls back to a body convention. A ticket is **unblocked** when every ticket blocking it is closed; the **frontier** is the open, unblocked, unclaimed children, the edge of the known.
+Blocking is represented only by `blocked_by` wikilinks. A ticket is unblocked when every linked ticket has `status: resolved`; the frontier is the open, unblocked tickets.
 
-The answer isn't part of the body; it's recorded on resolution (see [Work through the map](#work-through-the-map)). Assets created while resolving a ticket are linked from the issue, not pasted in.
+Record the answer under `## Answer` on resolution. Link assets created while resolving a ticket instead of pasting them into the map.
 
 ## Ticket Types
 
@@ -152,57 +154,11 @@ Fog only ever gathers _toward_ the destination. The destination fixes the scope,
 
 Out-of-scope work never graduates (the frontier stops at the destination), so it returns only if the destination is redrawn, and then as a fresh effort, not a resumption.
 
-Ruling something out of scope is a scoping act, not a step on the route. When a ticket that already exists turns out to sit past the destination (mis-scoped in while charting, or exposed by a resolution), **close it** (a closed ticket is unambiguously off the frontier) and leave one line in the **Out of scope** section: the gist plus why it's out of scope, linking the closed ticket. It stays out of **Decisions so far**, which records the route actually walked; a scope boundary isn't a step on it.
+Ruling something out of scope is a scoping act, not a step on the route. When an existing ticket turns out to sit past the destination, set it to `resolved`, record an `## Answer` explaining the scope decision, and leave one linked line in **Out of scope** with the reason. It stays out of **Decisions so far**, which records the route actually walked; a scope boundary isn't a step on it.
 
-## The minimap
+## Minimap
 
-The tracker renders blocking edges, but not the destination, the fog, or what's been ruled out. The **minimap** is the whole effort in one picture: a Mermaid `flowchart` between the map body's `minimap` markers, regenerated from the tracker. It is a view, not a store, so the tracker stays authoritative and the frontier query still decides which ticket a session takes.
-
-One node per ticket and per fog patch, titled by **name** (see [Refer by name](#refer-by-name)) and prefixed to encode state. State is carried **twice**, by prefix and by colour: the prefix so the picture still reads where colour is dropped (plain-text diffs, monochrome print, colour-blind readers), the colour so the shape of the effort reads at a glance without parsing labels.
-
-| Prefix | State | Class | Colour |
-| --- | --- | --- | --- |
-| `✓` | decided: closed ticket | `decided` | green |
-| `▶` | frontier: open, unblocked, unclaimed | `frontier` | amber |
-| `●` | claimed, followed by `@dev` | `claimed` | blue |
-| `○` | blocked | `blocked` | red |
-| — | the destination | `dest` | violet |
-| — | fog patch | `fog` | grey, dashed |
-| — | out of scope | `oos` | faint grey, dashed |
-
-The destination is a hexagon (`{{ }}`); fog patches and out-of-scope lines sit in their own labelled subgraphs. Edges run blocker → blocked. Every node is a gist: the detail stays in the tickets, and the answers stay in Decisions-so-far.
-
-The `classDef` block is part of the generated minimap: emit it verbatim every regeneration, then assign every node a class with `class <ids> <name>`. Fills are light with explicit dark text, so the diagram stays legible under both light and dark Obsidian themes rather than inheriting whichever one rendered it.
-
-```mermaid
-flowchart LR
-  t1(["✓ Which tracker"]) --> t2["▶ Ticket sizing"]
-  t1 --> t3["● Label vocabulary @sam"]
-  t2 --> t4["○ Blocking convention"]
-  t4 --> D{{"Destination: a spec to hand off"}}
-  subgraph fogzone ["Not yet specified"]
-    f1["how resolutions get reviewed"]
-  end
-  subgraph ooszone ["Out of scope"]
-    o1["migrating old issues"]
-  end
-
-  classDef decided  fill:#d3f9d8,stroke:#2f9e44,stroke-width:1.5px,color:#1b4332
-  classDef frontier fill:#fff3bf,stroke:#f08c00,stroke-width:2px,color:#5c3d00
-  classDef claimed  fill:#d0ebff,stroke:#1971c2,stroke-width:1.5px,color:#0b3d62
-  classDef blocked  fill:#ffe3e3,stroke:#e03131,stroke-width:1.5px,color:#6a1414
-  classDef dest     fill:#e5dbff,stroke:#7048e8,stroke-width:2px,color:#2f1c5c
-  classDef fog      fill:#f1f3f5,stroke:#adb5bd,stroke-width:1px,color:#495057,stroke-dasharray:4 3
-  classDef oos      fill:#f8f9fa,stroke:#ced4da,stroke-width:1px,color:#868e96,stroke-dasharray:2 3
-
-  class t1 decided
-  class t2 frontier
-  class t3 claimed
-  class t4 blocked
-  class D dest
-  class f1 fog
-  class o1 oos
-```
+Regenerate the visual map after charting and after every resolution. Read [`references/minimap.md`](references/minimap.md) for state prefixes, colours, Mermaid structure, and the required class definitions. Map and ticket notes remain authoritative; the minimap is only a generated view.
 
 ## Invocation
 
@@ -214,21 +170,21 @@ User invokes with a loose idea.
 
 1. **Name the destination.** Call the Skill tool twice, for "grilling" and "domain-modeling", to pin down what this map is finding its way to: the spec, decision, or change. The destination fixes the scope, so it's settled first.
 2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** (the way to the destination is already clear, the whole journey small enough for one session), you don't need a map. Stop and ask the user how they'd like to proceed.
-3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
-4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
+3. **Create the map note:** fill Destination and Notes, leave Decisions-so-far empty, and sketch the fog under **Not yet specified**.
+4. **Create the ticket notes you can specify now**, then wire their `blocked_by` wikilinks in a second pass. Everything not yet precise stays in **Not yet specified**.
 5. **Regenerate the minimap** so the human sees the shape charted: the destination, the route, the frontier, and the fog.
 6. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.
 7. Stop: charting is one session's work; it hand-resolves nothing.
 
 ### Work through the map
 
-User invokes with a map (URL or number). A ticket is **optional**: without one, you pick the next decision, not the user.
+User invokes with a map path or wikilink. A ticket is optional: without one, select the first frontier ticket.
 
 1. Load the **map**: the low-res view, not every ticket body.
-2. Choose the ticket. If the user named one, use it. Otherwise take the first frontier ticket in order. **Claim it**: assign it to yourself before any work.
-3. Resolve it. **Zoom as needed**: fetch the full body of any related or closed ticket on demand; call the Skill tool for whichever skills the `## Notes` block names. If in doubt, call the Skill tool twice, for "grilling" and "domain-modeling".
-4. Record the resolution: append the answer under an `## Answer` heading, set `status: resolved`, and **append a context pointer** to the map's Decisions-so-far.
-5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals that a ticket (this one or another) sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
-6. **Regenerate the minimap** from the tracker's current state.
+2. Choose the ticket. If the user named one, use it; otherwise take the first frontier ticket in filename order. Claim it by setting `status: claimed` and `claimed_by` before any work.
+3. Resolve it. Zoom as needed by reading related or resolved ticket notes on demand. Apply whichever skills the map's `## Notes` block names; when uncertain, apply `grilling` and `domain-modeling`.
+4. Record the resolution: append `## Answer`, set `status: resolved`, retain `claimed_by` as provenance, and append a linked one-line gist to the map's Decisions-so-far.
+5. Add newly surfaced ticket notes and then wire links. Graduate newly precise fog into tickets and remove the corresponding **Not yet specified** entry. Mark mis-scoped tickets resolved with a scope answer and link them from **Out of scope**.
+6. Regenerate the minimap from the map and ticket notes.
 
-The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.
+Unblocked tickets may run in parallel, so reread a note immediately before claiming or writing it.

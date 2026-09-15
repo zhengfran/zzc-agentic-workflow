@@ -1,47 +1,86 @@
 #!/usr/bin/env bash
-# skills-install — install an assembled pack into per-agent skill dirs.
+# skills-install — install a pack's skills straight from self/<pack>/* and
+# vendored/<pack>/* into per-agent skill directories.
 #
 # Usage:
-#   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy]
-#     pack        notes | coding  → project-level install (see assembled/)
-#                 global          → machine-level install into the 6 agent home dirs,
-#                                   ignores target-dir, also folds in assembled/hermes-only
+#   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy] [--adopt-existing]
+#     pack        notes | coding  → project-level install
+#                 global          → machine-level install into the agent home
+#                                   dirs, ignores target-dir
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
-#     --agents    comma list: claude,kiro,codex,pi,hermes,dsh
-#                 (default: claude,kiro,codex for notes/coding; all six for global)
+#     --agents    project packs: claude,kiro,codex
+#                 global pack: claude,kiro,codex,pi,hermes,dsh
+#                 (defaults: all supported agents for that scope)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
+#     --adopt-existing
+#                 overwrite otherwise-unmanaged same-name entries, including
+#                 pre-state-file copies or broken legacy assembly symlinks.
+#                 Without this flag such collisions abort the run. A live
+#                 symlink resolving to the exact source is adopted automatically.
 #
-# Symlink mode keeps installs in lockstep with `skills-sync`; copy mode detaches.
+# Every destination dir gets a small state file (.zzc-skills-managed) recording
+# which names this package/pack installed there. Re-runs only add/update/remove
+# those recorded names — anything else already in the destination (another
+# tool's files, an agent's own ".system" entries, hand-placed skills, a
+# different pack sharing the same dir) is left untouched. A name claimed by a
+# different package/pack scope in that state file is always rejected, even if
+# its destination path happens to be missing right now.
+#
+# Symlink mode keeps installs in lockstep with the repo; copy mode detaches.
+#
+# All destinations are preflighted (collision-checked) before any of them are
+# mutated, and each skill is staged to a temp path and atomically swapped into
+# place with a rollback that restores the previous content on failure — so a
+# single unlucky copy/rename never leaves a destination half-written or a
+# skill's prior content lost.
+#
+# Indexed (never associative) arrays throughout, and every array is walked
+# with a C-style `for ((i=0; i<${#arr[@]}; i++))` index loop rather than
+# `"${arr[@]}"`/`"${!arr[@]}"` — macOS ships bash 3.2, whose `set -u` treats
+# a *declared-but-empty* array's `[@]`/`![@]` expansion as an unbound
+# variable (fixed only in bash 4.4+); `${#arr[@]}` and indexed element access
+# don't have that bug on any bash version, so we stick to those.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-pack="${1:?usage: skills-install <pack> [target-dir] [--agents ...] [--copy]}"; shift || true
+OWNER_ID="zzc-skills"
+STATE_NAME=".zzc-skills-managed"
 
-target="."; agents=""; mode="symlink"
+usage() {
+  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,...] [--copy] [--adopt-existing]" >&2
+  exit 2
+}
+
+[[ $# -ge 1 ]] || usage
+pack="$1"; shift
+
+case "$pack" in
+  global|notes|coding) ;;
+  *) echo "unknown pack: $pack (expected global, notes, or coding)" >&2; exit 2;;
+esac
+
+target="."; agents=""; mode="symlink"; adopt_existing=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --agents) agents="$2"; shift 2;;
-    --copy)   mode="copy"; shift;;
-    -*)       echo "unknown flag: $1"; exit 2;;
-    *)        target="$1"; shift;;
+    --agents)
+      [[ $# -ge 2 ]] || { echo "--agents requires a value" >&2; exit 2; }
+      agents="$2"; shift 2;;
+    --copy)           mode="copy"; shift;;
+    --adopt-existing) adopt_existing=1; shift;;
+    -*)               echo "unknown flag: $1" >&2; exit 2;;
+    *)                target="$1"; shift;;
   esac
 done
 [[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,pi,hermes,dsh" || agents="claude,kiro,codex"; }
 
-srcdir="$ROOT/assembled/$pack"
-[[ -d "$srcdir" ]] || { echo "no such pack: $pack (run skills-sync first)"; exit 1; }
-
-# per-agent project-level skill subdir. NOTE: pi/hermes project-level paths are best-guess — verify.
+# Confirmed project-level skill dirs. Keep speculative adapters out until tested.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
 agentdir() {
   case "$1" in
     claude) echo ".claude/skills";;
     kiro)   echo ".kiro/skills";;
     codex)  echo ".codex/skills";;
-    pi)     echo ".pi/skills";;
-    hermes) echo ".hermes/skills";;
-    dsh)    echo ".dsh/skills";;
-    *)      echo "";;
+    *)      return 1;;
   esac
 }
 
@@ -54,45 +93,249 @@ homedir() {
     pi)     echo "$HOME/.pi/agent/skills";;
     hermes) echo "$HOME/.hermes/skills";;
     dsh)    echo "${DSH_HOME:-$HOME/.dsh}/skills";;
-    *)      echo "";;
+    *)      return 1;;
   esac
 }
 
-install_one() {
-  local dst="$1" srcdir="$2"
-  mkdir -p "$dst"
-  find "$dst" -mindepth 1 -maxdepth 1 -exec rm -rf {} +   # clear stale entries
-  for s in "$srcdir"/*; do
-    local name; name="$(basename "$s")"
-    if [[ "$mode" == copy ]]; then rm -rf "$dst/$name"; cp -rL "$s" "$dst/$name"
-    else ln -sfn "$s" "$dst/$name"; fi
+destdir() { [[ "$pack" == global ]] && homedir "$1" || agentdir "$1"; }
+
+IFS=',' read -ra AGENT_LIST <<< "$agents"
+[[ ${#AGENT_LIST[@]} -gt 0 ]] || { echo "no agents specified" >&2; exit 2; }
+for ((i = 0; i < ${#AGENT_LIST[@]}; i++)); do
+  destdir "${AGENT_LIST[$i]}" >/dev/null || { echo "unknown agent: ${AGENT_LIST[$i]}" >&2; exit 2; }
+done
+
+# --- gather managed skill names from self/<pack> + vendored/<pack> ----------
+# indexed (not associative) arrays throughout, for macOS bash 3.2 compat.
+names=()
+srcs=()      # parallel array: origin ("self/<pack>" or "vendored/<pack>") for names[i]
+
+name_index() {   # sets REPLY to the index of $1 in names[], returns 1 if absent
+  local n="$1" i
+  for ((i = 0; i < ${#names[@]}; i++)); do
+    if [[ "${names[$i]}" == "$n" ]]; then REPLY=$i; return 0; fi
   done
-  echo "   → $dst  ($(ls "$dst" | wc -l) skills)"
+  REPLY=-1
+  return 1
 }
 
-if [[ "$pack" == global ]]; then
-  echo "==> installing global pack into agent home dirs ($mode)"
-  IFS=',' read -ra AS <<< "$agents"
-  for a in "${AS[@]}"; do
-    dst="$(homedir "$a")"; [[ -n "$dst" ]] || { echo "  ?? unknown/no home dir for agent: $a"; continue; }
-    install_one "$dst" "$srcdir"
-    if [[ "$a" == hermes && -d "$ROOT/assembled/hermes-only" ]]; then
-      for s in "$ROOT/assembled/hermes-only"/*; do
-        [[ -e "$s" ]] || continue
-        name="$(basename "$s")"
-        if [[ "$mode" == copy ]]; then rm -rf "$dst/$name"; cp -rL "$s" "$dst/$name"
-        else ln -sfn "$s" "$dst/$name"; fi
-      done
-      echo "   hermes extras → $dst ($(ls "$ROOT/assembled/hermes-only" 2>/dev/null | wc -l))"
+for base in self vendored; do
+  d="$ROOT/$base/$pack"
+  [[ -d "$d" ]] || continue
+  for s in "$d"/*/; do
+    [[ -d "$s" ]] || continue
+    name="$(basename "$s")"
+    if name_index "$name"; then
+      echo "duplicate skill name '$name': found in both ${srcs[$REPLY]} and $base/$pack" >&2
+      exit 1
+    fi
+    if [[ ! -f "$s/SKILL.md" ]]; then
+      echo "missing SKILL.md: $base/$pack/$name" >&2
+      exit 1
+    fi
+    names+=("$name")
+    srcs+=("$base/$pack")
+  done
+done
+if [[ ${#names[@]} -eq 0 ]]; then
+  echo "note: no skills found for pack '$pack' under self/ or vendored/ — will prune any previously installed entries" >&2
+fi
+
+srcpath() {   # $1 = managed name -> absolute source dir
+  local i
+  for ((i = 0; i < ${#names[@]}; i++)); do
+    if [[ "${names[$i]}" == "$1" ]]; then echo "$ROOT/${srcs[$i]}/$1"; return 0; fi
+  done
+  return 1
+}
+
+STATE_PREFIX="$OWNER_ID"$'\t'"$pack"$'\t'
+
+# read_state <dst> — sets globals PREV=() (this package/pack's previously
+# recorded names, prefix stripped) and KEEP=() (other packs' claims, preserved
+# verbatim). Any absolute-path owner is the legacy format and is migrated to
+# the stable package ID, even when the checkout moved.
+PREV=(); KEEP=()
+read_state() {
+  local dst="$1" statefile="$1/$STATE_NAME" line owner row_pack row_name extra
+  PREV=(); KEEP=()
+  [[ -f "$statefile" ]] || return 0
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    owner=""; row_pack=""; row_name=""; extra=""
+    IFS=$'\t' read -r owner row_pack row_name extra <<< "$line"
+    if [[ -z "$extra" && -n "$row_name" && "$row_pack" == "$pack" \
+          && ( "$owner" == "$OWNER_ID" || "$owner" == /* ) ]]; then
+      PREV+=("$row_name")
+    else
+      KEEP+=("$line")
+    fi
+  done < "$statefile"
+}
+
+arr_has() {   # $1 = needle, $2 = array name ("PREV" or "KEEP")
+  local needle="$1" arrname="$2" i
+  case "$arrname" in
+    PREV) for ((i = 0; i < ${#PREV[@]}; i++)); do [[ "${PREV[$i]}" == "$needle" ]] && return 0; done;;
+    KEEP) for ((i = 0; i < ${#KEEP[@]}; i++)); do [[ "${KEEP[$i]}" == "$needle" ]] && return 0; done;;
+  esac
+  return 1
+}
+
+keep_claims_name() {   # $1 = name -> true if some *other* scope's state line claims it
+  local n="$1" i
+  for ((i = 0; i < ${#KEEP[@]}; i++)); do
+    [[ "${KEEP[$i]}" == *$'\t'"$n" ]] && return 0
+  done
+  return 1
+}
+
+# preflight_one <dst> — collision-check only, no mutation. Safe to call on a
+# destination that doesn't exist yet (nothing to collide with).
+preflight_one() {
+  local dst="$1" n path s i
+  read_state "$dst"
+  for ((i = 0; i < ${#names[@]}; i++)); do
+    n="${names[$i]}"
+    if keep_claims_name "$n"; then
+      echo "name '$n' is already claimed by another package or pack in $dst/$STATE_NAME" >&2
+      return 1
+    fi
+    path="$dst/$n"
+    [[ -e "$path" || -L "$path" ]] || continue
+    if arr_has "$n" PREV; then continue; fi
+    s="$(srcpath "$n")"
+    # Safe automatic adoption: a symlink that already resolves to the exact
+    # source we'd install, through any relative path or symlink chain, is
+    # indistinguishable from our own prior install.
+    if [[ -L "$path" ]] && [[ "$path" -ef "$s" ]]; then continue; fi
+    # Explicit opt-in only: adopt a legacy copy or broken assembly symlink
+    # that isn't recorded as managed by another package/pack.
+    if [[ "$adopt_existing" == 1 ]]; then continue; fi
+    echo "unmanaged destination collision: $path (use --adopt-existing only for a verified legacy install)" >&2
+    return 1
+  done
+  return 0
+}
+
+# replace_one <dst> <name> — stage the new symlink/copy at a temp path, back
+# up any existing entry at another temp path, then atomically (via rename)
+# swap the new content into place. On any failure the previous content is
+# rolled back into place; if the rollback rename itself fails, the backup is
+# left on disk (never deleted) so nothing is lost.
+replace_one() {
+  local dst="$1" n="$2" s path tmp_new tmp_old had_old=0
+  s="$(srcpath "$n")"
+  path="$dst/$n"
+  tmp_new="$dst/.$n.new.$$"
+  tmp_old="$dst/.$n.old.$$"
+  rm -rf "$tmp_new" "$tmp_old"
+
+  if [[ "$mode" == copy ]]; then
+    if ! cp -rL "$s" "$tmp_new" 2>/dev/null; then
+      rm -rf "$tmp_new"
+      echo "failed to stage copy for '$n' into $dst — left existing content untouched" >&2
+      return 1
+    fi
+  else
+    if ! ln -s "$s" "$tmp_new" 2>/dev/null; then
+      rm -rf "$tmp_new"
+      echo "failed to stage symlink for '$n' into $dst — left existing content untouched" >&2
+      return 1
+    fi
+  fi
+
+  if [[ -e "$path" || -L "$path" ]]; then
+    had_old=1
+    if ! mv -f "$path" "$tmp_old" 2>/dev/null; then
+      rm -rf "$tmp_new"
+      echo "failed to back up existing '$n' in $dst — left existing content untouched" >&2
+      return 1
+    fi
+  fi
+
+  if mv -f "$tmp_new" "$path" 2>/dev/null; then
+    rm -rf "$tmp_old"
+    return 0
+  fi
+
+  echo "failed to install '$n' into $dst — rolling back" >&2
+  if [[ "$had_old" == 1 ]]; then
+    if mv -f "$tmp_old" "$path" 2>/dev/null; then
+      echo "  rolled back: restored previous '$n'" >&2
+    else
+      echo "  rollback FAILED: previous '$n' preserved at $tmp_old — restore it manually" >&2
+    fi
+  fi
+  rm -rf "$tmp_new"
+  return 1
+}
+
+# commit_one <dst> — prune, replace every owned name, and atomically rewrite
+# the state file. Always records the full current `names` set as owned
+# (regardless of any individual replace_one failure) so a transient I/O
+# error doesn't make a future run think this pack no longer wants that name
+# and prune content that's mid-recovery.
+commit_one() {
+  local dst="$1" statefile="$1/$STATE_NAME" statetmp n i failed=0
+  if ! mkdir -p "$dst"; then echo "failed to create destination: $dst" >&2; return 1; fi
+  read_state "$dst"
+
+  # Prune names dropped from this pack, unless another pack still claims the
+  # same path. Every destructive result is checked explicitly because this
+  # function is called from an `||` context where Bash disables `set -e`.
+  for ((i = 0; i < ${#PREV[@]}; i++)); do
+    n="${PREV[$i]}"
+    if ! name_index "$n" && ! keep_claims_name "$n"; then
+      if ! rm -rf "$dst/$n"; then echo "failed to prune $dst/$n" >&2; failed=1; fi
     fi
   done
+
+  for ((i = 0; i < ${#names[@]}; i++)); do
+    replace_one "$dst" "${names[$i]}" || failed=1
+  done
+
+  statetmp="$statefile.tmp.$$"
+  if ! {
+    for ((i = 0; i < ${#KEEP[@]}; i++)); do printf '%s\n' "${KEEP[$i]}"; done
+    for ((i = 0; i < ${#names[@]}; i++)); do printf '%s%s\n' "$STATE_PREFIX" "${names[$i]}"; done
+  } > "$statetmp"; then
+    echo "failed to write ownership state: $statetmp" >&2
+    return 1
+  fi
+  if ! mv -f "$statetmp" "$statefile"; then
+    echo "failed to commit ownership state; recoverable file left at $statetmp" >&2
+    return 1
+  fi
+
+  echo "   -> $dst  (${#names[@]} skills)"
+  return "$failed"
+}
+
+# --- build the destination list, then preflight ALL of it before mutating any
+dest_list=()
+if [[ "$pack" == global ]]; then
+  echo "==> installing global pack into agent home dirs ($mode)"
+  for ((i = 0; i < ${#AGENT_LIST[@]}; i++)); do dest_list+=("$(homedir "${AGENT_LIST[$i]}")"); done
 else
   echo "==> installing pack '$pack' into $target ($mode)"
   target="$(cd "$target" && pwd)"
-  IFS=',' read -ra AS <<< "$agents"
-  for a in "${AS[@]}"; do
-    sub="$(agentdir "$a")"; [[ -n "$sub" ]] || { echo "  ?? unknown agent: $a"; continue; }
-    install_one "$target/$sub" "$srcdir"
-  done
+  for ((i = 0; i < ${#AGENT_LIST[@]}; i++)); do dest_list+=("$target/$(agentdir "${AGENT_LIST[$i]}")"); done
+fi
+
+preflight_failed=0
+for ((i = 0; i < ${#dest_list[@]}; i++)); do
+  preflight_one "${dest_list[$i]}" || preflight_failed=1
+done
+[[ "$preflight_failed" == 0 ]] || exit 1
+
+mutate_failed=0
+for ((i = 0; i < ${#dest_list[@]}; i++)); do
+  commit_one "${dest_list[$i]}" || mutate_failed=1
+done
+
+if [[ "$pack" != global ]]; then
   echo "note: add the installed agent skill dirs to this repo's .gitignore if you don't want them tracked."
 fi
+
+exit "$mutate_failed"

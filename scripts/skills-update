@@ -1,48 +1,55 @@
 #!/usr/bin/env python3
-"""skills-update — self-contained git-based updater for vendored skills.
+"""skills-update — refresh vendored skills from upstreams.json.
 
-Reads vendored/.skill-lock.json, shallow-clones each upstream repo once, and
-refreshes the local vendored copy of every skill whose upstream folder changed.
-Local copies live at vendored/<pack>/<name> (pack from manifest.tsv).
+Reads upstreams.json (schema: {version, repositories: {id: {url, ref?,
+commit?}}, skills: {name: {repository, pack, path, hash?, commit?}}}) and
+syncs vendored/<pack>/<name> from <path> — the upstream skill's directory,
+not necessarily where its SKILL.md lives — inside that skill's repo.
 
-Safety / behaviour:
-  - our own folder hash (field ``folderHash``) is the change baseline
-  - a hand-edited local copy + moved upstream = CONFLICT, skipped unless --force
-  - a skill removed upstream is an ORPHAN: you are asked whether to delete the
-    local copy too (interactive), or use --prune (delete all) / --keep-orphans
-  - a skill that exists upstream but not locally is NEW: after each repo is
-    scanned you get the list and are asked whether to fetch each one (into a
-    pack). Declines are remembered so you are not nagged every run.
+Each repository is cloned/fetched once (at `ref` if given, else its
+default branch) and shared by every skill that names it. A pre-existing
+cache clone's `origin` remote is checked against the configured url first —
+if they don't match (e.g. the url was repointed in upstreams.json) the
+cache is discarded and recloned rather than silently serving skills from
+the wrong source. Otherwise the cache is fetched then hard-reset to
+FETCH_HEAD — the commit that fetch just retrieved — never to a possibly-
+stale ref; any failure there falls back to a fresh clone.
 
-New-skill discovery runs only for repos in the ``followNew`` list (defaults to
-lijigang/ljg-skills + mattpocock/skills) so big catalog repos we cherry-picked
-from don't flood the prompt. Edit ``followNew`` in the lockfile to change it.
+Change detection uses content+metadata hashes: a skill's `hash` in
+upstreams.json is the refresh baseline. A local copy that no longer
+matches it is a hand-edit; if upstream also changed since the baseline,
+that's a CONFLICT and is skipped unless --force. The hash covers each
+regular file's path, content and executable bit, and each symlink's path
+and target (without following it); any other file type is a hard error
+rather than being silently mis-hashed. Copies preserve the same: symlinks
+are recreated as symlinks (not dereferenced) and file modes are preserved.
 
-A repo is cloned at its default branch unless the lockfile entry carries a
-``ref`` (branch/tag) — e.g. ljg-skills publishes Org-mode output on its default
-``master`` branch and Markdown output on ``md``, so every ljg-* entry pins
-``"ref": "md"``. ``--add-repo <url>#<branch>`` sets the ref for a whole repo,
-existing skills included, which is also how you switch a repo to another branch.
+Every successfully refreshed skill records the commit it was refreshed at
+in its own `commit` field — that's the only place a *partial* (some
+skills selected) update can truthfully report provenance from. The
+repository-wide `commit` field is only touched (added/updated) when a run
+covers every skill tracked against that repository, since otherwise it
+would claim untouched skills are at a commit they were never synced to.
+
+Before touching the network or the filesystem, upstreams.json is
+validated: version must be 1, `repositories`/`skills` must have the right
+shapes, every skill's pack must be a known one, every skill's `path` must
+be a safe relative path (no absolute path, no `..` traversal), and every
+skill's `hash` must either be absent (allowed only when no local copy
+exists yet — i.e. this would be its first install) or a well-formed
+40-hex-char sha1. Any violation aborts the whole run before anything is
+cloned or written.
 
 Usage:
-  skills-update [--force] [--prune | --keep-orphans]
-                [--fetch-new | --no-new] [--reconsider-new] [--follow-all]
-                [--add-repo <url>[#branch]] [skill ...]
+  skills-update [--force] [skill ...]
 
-  --fetch-new       fetch every new upstream skill non-interactively into its
-                    repo's most-common pack (no prompts)
-  --no-new          skip new-upstream-skill discovery entirely
-  --reconsider-new  re-offer skills you previously declined
-  --follow-all      discover new skills in every repo, not just followed ones
-  --add-repo <url>  clone a NEW upstream repo, add it to followNew, and run the
-                    fetch-new prompt over all its skills (bootstrap a new repo).
-                    Only that repo is processed; combine with --fetch-new to
-                    grab everything non-interactively. Suffix the url with
-                    ``#<branch>`` to track a non-default branch; for a repo that
-                    is already vendored this re-fetches its skills from that
-                    branch and repins their ``ref``.
+  --force   overwrite local edits when the upstream copy has also changed
+  skill     only refresh these tracked skills (default: all)
+
+Exit status is non-zero if any skill failed to refresh or was left as an
+unresolved conflict.
 """
-import datetime
+import argparse
 import hashlib
 import json
 import os
@@ -50,410 +57,377 @@ import re
 import shutil
 import subprocess
 import sys
-from collections import Counter, defaultdict
-from pathlib import Path
+from collections import defaultdict
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent          # tools/ai/skills
 VENDORED = ROOT / "vendored"
-ASSEMBLED = ROOT / "assembled"
-LOCK = VENDORED / ".skill-lock.json"
-MANIFEST = ROOT / "manifest.tsv"
-CACHE = ROOT / ".cache" / "repos"
-HOME = Path.home()
-ORG = HOME / "org"
+UPSTREAMS = ROOT / "upstreams.json"
+CACHE = ROOT / ".cache" / "repos"                       # keyed by repository id
 
-# where the global pack is distributed (per-agent), for orphan cleanup
-AGENT_GLOBAL = [HOME / ".claude/skills", HOME / ".kiro/skills",
-                HOME / ".codex/skills", HOME / ".pi/agent/skills",
-                HOME / ".hermes/skills",
-                Path(os.environ.get("DSH_HOME", HOME / ".dsh")) / "skills"]
+VALID_PACKS = ("global", "notes", "coding")
+ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 
-# Repos we actively follow for NEW upstream skills. Other repos (big catalogs
-# we only cherry-picked one or two skills from) are ignored for new-skill
-# discovery. Persisted as ``followNew`` in the lockfile — edit it
-# there to add/remove followed repos, or pass --follow-all for a one-off sweep.
-DEFAULT_FOLLOW = [
-    "https://github.com/lijigang/ljg-skills.git#md",
-    "https://github.com/mattpocock/skills.git",
-]
-
-FORCE = "--force" in sys.argv
-PRUNE = "--prune" in sys.argv
-KEEP = "--keep-orphans" in sys.argv
-FETCH_NEW = "--fetch-new" in sys.argv
-NO_NEW = "--no-new" in sys.argv
-RECONSIDER = "--reconsider-new" in sys.argv
-FOLLOW_ALL = "--follow-all" in sys.argv
-ADD_REPO = None
-if "--add-repo" in sys.argv:
-    _i = sys.argv.index("--add-repo")
-    ADD_REPO = sys.argv[_i + 1] if _i + 1 < len(sys.argv) else None
-ONLY = [a for a in sys.argv[1:] if not a.startswith("-") and a != ADD_REPO]
+FORCE = False   # set from argv in main()
 
 
 def sh(args, cwd=None):
     return subprocess.run(args, cwd=cwd, capture_output=True, text=True)
 
 
-def norm_url(url):
-    m = re.match(r"git@([^:]+):(.+?)(?:\.git)?$", url)
-    if m:
-        return f"https://{m.group(1)}/{m.group(2)}.git"
-    if re.match(r"^[\w.-]+/[\w.-]+$", url):            # owner/repo shorthand
-        return f"https://github.com/{url}.git"
-    return url if url.endswith(".git") else url + ".git"
-
-
-def slug(url):
-    return re.sub(r"[^\w.-]+", "_", re.sub(r"^https?://", "", url)).strip("_")
-
-
 def folder_hash(d):
-    """Stable content+path hash of a folder, ignoring .git."""
+    """Stable hash of a folder's tracked content, ignoring .git.
+
+    A regular file contributes its relative path, content, and an
+    executable-bit marker (only present when the bit is set, so the
+    common non-executable case hashes identically to a scheme that never
+    tracked mode at all). A symlink contributes its relative path and
+    raw target (via os.readlink, never followed) instead of content, so
+    two skills that differ only in "real file" vs "symlink to identical
+    content" no longer hash the same. Any other file type (fifo, socket,
+    device, ...) is a hard error rather than being silently skipped or
+    mis-hashed as something else.
+    """
     h = hashlib.sha1()
-    for p in sorted(x for x in d.rglob("*") if x.is_file() and ".git" not in x.parts):
-        h.update(str(p.relative_to(d)).encode()); h.update(b"\0")
-        h.update(p.read_bytes()); h.update(b"\0")
+    for p in sorted(x for x in d.rglob("*") if ".git" not in x.parts):
+        if p.is_symlink():
+            rel = str(p.relative_to(d))
+            h.update(rel.encode()); h.update(b"\0")
+            h.update(b"symlink\0")
+            h.update(os.readlink(p).encode()); h.update(b"\0")
+        elif p.is_dir():
+            continue   # directory presence is implied by the files under it
+        elif p.is_file():
+            rel = str(p.relative_to(d))
+            h.update(rel.encode()); h.update(b"\0")
+            if os.access(p, os.X_OK):
+                h.update(b"executable\0")
+            h.update(p.read_bytes()); h.update(b"\0")
+        else:
+            raise ValueError(f"unsupported file type in {d}: {p}")
     return h.hexdigest()
 
 
-def now_iso():
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
-
-
-def parse_ref(spec):
-    """Split a ``url#ref`` spec into ``(url, ref)``; ref is None when absent."""
-    url, _, ref = spec.partition("#")
-    return norm_url(url.strip()), (ref.strip() or None)
-
-
-def ref_spec(url, ref):
-    """Inverse of parse_ref: canonical ``url`` / ``url#ref`` string."""
-    return f"{url}#{ref}" if ref else url
-
-
-def clone_key(url, ref):
-    """Cache dir name for one repo at one ref."""
-    return slug(url) + (("#" + re.sub(r"[^\w.-]+", "_", ref)) if ref else "")
-
-
-def clone_or_fetch(url, ref=None):
-    """Shallow clone/fetch of ``url`` at ``ref`` (its default branch if None)."""
-    dest = CACHE / clone_key(url, ref)
+def clone_or_fetch(repo_id, url, ref):
+    """Shallow clone/fetch ``repo_id`` at ``ref`` (its default branch if
+    None) into the cache. Returns ``(path, None)`` on success or
+    ``(None, error_message)`` on failure. An existing cache dir whose
+    ``origin`` remote no longer matches ``url`` is discarded outright —
+    it may be tracking a repo that was repointed in upstreams.json, and
+    fetching it would silently serve skills from the wrong source.
+    Otherwise it's refreshed by fetching and hard-resetting to
+    FETCH_HEAD; on any failure it's discarded and a fresh clone is
+    attempted instead."""
+    dest = CACHE / repo_id
+    err = None
     if dest.exists():
-        if sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin",
-               ref or "HEAD"]).returncode == 0:
-            target = "FETCH_HEAD"
-            if ref is None:
-                head = sh(["git", "-C", str(dest), "rev-parse", "origin/HEAD"])
-                target = "origin/HEAD" if head.returncode == 0 else "FETCH_HEAD"
-            sh(["git", "-C", str(dest), "reset", "--hard", target])
-            return dest
-        shutil.rmtree(dest, ignore_errors=True)
+        origin = sh(["git", "-C", str(dest), "remote", "get-url", "origin"])
+        cached_url = origin.stdout.strip() if origin.returncode == 0 else None
+        if cached_url != url:
+            err = f"cached origin for {repo_id} is {cached_url!r}, expected {url!r} — discarding cache"
+            shutil.rmtree(dest, ignore_errors=True)
+        else:
+            fetch = sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin", ref or "HEAD"])
+            if fetch.returncode == 0:
+                reset = sh(["git", "-C", str(dest), "reset", "--hard", "FETCH_HEAD"])
+                if reset.returncode == 0:
+                    return dest, None
+                err = f"reset --hard FETCH_HEAD failed for {repo_id}: {reset.stderr.strip()}"
+            else:
+                err = f"fetch failed for {repo_id}: {fetch.stderr.strip()}"
+            shutil.rmtree(dest, ignore_errors=True)     # cache dir may be inconsistent — reclone
+
     CACHE.mkdir(parents=True, exist_ok=True)
     args = ["git", "clone", "--depth", "1"]
     if ref:
         args += ["--branch", ref]
     args += [url, str(dest)]
-    return dest if sh(args).returncode == 0 else None
+    cloned = sh(args)
+    if cloned.returncode == 0:
+        return dest, None
+    clone_err = f"clone failed for {repo_id} ({url}): {cloned.stderr.strip()}"
+    return None, f"{err}; {clone_err}" if err else clone_err
 
 
-def load_manifest():
-    lines = MANIFEST.read_text().splitlines()
-    pack_of = {}
-    for line in lines:
-        parts = line.split("\t")
-        if len(parts) == 3 and parts[2] == "vendored":
-            pack_of[parts[1]] = parts[0]
-    return pack_of, lines
+def head_commit(repo_dir):
+    out = sh(["git", "-C", str(repo_dir), "rev-parse", "HEAD"])
+    return out.stdout.strip() if out.returncode == 0 else None
 
 
-def _rm(path: Path):
-    """Remove a file, symlink, or dir if present."""
+def atomic_replace_dir(dest, src):
+    """Replace ``dest`` (a directory, may not yet exist) with a copy of
+    ``src``, staging the copy at a sibling temp path first so ``dest`` is
+    never left half-written. Symlinks under ``src`` are recreated as
+    symlinks (not dereferenced), and file modes — including the
+    executable bit — are preserved.
+
+    If swapping the staged copy into place fails after the previous
+    content was already moved aside, that previous content is rolled
+    back into ``dest`` so it's never lost. If the rollback rename itself
+    fails, the backup is left on disk (never deleted) rather than
+    silently discarded, and the original exception propagates either
+    way."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp_new = dest.parent / f".{dest.name}.new.{os.getpid()}"
+    tmp_old = dest.parent / f".{dest.name}.old.{os.getpid()}"
+    shutil.rmtree(tmp_new, ignore_errors=True)
+    shutil.rmtree(tmp_old, ignore_errors=True)
+    shutil.copytree(src, tmp_new, symlinks=True, ignore=shutil.ignore_patterns(".git"))
+
+    had_old = dest.exists() or dest.is_symlink()
+    if had_old:
+        os.replace(dest, tmp_old)
     try:
-        if path.is_symlink() or path.is_file():
-            path.unlink()
-        elif path.is_dir():
-            shutil.rmtree(path)
-    except FileNotFoundError:
-        pass
+        os.replace(tmp_new, dest)
+    except Exception:
+        if had_old:
+            try:
+                os.replace(tmp_old, dest)   # rollback: restore the previous content
+            except Exception:
+                # rollback itself failed: leave tmp_old as a recoverable backup
+                raise
+            else:
+                shutil.rmtree(tmp_new, ignore_errors=True)
+        raise
+    else:
+        if had_old:
+            shutil.rmtree(tmp_old, ignore_errors=True)
 
 
-def remove_local(name, pack, data, manifest_lines):
-    """Delete an orphaned skill everywhere we distributed it."""
-    _rm(VENDORED / pack / name)
-    _rm(ASSEMBLED / pack / name)
-    data["skills"].pop(name, None)
-    manifest_lines[:] = [l for l in manifest_lines
-                         if l.split("\t")[1:2] != [name]]
-    if pack == "global":
-        for d in AGENT_GLOBAL:
-            _rm(d / name)
-    elif pack == "notes":
-        _rm(ORG / ".claude/skills" / name)
-        _rm(ORG / ".kiro/skills" / name)
-        _rm(ORG / ".codex/skills" / name)
-        _rm(ORG / ".hermes/skills" / name)
-    elif pack == "hermes-only":
-        _rm(HOME / ".hermes/skills" / name)
-    # coding pack lives per-repo; skills-sync rebuild of assembled/coding suffices
+def write_json_atomic(path, data):
+    tmp = path.parent / f".{path.name}.tmp.{os.getpid()}"
+    tmp.write_text(json.dumps(data, indent=2) + "\n")
+    os.replace(tmp, path)
 
 
-def ask_delete(name):
-    """True=delete, False=keep, None=undecided (non-interactive)."""
-    if PRUNE:
-        return True
-    if KEEP:
+def _safe_relative_path(path):
+    if not isinstance(path, str) or not path or "\\" in path:
         return False
-    if not sys.stdin.isatty():
-        return None
-    try:
-        ans = input(f"  '{name}' removed upstream — delete local copy too? [y/N] ")
-    except EOFError:
-        return None
-    return ans.strip().lower() in ("y", "yes")
+    if path.startswith("/") or path.startswith("~"):
+        return False
+    parts = PurePosixPath(path).parts
+    return ".." not in parts and not any(p in ("", ".") for p in parts)
 
 
-def upstream_skills(repo):
-    """{folder_name: skill_dir} for every SKILL.md in the repo (ignoring .git)."""
-    out = {}
-    for p in repo.rglob("SKILL.md"):
-        if ".git" in p.parts:
-            continue
-        out[p.parent.name] = p.parent          # last wins on dup names; rare
-    return out
+def validate_schema(data):
+    """Fail-closed schema validation, run before any network access or
+    filesystem writes. Raises SystemExit with a descriptive message on
+    the first violation found."""
+    def fail(msg):
+        sys.exit(f"invalid upstreams.json: {msg}")
+
+    if data.get("version") != 1:
+        fail(f"unsupported version {data.get('version')!r} (expected 1)")
+
+    if "repositories" not in data or "skills" not in data:
+        fail("both 'repositories' and 'skills' objects are required")
+
+    repositories = data["repositories"]
+    if not isinstance(repositories, dict):
+        fail("'repositories' must be an object")
+    for repo_id, repo in repositories.items():
+        if not isinstance(repo_id, str) or not ID_RE.match(repo_id):
+            fail(f"unsafe repository id {repo_id!r}")
+        if not isinstance(repo, dict):
+            fail(f"repository {repo_id!r} must be an object")
+        if not isinstance(repo.get("url"), str) or not repo["url"]:
+            fail(f"repository {repo_id!r} missing a non-empty 'url'")
+        if repo.get("ref") is not None and not isinstance(repo["ref"], str):
+            fail(f"repository {repo_id!r} 'ref' must be a string")
+        if repo.get("commit") is not None and not isinstance(repo["commit"], str):
+            fail(f"repository {repo_id!r} 'commit' must be a string")
+
+    skills = data["skills"]
+    if not isinstance(skills, dict):
+        fail("'skills' must be an object")
+    for name, e in skills.items():
+        if not isinstance(name, str) or not ID_RE.match(name):
+            fail(f"unsafe skill name {name!r}")
+        if not isinstance(e, dict):
+            fail(f"skill {name!r} must be an object")
+
+        repo_id = e.get("repository")
+        if not isinstance(repo_id, str) or repo_id not in repositories:
+            fail(f"skill {name!r} 'repository' must reference a known repository id")
+
+        pack = e.get("pack")
+        if pack not in VALID_PACKS:
+            fail(f"skill {name!r} has invalid 'pack' {pack!r} (expected one of {VALID_PACKS})")
+
+        if not _safe_relative_path(e.get("path")):
+            fail(f"skill {name!r} has unsafe 'path' {e.get('path')!r}")
+
+        h = e.get("hash")
+        if h is not None:
+            if not isinstance(h, str) or not SHA1_RE.match(h):
+                fail(f"skill {name!r} has malformed 'hash' {h!r} (expected 40-char lowercase sha1 hex)")
+        else:
+            local = VENDORED / pack / name
+            if local.is_dir():
+                fail(f"skill {name!r} is missing 'hash' but a local copy already exists at {local} "
+                     f"(absent hash is only valid for a skill's first install)")
+
+        if e.get("commit") is not None and not isinstance(e["commit"], str):
+            fail(f"skill {name!r} 'commit' must be a string")
 
 
-def ask_fetch_pack(name, default_pack, packs):
-    """Ask whether to fetch a new skill and into which pack.
+def refresh_one(name, e, repo_dir, stats, changed):
+    """Refresh vendored/<pack>/<name> from ``repo_dir``/<path>. Mutates
+    ``e``'s ``hash`` in place when it changes and sets ``changed[0]``.
+    Returns False if this skill is now an error or unresolved conflict."""
+    pack, path = e.get("pack"), e.get("path")
 
-    Returns a pack name to fetch into, or None to skip.
-    In non-interactive mode returns None (report only) unless --fetch-new.
-    """
-    if FETCH_NEW:
-        return default_pack
-    if not sys.stdin.isatty():
-        return None
-    try:
-        ans = input(f"  fetch new skill '{name}'? "
-                    f"pack [{default_pack}] / n to skip: ").strip()
-    except EOFError:
-        return None
-    if ans.lower() in ("n", "no"):
-        return None
-    if ans == "" or ans.lower() in ("y", "yes"):
-        return default_pack
-    if ans not in packs:
-        print(f"     unknown pack '{ans}' — skipping (known: {', '.join(sorted(packs))})")
-        return None
-    return ans
+    src = repo_dir / path
+    if not src.is_dir():
+        print(f"  !! {name}: upstream path not found: {path}")
+        stats["error"] += 1
+        return False
+    if not (src / "SKILL.md").is_file():
+        print(f"  !! {name}: upstream path has no SKILL.md after fetch: {path}")
+        stats["error"] += 1
+        return False
+
+    local = VENDORED / pack / name
+    up = folder_hash(src)
+    baseline = e.get("hash")
+    loc = folder_hash(local) if local.is_dir() else None
+
+    def apply(tag, key):
+        """Stage+swap the local copy in, counting toward ``stats[key]`` on
+        success. A failed replace counts toward ``stats["error"]`` instead
+        (via atomic_replace_dir's own rollback) rather than ``key``, since
+        nothing was actually applied."""
+        try:
+            atomic_replace_dir(local, src)
+        except Exception as ex:
+            print(f"  !! {name}: failed to replace local copy: {ex}")
+            stats["error"] += 1
+            return False
+        e["hash"] = up
+        changed[0] = True
+        stats[key] += 1
+        print(f"  {tag} {name}")
+        return True
+
+    if loc is None:
+        return apply("added   ", "added")
+    elif baseline is None or loc == baseline:       # no local edits (or no baseline yet)
+        if up != loc:
+            return apply("updated ", "updated")
+        else:
+            if e.get("hash") != loc:
+                e["hash"] = loc; changed[0] = True
+            stats["ok"] += 1
+            return True
+    elif up == baseline:                             # local hand-edited, upstream unchanged
+        print(f"  kept    {name}: local edits, upstream unchanged")
+        stats["kept"] += 1
+        return True
+    elif FORCE:                                      # local hand-edited, upstream changed
+        return apply("forced  ", "updated")
+    else:
+        print(f"  CONFLICT {name}: local edits + upstream changed — skipped (--force)")
+        stats["conflict"] += 1
+        return False
+
+
+def parse_args(argv):
+    p = argparse.ArgumentParser(prog="skills-update",
+                                 description="Refresh vendored/<pack>/<name> copies from the "
+                                             "upstream repos tracked in upstreams.json.")
+    p.add_argument("--force", action="store_true",
+                    help="overwrite local edits when upstream also changed (CONFLICT otherwise)")
+    p.add_argument("skills", nargs="*", metavar="skill",
+                    help="only refresh these tracked skill names (default: all)")
+    return p.parse_args(argv)
 
 
 def main():
-    if not LOCK.exists():
-        sys.exit(f"no lockfile at {LOCK}")
-    data = json.loads(LOCK.read_text())
+    global FORCE
+    args = parse_args(sys.argv[1:])
+    FORCE = args.force
+
+    if not UPSTREAMS.exists():
+        sys.exit(f"no upstreams file at {UPSTREAMS}")
+    data = json.loads(UPSTREAMS.read_text())
+    validate_schema(data)   # fail-closed: before any network access or write
+
+    repositories = data.get("repositories", {})
     skills = data.get("skills", {})
-    pack_of, manifest_lines = load_manifest()
-    manifest_before = list(manifest_lines)
+    if not skills:
+        print("no tracked skills in upstreams.json")
+        return 0
 
-    by_ref = {}
+    only = set(args.skills)
+    if only:
+        unknown = only - set(skills)
+        if unknown:
+            sys.exit(f"not in upstreams.json: {', '.join(sorted(unknown))}")
+
+    by_repo = defaultdict(list)
     for name, e in skills.items():
-        if ONLY and name not in ONLY:
+        if only and name not in only:
             continue
-        if name not in pack_of:
-            print(f"  skip {name}: not a vendored skill in manifest")
-            continue
-        url = norm_url(e.get("sourceUrl") or e.get("source", ""))
-        by_ref.setdefault((url, e.get("ref") or None), []).append(name)
+        by_repo[e.get("repository")].append(name)
 
-    # For new-upstream discovery: every folder we already track per repo, and
-    # each repo's most-common pack (used as the suggested default when fetching).
+    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0, "kept": 0, "error": 0}
     changed = [False]
-    known_packs = {l.split("\t")[0] for l in manifest_lines if "\t" in l}
-    tracked_folders = defaultdict(set)
-    pack_counts = defaultdict(Counter)
-    for name, e in skills.items():
-        u = norm_url(e.get("sourceUrl") or e.get("source", ""))
-        tracked_folders[u].add(Path(e["skillPath"]).parent.name)
-        if name in pack_of:
-            pack_counts[u][pack_of[name]] += 1
-    declined = set(data.get("declinedNew", []))
-    follow = {ref_spec(*parse_ref(u)) for u in data.get("followNew", DEFAULT_FOLLOW)}
+    exit_code = 0
 
-    add_url = add_ref = None
-    if ADD_REPO:                                # bootstrap / re-pin a repo
-        add_url, add_ref = parse_ref(ADD_REPO)
-        existing = [n for (u, _), ns in by_ref.items() if u == add_url for n in ns]
-        by_ref = {(add_url, add_ref): sorted(existing)}   # process only this repo
-        follow = {f for f in follow if parse_ref(f)[0] != add_url}   # one spec per repo
-        print(f"==> adding repo {ref_spec(add_url, add_ref)}")
-
-    def default_pack(url):
-        c = pack_counts.get(url)
-        return c.most_common(1)[0][0] if c else "coding"
-
-    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0,
-             "kept": 0, "orphaned": 0, "pruned": 0,
-             "new_fetched": 0, "new_found": 0, "error": 0}
-
-    def mark_changed():
-        changed[0] = True
-
-    for (url, ref), names in sorted(by_ref.items(),
-                                    key=lambda kv: (kv[0][0], kv[0][1] or "")):
-        print(f"==> {ref_spec(url, ref)}  ({len(names)} skill(s))")
-        repo = clone_or_fetch(url, ref)
-        if repo is None:
-            print(f"  !! clone failed — skipping {', '.join(names)}")
-            stats["error"] += len(names)
+    for repo_id in sorted(by_repo, key=lambda r: r or ""):
+        names = sorted(by_repo[repo_id])
+        repo = repositories.get(repo_id) if repo_id else None
+        if repo is None or not repo.get("url"):
+            print(f"  !! {', '.join(names)}: unknown or url-less repository {repo_id!r}")
+            stats["error"] += len(names); exit_code = 1
             continue
-        for name in sorted(names):
-            e = skills[name]
-            if ref:                                    # pin entry to this repo ref
-                if e.get("ref") != ref:
-                    e["ref"] = ref; mark_changed()
-            elif e.pop("ref", None) is not None:       # back on the default branch
-                mark_changed()
-            src = repo / Path(e["skillPath"]).parent
-            if not src.is_dir():                       # stale path: try relocate by folder name
-                target = Path(e["skillPath"]).parent.name
-                cands = [p.parent for p in repo.rglob("SKILL.md")
-                         if p.parent.name == target and ".git" not in p.parts]
-                if cands:
-                    src = cands[0]
-                    e["skillPath"] = str(src.relative_to(repo) / "SKILL.md")
-                    mark_changed()
-                    print(f"  ~  {name}: relocated upstream -> {e['skillPath']}")
-                else:                                   # ORPHAN: gone from upstream
-                    if e.get("orphaned") and not PRUNE:
-                        stats["orphaned"] += 1
-                        print(f"  orphan   {name}: (kept; still gone upstream)")
-                        continue
-                    decision = ask_delete(name)
-                    if decision is True:
-                        remove_local(name, pack_of[name], data, manifest_lines)
-                        mark_changed(); stats["pruned"] += 1
-                        print(f"  pruned   {name}: deleted local copy")
-                    elif decision is False:
-                        e["orphaned"] = True; mark_changed(); stats["orphaned"] += 1
-                        print(f"  orphan   {name}: kept local copy")
-                    else:
-                        stats["orphaned"] += 1
-                        print(f"  orphan   {name}: gone upstream — kept "
-                              f"(run in a terminal, or --prune, to delete)")
-                    continue
 
-            local = VENDORED / pack_of[name] / name
-            up = folder_hash(src)
-            baseline = e.get("folderHash")
-            loc = folder_hash(local) if local.is_dir() else None
-            if e.pop("orphaned", None):                # reappeared upstream
-                mark_changed()
+        url, ref = repo["url"], repo.get("ref")
+        print(f"==> {repo_id} ({ref or 'default branch'})  {len(names)} skill(s)")
+        repo_dir, err = clone_or_fetch(repo_id, url, ref)
+        if repo_dir is None:
+            print(f"  !! {err}")
+            stats["error"] += len(names); exit_code = 1
+            continue
 
-            def apply(tag):
-                if local.exists():
-                    shutil.rmtree(local)
-                shutil.copytree(src, local, ignore=shutil.ignore_patterns(".git"))
-                e["folderHash"] = up
-                e["updatedAt"] = now_iso()
-                mark_changed()
-                print(f"  {tag} {name}")
+        succeeded = []
+        for name in names:
+            if refresh_one(name, skills[name], repo_dir, stats, changed):
+                succeeded.append(name)
+            else:
+                exit_code = 1
 
-            if loc is None:
-                apply("added   "); stats["added"] += 1
-            elif baseline is None:                     # first run: adopt local as baseline
-                if up != loc:
-                    apply("updated "); stats["updated"] += 1
-                else:
-                    e["folderHash"] = loc; mark_changed(); stats["ok"] += 1
-            elif loc != baseline:                      # local hand-edited
-                if up != baseline and not FORCE:
-                    print(f"  CONFLICT {name}: local edits + upstream changed — skipped (--force)")
-                    stats["conflict"] += 1
-                elif up != baseline:
-                    apply("forced  "); stats["updated"] += 1
-                else:
-                    print(f"  kept    {name}: local edits, upstream unchanged")
-                    stats["kept"] += 1
-            else:                                      # local clean
-                if up != baseline:
-                    apply("updated "); stats["updated"] += 1
-                else:
-                    stats["ok"] += 1
+        # Per-skill commit is the truthful provenance record for a partial
+        # (selected-subset) update; the repository-wide commit is only
+        # touched when this run covered every skill tracked to this repo,
+        # since otherwise it would claim untouched skills are at a commit
+        # they were never actually synced to.
+        commit = head_commit(repo_dir)
+        if commit:
+            for name in succeeded:
+                e = skills[name]
+                if e.get("commit") != commit:
+                    e["commit"] = commit; changed[0] = True
 
-        # --- skills that exist upstream but not locally = NEW --------------
-        if not ONLY and not NO_NEW and (FOLLOW_ALL or ref_spec(url, ref) in follow
-                                        or (url, ref) == (add_url, add_ref)):
-            found = upstream_skills(repo)
-            if (url, ref) == (add_url, add_ref):
-                if found:
-                    follow.add(ref_spec(url, ref))   # real skills repo → follow it
-                else:
-                    print(f"  !! no SKILL.md found — {url} is not a Claude skills "
-                          f"repo (install it as a tool / wrap it in zzc-skills)")
-            new = sorted(fn for fn in found
-                         if fn not in tracked_folders[url]
-                         and fn not in skills
-                         and (RECONSIDER or f"{url}::{fn}" not in declined))
-            if new:
-                stats["new_found"] += len(new)
-                print(f"  {len(new)} new upstream skill(s): {', '.join(new)}")
-                dp = default_pack(url)
-                for fn in new:
-                    pack = ask_fetch_pack(fn, dp, known_packs)
-                    if pack is None:
-                        if sys.stdin.isatty() and not FETCH_NEW:
-                            declined.add(f"{url}::{fn}")     # remember the "no"
-                        continue
-                    src = found[fn]
-                    dest = VENDORED / pack / fn
-                    if dest.exists():
-                        shutil.rmtree(dest)
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copytree(src, dest, ignore=shutil.ignore_patterns(".git"))
-                    skills[fn] = {
-                        "source": url,
-                        "sourceType": "github",
-                        "sourceUrl": url,
-                        "skillPath": str(src.relative_to(repo) / "SKILL.md"),
-                        "installedAt": now_iso(),
-                        "updatedAt": now_iso(),
-                        "folderHash": folder_hash(src),
-                    }
-                    if ref:
-                        skills[fn]["ref"] = ref
-                    manifest_lines.append(f"{pack}\t{fn}\tvendored")
-                    tracked_folders[url].add(fn)
-                    declined.discard(f"{url}::{fn}")
-                    mark_changed(); stats["new_fetched"] += 1
-                    print(f"  fetched  {fn} -> {pack}")
+            all_repo_names = {n for n, ee in skills.items() if ee.get("repository") == repo_id}
+            full_refresh = set(names) == all_repo_names
+            if full_refresh and len(succeeded) == len(names) and repo.get("commit") != commit:
+                repo["commit"] = commit; changed[0] = True
 
-    if sorted(declined) != data.get("declinedNew", []):
-        data["declinedNew"] = sorted(declined)
-        changed[0] = True
-    if sorted(follow) != data.get("followNew", []):     # persist follow list
-        data["followNew"] = sorted(follow)
-        changed[0] = True
-
-    if manifest_lines != manifest_before:
-        MANIFEST.write_text("\n".join(manifest_lines) + "\n")
     if changed[0]:
-        LOCK.write_text(json.dumps(data, indent=2) + "\n")
+        write_json_atomic(UPSTREAMS, data)
 
     print("\n== summary ==")
-    print("  " + "  ".join(f"{k}={v}" for k, v in stats.items() if v))
+    line = "  ".join(f"{k}={v}" for k, v in stats.items() if v)
+    print("  " + line if line else "  nothing to do")
     if stats["conflict"]:
         print("  re-run with --force to overwrite conflicting local edits.")
-    if stats["pruned"]:
-        print("  pruned skills removed from vendored/manifest/lockfile + agent dirs.")
-    if stats["new_fetched"]:
-        print("  fetched new skills — run 'skills-sync' to rebuild assembled/.")
-    skipped_new = stats["new_found"] - stats["new_fetched"]
-    if skipped_new > 0 and not sys.stdin.isatty():
-        print(f"  {skipped_new} new upstream skill(s) not fetched — "
-              f"run in a terminal, or --fetch-new, to add them.")
+    if stats["error"]:
+        print("  one or more skills failed to refresh — see errors above.")
+
+    return exit_code
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
