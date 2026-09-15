@@ -279,7 +279,7 @@ def main():
     declined = set(data.get("declinedNew", []))
     follow = {ref_spec(*parse_ref(u)) for u in data.get("followNew", DEFAULT_FOLLOW)}
 
-    add_ref = None
+    add_url = add_ref = None
     if ADD_REPO:                                # bootstrap / re-pin a repo
         add_url, add_ref = parse_ref(ADD_REPO)
         existing = [n for (u, _), ns in by_ref.items() if u == add_url for n in ns]
