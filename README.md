@@ -21,7 +21,8 @@ into either `vendored/<pack>/<skill>` or `self/<pack>/<skill>`, whichever the ro
 
 ## Packs
 
-- **global** — cross-scenario meta-skills (grilling, research, handoff, teach, defuddle, …).
+- **global** — cross-scenario meta-skills (grilling, research, handoff, teach, defuddle,
+  Nowledge Mem memory skills, …).
   Installed into every agent's home-level skill dir.
 - **notes** — installed into `~/org` (copy mode, detached, synced across machines via
   cloud drive — see `--copy` below).
@@ -41,6 +42,14 @@ Every skill under `vendored/` is an unmodified copy from one of these repos, tra
 | [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) | 1 | global | no |
 | [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) | 1 | global | yes |
 | [tt-a1i/archify](https://github.com/tt-a1i/archify) | 1 | coding | yes |
+| [nowledge-co/community](https://github.com/nowledge-co/community) (`nowledge-mem-npx-skills/`) | 6 | global | no |
+
+`nowledge-co/community` is a monorepo of per-agent Nowledge Mem plugins that reuse the
+same skill names in many folders, so it is cherry-picked only: each lockfile entry pins
+`skillPath` under `nowledge-mem-npx-skills/skills/`, the agent-neutral copies. Its
+deprecated `save-thread` is deliberately not vendored — use `save-handoff`, or a native
+connector for real transcript capture. Don't follow it for new skills (`--add-repo`
+would pick arbitrary duplicates).
 
 "Followed" repos are scanned for *new* upstream skills on every `skills-update` run
 (the `followNew` list in the lockfile); the others are cherry-picked only, so their

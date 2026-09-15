@@ -627,6 +627,60 @@
       "installedAt": "2026-09-09T04:46:47.631269+00:00",
       "updatedAt": "2026-09-09T04:46:47.631577+00:00",
       "folderHash": "c91ecb4061cf9ebd66b0051d48ae37bd87ee185a"
+    },
+    "check-integration": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/check-integration/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.987692+00:00",
+      "folderHash": "f0ed2630a465cf22070c3f3beae115cc7e6912c1"
+    },
+    "distill-memory": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/distill-memory/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.988687+00:00",
+      "folderHash": "df4a748d844f9468e325357a317f4e6a105a80d6"
+    },
+    "read-working-memory": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/read-working-memory/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.989176+00:00",
+      "folderHash": "c4daedad4a68635fcb15333683cc18d797e3c7a5"
+    },
+    "save-handoff": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/save-handoff/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.989645+00:00",
+      "folderHash": "cef7e913a185188373782525df550d750418b12b"
+    },
+    "search-memory": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/search-memory/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.990096+00:00",
+      "folderHash": "b15713e54d2c26639c577e4c7605c3b5ccaaf073"
+    },
+    "status": {
+      "source": "https://github.com/nowledge-co/community.git",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nowledge-co/community.git",
+      "skillPath": "nowledge-mem-npx-skills/skills/status/SKILL.md",
+      "installedAt": "2026-09-15T02:18:49.229139+00:00",
+      "updatedAt": "2026-09-15T02:18:54.990530+00:00",
+      "folderHash": "96afe579cb42b943b8cf6b3784a5198fbe27b8a5"
     }
   },
   "dismissed": {

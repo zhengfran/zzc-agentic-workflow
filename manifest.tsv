@@ -63,3 +63,9 @@ notes	ljg-teach	vendored
 coding	implement-spec	vendored
 coding	retro	vendored
 coding	archify	vendored
+global	check-integration	vendored
+global	distill-memory	vendored
+global	read-working-memory	vendored
+global	save-handoff	vendored
+global	search-memory	vendored
+global	status	vendored
