@@ -12,7 +12,7 @@ Excalidraw drawings as views over that metadata.
 
 1. Resolve the live vault. Prefer the active workspace when it contains
    `03-Cards/Task System Usage Guide.md`; the current personal-vault fallback is
-   `/Users/zhichengzheng/obsidian`.
+   `~/obsidian`.
 2. Read `03-Cards/Task System Usage Guide.md` before any mutation.
 3. Load only the additional live source needed for the requested branch:
    - Governance, review, or migration: `03-Cards/Task System.md`

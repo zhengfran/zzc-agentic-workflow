@@ -33,7 +33,7 @@ skills-install notes ~/org --copy
 
 For a one-time migration of an old copied install or broken assembly symlink that has no ownership file, add `--adopt-existing`. Ordinary runs reject unmanaged same-name entries. Live symlinks resolving to the same source are adopted automatically.
 
-Project packs default to Claude Code, Kiro, and Codex. Global installs default to all supported agents. Narrow the targets when needed:
+Project packs default to Claude Code, Kiro, and Codex. Global installs default to Claude Code, Kiro, Codex, Hermes, and DeepSeek Harness. Pi discovers the shared `~/.agents/skills` catalog directly, so it is intentionally not a `skills-install global` target; installing the same pack into `~/.pi/agent/skills` creates duplicate skill names. Narrow the targets when needed:
 
 ```bash
 skills-install coding /path/to/repo --agents claude,kiro

@@ -9,7 +9,8 @@
 #                                   dirs, ignores target-dir
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
 #     --agents    project packs: claude,kiro,codex
-#                 global pack: claude,kiro,codex,pi,hermes,dsh
+#                 global pack: claude,kiro,codex,hermes,dsh
+#                 (Pi discovers the shared ~/.agents/skills catalog directly.)
 #                 (defaults: all supported agents for that scope)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #     --adopt-existing
@@ -71,7 +72,7 @@ while [[ $# -gt 0 ]]; do
     *)                target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,pi,hermes,dsh" || agents="claude,kiro,codex"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,codex"; }
 
 # Confirmed project-level skill dirs. Keep speculative adapters out until tested.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
@@ -90,7 +91,6 @@ homedir() {
     claude) echo "$HOME/.claude/skills";;
     kiro)   echo "$HOME/.kiro/skills";;
     codex)  echo "$HOME/.codex/skills";;
-    pi)     echo "$HOME/.pi/agent/skills";;
     hermes) echo "$HOME/.hermes/skills";;
     dsh)    echo "${DSH_HOME:-$HOME/.dsh}/skills";;
     *)      return 1;;
