@@ -8,9 +8,13 @@
 #                 global          → machine-level install into the agent home
 #                                   dirs, ignores target-dir
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
-#     --agents    project packs: claude,kiro,codex
+#     --agents    project packs: claude,kiro,codex,agents
 #                 global pack: claude,kiro,codex,hermes,dsh
-#                 (Pi discovers the shared ~/.agents/skills catalog directly.)
+#                 (Pi discovers the shared ~/.agents/skills catalog directly.
+#                 "agents" targets the project-level .agents/skills convention
+#                 shared by newer tools; it is project-scope only — the global
+#                 pack has no ~/.agents/skills target, for the same reason Pi
+#                 is excluded there.)
 #                 (defaults: all supported agents for that scope)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #     --adopt-existing
@@ -48,7 +52,7 @@ OWNER_ID="zzc-skills"
 STATE_NAME=".zzc-skills-managed"
 
 usage() {
-  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,...] [--copy] [--adopt-existing]" >&2
+  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,codex,agents,...] [--copy] [--adopt-existing]" >&2
   exit 2
 }
 
@@ -72,7 +76,7 @@ while [[ $# -gt 0 ]]; do
     *)                target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,codex"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,codex,agents"; }
 
 # Confirmed project-level skill dirs. Keep speculative adapters out until tested.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
@@ -81,6 +85,7 @@ agentdir() {
     claude) echo ".claude/skills";;
     kiro)   echo ".kiro/skills";;
     codex)  echo ".codex/skills";;
+    agents) echo ".agents/skills";;
     *)      return 1;;
   esac
 }
