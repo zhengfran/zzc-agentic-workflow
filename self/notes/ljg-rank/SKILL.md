@@ -226,6 +226,6 @@ root rank 找完了,再问一句:里头**有没有哪一根线**,能展开成几
 
 ## 输出
 
-1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
-2. 写入 `~/Documents/notes/{时间戳}--{领域}的秩__rank.md`
+1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`
+2. 写入 `~/obsidian/00-Inbox/{时间戳}--{领域}的秩__rank.md`
 3. 报告文件路径给用户

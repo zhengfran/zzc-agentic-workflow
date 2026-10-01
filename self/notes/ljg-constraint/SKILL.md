@@ -182,6 +182,6 @@ User: "这个行业必须重销售吗？"
 
 ## 输出
 
-1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
-2. 写入 `~/Documents/notes/{时间戳}--{领域}的约束__constraint.md`，frontmatter 见 `references/template.md`
+1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`
+2. 写入 `~/obsidian/00-Inbox/{时间戳}--{领域}的约束__constraint.md`，frontmatter 见 `references/template.md`
 3. 报告文件路径给用户

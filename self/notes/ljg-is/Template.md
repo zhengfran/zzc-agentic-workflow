@@ -1,15 +1,16 @@
 ---
-title: 理解：{目标}
-date: [{可读时间}]
-identifier: {时间戳}
-tags: is act
+title: "理解：{目标}"
+date: "{YYYY-MM-DD}"
+tags: [is, act]
+identifier: "{时间戳}"
 schema: ljg-is-v5
-definition: {用普通话说明 X 属于什么，以及它与相邻概念的关键差别}
-operation: {说明 X 怎样起作用，以及什么因此改变}
-recognition: {这番理解修正了哪种常见旧判断}
-guidance: {面对 X 时，先看什么、怎样判断或何时调整}
-basis: {材料直接说明或本轮核验的事实基础}
-falsifier: {什么事实会使当前解释不成立}
+definition: "{用普通话说明 X 属于什么，以及它与相邻概念的关键差别}"
+operation: "{说明 X 怎样起作用，以及什么因此改变}"
+recognition: "{这番理解修正了哪种常见旧判断}"
+guidance: "{面对 X 时，先看什么、怎样判断或何时调整}"
+basis: "{材料直接说明或本轮核验的事实基础}"
+falsifier: "{什么事实会使当前解释不成立}"
+author: "郑之成"
 ---
 
 # {从真实疑惑或关键区别生出的标题}

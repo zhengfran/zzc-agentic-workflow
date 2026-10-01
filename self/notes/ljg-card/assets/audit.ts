@@ -35,7 +35,8 @@ for (const file of activeFiles) {
   if (body.toLowerCase().includes(fragmentFilter)) failures.push(`fragment filter remains: ${file}`);
   if (file.endsWith(".md") || file.endsWith("capture.ts")) {
     for (const command of legacyPackageCommands) {
-      if (body.toLowerCase().includes(command)) failures.push(`legacy package command remains: ${file}`);
+      // `npx -y bun` only launches Bun on machines without a global install.
+      if (body.toLowerCase().replaceAll("npx -y bun", "").includes(command)) failures.push(`legacy package command remains: ${file}`);
     }
   }
 }

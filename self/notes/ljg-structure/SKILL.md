@@ -71,9 +71,9 @@ disable-model-invocation: true
 
 默认约 800-1500 汉字。一级标题严格只有：`输入`、`母题`、`结构`、`结论`。风洞是内部推理步骤，不作为一级标题输出。母题用一问一例让关系先跑起来；结构卡以自然短段完成「概念明确、关系明确、示例映射」，不强制可见字段。跨域来源不设默认标题；通常不输出，确有帮助时只用一句话带一个例子。结构超过一个时，用纯 ASCII 连接符画关系图，禁止 Unicode 箭头和方框字符。关系图后用一句普通话说明「这张图在例子里怎样运行」。
 
-默认取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date "+%Y-%m-%d %a %H:%M"`。写入：
+默认取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date +%Y-%m-%d`。写入：
 
-`~/Context/{时间戳}--结构-{主题}__structure.md`
+`~/obsidian/00-Inbox/{时间戳}--结构-{主题}__structure.md`
 
 若用户明确说「只分析」「不落盘」或 `read-only`，直接在对话中给出同等完整的分析，不创建文件。
 
@@ -81,10 +81,11 @@ disable-model-invocation: true
 
 ```markdown
 ---
-title: 结构：{主题}
-date: [{可读时间}]
-identifier: {时间戳}
-tags: structure
+title: "结构：{主题}"
+date: "{YYYY-MM-DD}"
+tags: [structure]
+identifier: "{时间戳}"
+author: "郑之成"
 ---
 # 输入
 # 母题

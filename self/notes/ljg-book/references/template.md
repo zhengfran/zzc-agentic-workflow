@@ -1,10 +1,11 @@
 ---
-title: 拆书：《{书名}》
-subtitle: {作者} | {书的具体内容与主线联系}
-description: {正文完成后填写：书的类型、对象、起点与主要变化、结尾及未决部分}
-date: [{YYYY-MM-DD Day HH:MM}]
-tags: book {领域}
-identifier: {YYYYMMDDTHHMMSS}
+title: "拆书：《{书名}》"
+subtitle: "{作者} | {书的具体内容与主线联系}"
+description: "{正文完成后填写：书的类型、对象、起点与主要变化、结尾及未决部分}"
+date: "{YYYY-MM-DD}"
+tags: [book, {领域}]
+identifier: "{YYYYMMDDTHHMMSS}"
+author: "郑之成"
 ---
 
 <!-- 标题只是位置示意，按原书和阅读过程增删。删除本注释与所有占位提示；不要把每个段落扩成固定流程。 -->

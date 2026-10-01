@@ -13,7 +13,7 @@
 先把锁定后的正文按原段落保存为精确来源快照；段落之间保留一个空行。用确定性工具生成独立来源清单：
 
 ```bash
-bun assets/prepare-whiteboard-source.ts /tmp/<task>/source.txt /tmp/<task>/whiteboard-source-inventory.json
+npx -y bun assets/prepare-whiteboard-source.ts /tmp/<task>/source.txt /tmp/<task>/whiteboard-source-inventory.json
 ```
 
 工具会锁定原文件 SHA-256，并按顺序给每个非空段落分配 `src-01`、`src-02`……及段落哈希。论证账本的 `source_sections` 必须与这份独立清单 ID、顺序完全一致，因此不能先漏掉原文，再让自写账本与 DOM 互相证明。
@@ -218,7 +218,7 @@ one object and one visible action, loose marker line, low detail, generous clean
 ## 六、截图与验收
 
 ```bash
-bun assets/capture.ts /tmp/<task>/whiteboard.html ~/Downloads/{name}.png 1080 1600 fullpage /tmp/<task>/whiteboard-source-inventory.json /tmp/<task>/source.txt
+npx -y bun assets/capture.ts /tmp/<task>/whiteboard.html ~/Downloads/{name}.png 1080 1600 fullpage /tmp/<task>/whiteboard-source-inventory.json /tmp/<task>/source.txt
 ```
 
 截图器会阻断：占位符残留、缺少来源清单或原文快照、原文哈希漂移、来源清单与论证账本段落不一致、缺少唯一主干、旧整卡 topology、账本 JSON 错误、源章节无去向、承重步骤遗漏或乱序、节点未绑定来源、关系端点悬空或文字漂移、静默关系仍带文案或箭头、可见关系缺少完整 bridge、同一条边同时使用 residue 与 bridge、分支不回流也不声明开放、生成图超过 4 幅或未绑定步骤、破图/空 alt、横向或隐藏溢出、超出支持高度。

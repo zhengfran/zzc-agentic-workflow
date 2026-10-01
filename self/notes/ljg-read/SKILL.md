@@ -210,17 +210,18 @@ version: 1.0.0
 ### 6. 写入 Markdown 文件
 
 1. 运行 `date +%Y%m%dT%H%M%S` 获取时间戳
-2. 运行 `date "+%Y-%m-%d %a %H:%M"` 获取可读时间
-3. 写入 `~/Documents/notes/{时间戳}--伴读-{文本关键词}__reading.md`
+2. 运行 `date +%Y-%m-%d` 获取日期
+3. 写入 `~/obsidian/00-Inbox/{时间戳}--伴读-{文本关键词}__reading.md`
 
 Markdown 文件结构：
 ```markdown
 ---
-title: 伴读：{文本标题}
-date: [{可读时间}]
-tags: reading
-identifier: {时间戳}
-source: {URL 或来源}
+title: "伴读：{文本标题}"
+date: "{日期}"
+tags: [reading]
+identifier: "{时间戳}"
+source: "{URL 或来源}"
+author: "郑之成"
 ---
 # 全局地图
 ## 一句话摘要

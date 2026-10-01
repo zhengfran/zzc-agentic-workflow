@@ -449,3 +449,42 @@ describe("version 3 review regressions", () => {
     expect(validate(validNote, filename, populated).errors).toEqual([]);
   });
 });
+
+describe("markdown notes with vault frontmatter", () => {
+  const mdFilename = "20260820T091641--paper-技能留下动作关系__paper.md";
+  const mdNote = validNote
+    .replace(/^#\+title: (.*)$/m, 'title: "$1"')
+    .replace(/^#\+subtitle: (.*)$/m, 'subtitle: "$1"')
+    .replace(/^#\+description: (.*)$/m, 'description: "$1"')
+    .replace(/^#\+date: .*$/m, 'date: "2026-08-20"')
+    .replace(/^#\+filetags: .*$/m, "tags: [paper]")
+    .replace(/^#\+identifier: (.*)$/m, 'identifier: "$1"')
+    .replace(/^#\+source: (.*)$/m, "source: $1")
+    .replace(/^#\+authors: (.*)$/m, 'authors: "$1"')
+    .replace(/^#\+venue: (.*)$/m, 'venue: "$1"\nauthor: "郑之成"')
+    .replace(/^/, "---\n")
+    .replace("\n\n* ", "\n---\n\n* ")
+    .replace(/^\* /gm, "# ");
+
+  test("accepts quoted YAML frontmatter and markdown headings", () => {
+    const result = validate(mdNote, mdFilename, currentMap);
+    expect(result.errors).toEqual([]);
+    expect(result.stats.top_headings).toBe(3);
+  });
+
+  test("rejects identifier drift and missing fields in frontmatter", () => {
+    const broken = mdNote.replace('identifier: "20260820T091641"', 'identifier: "20260820T000000"').replace(/^venue: .*\n/m, "");
+    const errors = validate(broken, mdFilename, currentMap).errors.join("\n");
+    expect(errors).toContain("IDENTIFIER");
+    expect(errors).toContain("缺少或为空的 venue");
+  });
+
+  test("reads fenced diagrams as example blocks", () => {
+    const note = mdNote.replace("技能库让检索进入链条。", "```\n检索 -> 适配\n```\n\n技能库让检索进入链条。");
+    const map = currentMap.replace(/^- 是否需要图示：.*$/m, "- 是否需要图示：是——检索顺序需要图")
+      .replace(/^- 图后用什么例子解释：.*$/m, "- 图后用什么例子解释：技能库");
+    const result = validate(note, mdFilename, map);
+    expect(result.errors).toEqual([]);
+    expect(result.stats.example_blocks).toBe(1);
+  });
+});

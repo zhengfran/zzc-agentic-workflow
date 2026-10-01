@@ -204,11 +204,11 @@ export function validate(content: string, file: string, coverage?: string): Resu
   }
 
   const identifier = markdownMode
-    ? content.match(/^identifier:\s*(\S+)/mi)?.[1] ?? ""
+    ? content.match(/^identifier:\s*(\S+)/mi)?.[1]?.replace(/^(["'])(.*)\1$/, "$2") ?? ""
     : content.match(/^#\+IDENTIFIER:\s*(\S+)/mi)?.[1] ?? "";
   const filenameIdentifier = basename(file).match(/^(\d{8}T\d{6})--/)?.[1] ?? "";
   if (!filenameIdentifier) {
-    errors.push("文件名不是 Denote 时间戳格式");
+    errors.push("文件名不是 {时间戳}-- 格式");
   } else if (identifier !== filenameIdentifier) {
     errors.push(`IDENTIFIER ${identifier || "为空"} 与文件名 ${filenameIdentifier} 不一致`);
   }
@@ -749,7 +749,7 @@ function main(): never {
 
   if (!file) {
     console.error("用法：bun scripts/validate_note.ts <note.org|note.md> --coverage <coverage-map.md>");
-    console.error("或：  bun scripts/validate_note.ts --stdin <denote-filename> --coverage <coverage-map.md>");
+    console.error("或：  bun scripts/validate_note.ts --stdin <note-filename> --coverage <coverage-map.md>");
     process.exit(2);
   }
 

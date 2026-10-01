@@ -141,13 +141,13 @@
 
 ## 写入与验证
 
-使用 `references/template.md`，正文写完后补 `description`。`source` 只放一个最接近原论文的裸 URL 或绝对本地路径，identifier 与 Denote 文件名一致，研究记录的「原文位置」与笔记 #+source 使用相同位置。
+使用 `references/template.md`，正文写完后补 `description`。`source` 只放一个最接近原论文的裸 URL 或绝对本地路径，identifier 与文件名时间戳一致，研究记录的「原文位置」与笔记 `source` 使用相同位置。
 
 ```sh
-bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.md \
+npx -y bun {skill_dir}/scripts/validate_note.ts /absolute/path/to/note.md \
   --map /absolute/path/to/paper-map.md
 ```
 
 脚本检查元数据、研究记录、正文对应表述、格式和阅读检查结果是否填写，并提示数字或段落可能过密的位置。它不判断论证正确、语言自然或读者是否真正理解。检查结果未填时，脚本会报告未通过；这可以帮助定位问题，不能当作交付通过。
 
-保存后用真实 Emacs 确认 identifier、文件名、`denote-directory-files`与 consult-notes。阅读检查完成后重新验证最终文件。某项检查无法运行时说明缺项，不将未执行写成通过。
+保存后读回文件，确认 identifier 与文件名一致。阅读检查完成后重新验证最终文件。某项检查无法运行时说明缺项，不将未执行写成通过。

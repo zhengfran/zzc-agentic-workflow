@@ -68,7 +68,7 @@ HTML 中每个文本块使用同一个 ID：
 填完模板、截图之前运行：
 
 ```bash
-bun assets/verify-full-text.ts \
+npx -y bun assets/verify-full-text.ts \
   /tmp/<task>/source-ledger.json \
   /tmp/<task>/full.html \
   /tmp/<task>/source.txt
@@ -111,7 +111,7 @@ bun assets/verify-full-text.ts \
 ## 截图与验收
 
 ```bash
-bun assets/capture.ts /tmp/<task>/full.html <final.png> 1080 1600 fullpage
+npx -y bun assets/capture.ts /tmp/<task>/full.html <final.png> 1080 1600 fullpage
 ```
 
 交付条件：

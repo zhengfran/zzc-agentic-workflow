@@ -269,7 +269,7 @@ pre/ASCII 的有效字号按物理行数验收：`≤16` 行 `≥22px`、`17–2
 静态验证同时拒绝资源标签、`@import`、CSS `url(...)` 与 `image-set(...)`，确保单文件真正离线：
 
 ```bash
-bun Tools/ValidateDeck.ts <html> --theme <theme>
+npx -y bun Tools/ValidateDeck.ts <html> --theme <theme>
 ```
 
 视觉验证：使用 Interceptor 的隔离测试 context，至少检查：

@@ -56,9 +56,11 @@ Assistant: [对"熵"进行八维解剖，生成 markdown 报告]
 
 ```markdown
 ---
-title: 概念解剖：{概念名}
-tags: concept
-date: [YYYY-MM-DD]
+title: "概念解剖：{概念名}"
+date: "{YYYY-MM-DD}"
+tags: [concept]
+identifier: "{timestamp}"
+author: "郑之成"
 ---
 # 定锚
 # 八刀
@@ -76,5 +78,5 @@ date: [YYYY-MM-DD]
 
 写入文件：
 1. 运行 `date +%Y%m%dT%H%M%S` 获取时间戳。
-2. 写入 `~/Documents/notes/{timestamp}--概念解剖-{概念名}__concept.md`。
+2. 写入 `~/obsidian/00-Inbox/{timestamp}--概念解剖-{概念名}__concept.md`。
 3. 报告路径，完成。

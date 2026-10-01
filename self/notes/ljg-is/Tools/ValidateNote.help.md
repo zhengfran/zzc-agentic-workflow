@@ -13,8 +13,8 @@
 Resolve `SKILL_DIR` to the installed `ljg-is` directory, then run:
 
 ```bash
-bun "${SKILL_DIR}/Tools/ValidateNote.ts" \
-  ~/Context/20260823T010203--理解-目标函数__is.md
+npx -y bun "${SKILL_DIR}/Tools/ValidateNote.ts" \
+  ~/obsidian/00-Inbox/20260823T010203--理解-目标函数__is.md
 ```
 
 成功时向 stdout 输出 `{"status":"ok", ...}` 并退出 0；失败时向 stderr 输出错误数组并退出 1；缺少文件参数时退出 2。
@@ -22,5 +22,5 @@ bun "${SKILL_DIR}/Tools/ValidateNote.ts" \
 运行自检：
 
 ```bash
-bun test "${SKILL_DIR}/Tools/ValidateNote.test.ts"
+npx -y bun test "${SKILL_DIR}/Tools/ValidateNote.test.ts"
 ```

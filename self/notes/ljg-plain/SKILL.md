@@ -21,22 +21,23 @@ version: 5.0.0
 
 所有图表用纯 ASCII 字符。允许：`+ - | / \ > < v ^ * = ~ . : # [ ] ( ) _ , ; ! ' "` 和空格。禁止 Unicode 绘图符号。
 
-### Denote 文件规范
+### 文件规范
 
 - 时间戳：`date +%Y%m%dT%H%M%S`
-- 可读时间：`date "+%Y-%m-%d %a %H:%M"`
+- 日期：`date +%Y-%m-%d`
 - 文件名：`{时间戳}--plain-{简短标题}__plain.md`
-- 输出目录：`~/Documents/notes/`
+- 输出目录：`~/obsidian/00-Inbox/`
 
 ### Markdown 文件头
 
 ```markdown
 ---
-title: plain-{简短标题}
-date: [{YYYY-MM-DD Day HH:MM}]
-tags: plain atom
-identifier: {YYYYMMDDTHHMMSS}
-source: {URL 或来源描述}
+title: "plain-{简短标题}"
+date: "{YYYY-MM-DD}"
+tags: [plain, atom]
+identifier: "{YYYYMMDDTHHMMSS}"
+source: "{URL 或来源描述}"
+author: "郑之成"
 ---
 ```
 
@@ -96,7 +97,7 @@ URL → WebFetch | 文本 → 直接用 | 文件路径 → Read | 概念 → 直
 
 ### 4. 生成 Markdown 文件
 
-按 Denote 规范获取时间戳，写出文件头 + 正文，存入 `~/Documents/notes/`。
+按上面的文件规范获取时间戳，写出文件头 + 正文，存入 `~/obsidian/00-Inbox/`。
 
 ## 验收
 

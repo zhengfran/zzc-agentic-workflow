@@ -129,16 +129,16 @@ Q4 ──→ Q5（收口反问）
 
 ```bash
 date +%Y%m%dT%H%M%S         # → identifier
-date "+%Y-%m-%d %a %H:%M"   # → date 字段
+date +%Y-%m-%d              # → date 字段
 ```
 
-denote schema 文件名：`{YYYYMMDDTHHMMSS}--qa-{主题}__qa.md`
+文件名：`{YYYYMMDDTHHMMSS}--qa-{主题}__qa.md`
 
 - `qa-` 前缀：标记 Q-A 类型（与 ljg-paper 的 `paper-` 同构）
 - 主题：核心论点的 5-10 字提炼，去标点。优先用方法名/概念名/灵魂句关键字
-- `__qa` 后缀：keyword tag，便于 denote 搜索
+- `__qa` 后缀：类型标记，便于在 vault 里搜索
 
-输出路径：`~/Documents/notes/`
+输出路径：`~/obsidian/00-Inbox/`
 
 写入后报告路径给用户。
 
@@ -146,12 +146,13 @@ denote schema 文件名：`{YYYYMMDDTHHMMSS}--qa-{主题}__qa.md`
 
 ```markdown
 ---
-title: {一句精炼的核心观点——10-25 字}
-subtitle: {原文标题}
-date: [{YYYY-MM-DD Day HH:MM}]
-tags: qa
-identifier: {YYYYMMDDTHHMMSS}
-source: {URL 或来源}
+title: "{一句精炼的核心观点——10-25 字}"
+subtitle: "{原文标题}"
+date: "{YYYY-MM-DD}"
+tags: [qa]
+identifier: "{YYYYMMDDTHHMMSS}"
+source: "{URL 或来源}"
+author: "郑之成"
 ---
 # 引子
 

@@ -99,7 +99,7 @@ no decorative background, no shading, no hatching, no dense texture, no poster t
 HTML、CSS、候选图和 QA 产物留在本任务独占 `/tmp` 目录，只有验收后的 PNG 离开。截图命令保持：
 
 ```bash
-bun assets/capture.ts <html> <png> 1080 1600 fullpage
+npx -y bun assets/capture.ts <html> <png> 1080 1600 fullpage
 ```
 
 ## 验收

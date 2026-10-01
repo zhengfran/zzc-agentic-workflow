@@ -16,6 +16,9 @@ const requiredHeaders = [
   "identifier", "source", "authors", "venue",
 ];
 
+// Markdown notes keep the same fields in YAML frontmatter; tags replaces filetags.
+const markdownHeaders = requiredHeaders.map((header) => header === "filetags" ? "tags" : header);
+
 const genericHeadings = new Set([
   "摘要", "背景", "问题", "研究问题", "方法", "实验", "实验结果",
   "结果", "发现", "核心发现", "局限", "局限性", "结论", "启示",
@@ -103,11 +106,21 @@ function displayWidth(line: string): number {
   return [...line].reduce((sum, char) => sum + (/[^\u0000-\u00ff]/.test(char) ? 2 : 1), 0);
 }
 
-function paragraphList(body: string): string[] {
+function paragraphList(body: string, markdownMode: boolean): string[] {
   return body
     .split(/\r?\n\s*\r?\n/)
     .map((paragraph) => paragraph.trim())
-    .filter((paragraph) => paragraph && !/^(?:#\+|\*)/.test(paragraph));
+    .filter((paragraph) => paragraph && !(markdownMode ? /^(?:#|```)/ : /^(?:#\+|\*)/).test(paragraph));
+}
+
+function unquote(value: string): string {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1).trim() : trimmed;
+}
+
+function headerValue(content: string, header: string, markdownMode: boolean): string {
+  const prefix = markdownMode ? "" : "#\\+";
+  return unquote(content.match(new RegExp(`^${prefix}${header}:[ \\t]*(.*)$`, "im"))?.[1] ?? "");
 }
 
 export function validate(content: string, file: string, paperMap?: string): Result {
@@ -115,27 +128,30 @@ export function validate(content: string, file: string, paperMap?: string): Resu
   const currentFormat = paperMap ? lineField(paperMap, "格式版本") === "3" : false;
   const errors: string[] = [];
   const warnings: string[] = [];
+  const markdownMode = file.toLowerCase().endsWith(".md");
+  const label = (header: string) => markdownMode ? header : `#+${header}`;
 
-  for (const header of requiredHeaders) {
-    if (!new RegExp(`^#\\+${header}:\\s+\\S`, "im").test(content)) {
-      errors.push(`缺少或为空的 #+${header}`);
+  for (const header of markdownMode ? markdownHeaders : requiredHeaders) {
+    if (!headerValue(content, header, markdownMode)) {
+      errors.push(`缺少或为空的 ${label(header)}`);
     }
   }
 
   const filenameIdentifier = basename(file).match(/^(\d{8}T\d{6})--paper-/)?.[1] ?? "";
-  const identifier = content.match(/^#\+identifier:\s*(\d{8}T\d{6})\s*$/im)?.[1] ?? "";
-  if (!filenameIdentifier) errors.push("文件名不是 Denote paper 时间戳格式");
+  const identifier = headerValue(content, "identifier", markdownMode).match(/^\d{8}T\d{6}$/)?.[0] ?? "";
+  if (!filenameIdentifier) errors.push("文件名不是 {时间戳}--paper- 格式");
   if (!identifier || identifier !== filenameIdentifier) {
     errors.push(`IDENTIFIER ${identifier || "为空"} 与文件名 ${filenameIdentifier || basename(file)} 不一致`);
   }
 
-  const sourceLines = content.match(/^#\+source:.*$/gim) ?? [];
-  if (sourceLines.length !== 1) errors.push(`#+source 必须且只能出现一次，当前为 ${sourceLines.length}`);
-  if (sourceLines.length === 1 && !/^#\+source:\s+(?:https?:\/\/\S+|\/[^\r\n]+?)\s*$/i.test(sourceLines[0])) {
-    errors.push("#+source 只放一个裸原始 URL 或绝对本地原文路径，不加描述或参考资料列表");
+  const sourceLines = content.match(markdownMode ? /^source:.*$/gim : /^#\+source:.*$/gim) ?? [];
+  const noteSource = headerValue(content, "source", markdownMode);
+  if (sourceLines.length !== 1) errors.push(`${label("source")} 必须且只能出现一次，当前为 ${sourceLines.length}`);
+  if (sourceLines.length === 1 && !/^(?:https?:\/\/\S+|\/[^\r\n]+?)$/i.test(noteSource)) {
+    errors.push(`${label("source")} 只放一个裸原始 URL 或绝对本地原文路径，不加描述或参考资料列表`);
   }
 
-  const headingMatches = [...content.matchAll(/^\* ([^*\n].*)$/gm)];
+  const headingMatches = [...content.matchAll(markdownMode ? /^# ([^#\n].*)$/gm : /^\* ([^*\n].*)$/gm)];
   const headings = headingMatches.map((match) => match[1].trim());
   if (headings.length < 2) errors.push(`至少需要 2 个由事件、变化或条件命名的一级标题，当前为 ${headings.length}`);
   const genericHits = headings.filter((heading) => genericHeadings.has(heading.replace(/\s+/g, "")));
@@ -158,7 +174,7 @@ export function validate(content: string, file: string, paperMap?: string): Resu
     errors.push(`正文泄漏研究记录或核验语言：${[...new Set(backstageHits)].join("、")}`);
   }
 
-  const paragraphs = paragraphList(body);
+  const paragraphs = paragraphList(body, markdownMode);
   const denseParagraphs = paragraphs.filter((paragraph) => [...paragraph.replace(/\s/g, "")].length > 240).length;
   if (denseParagraphs) warnings.push(`正文有 ${denseParagraphs} 段超过 240 字；检查是否一次塞入多个重要关系`);
   const numericCounts = paragraphs.map((paragraph) => (paragraph.match(/\d+(?:\.\d+)?%?/g) ?? []).length);
@@ -172,7 +188,9 @@ export function validate(content: string, file: string, paperMap?: string): Resu
   }
   if (numericPileParagraphs) warnings.push(`正文有 ${numericPileParagraphs} 段包含 5–6 个数字；检查各项比较是否必要，保留影响结论的区间与不确定性`);
 
-  const exampleBlocks = [...content.matchAll(/#\+begin_example\s*\n([\s\S]*?)#\+end_example/gim)];
+  const exampleBlocks = [...content.matchAll(markdownMode
+    ? /^```[^\n]*\n([\s\S]*?)^```[ \t]*$/gm
+    : /#\+begin_example\s*\n([\s\S]*?)#\+end_example/gim)];
   if (!currentFormat && exampleBlocks.length > 1) errors.push("最多保留一个 Markdown 围栏图块");
   const maxDiagramWidth = exampleBlocks.reduce((max, block) => {
     const width = block[1].split(/\r?\n/).reduce((lineMax, line) => Math.max(lineMax, displayWidth(line)), 0);
@@ -203,8 +221,7 @@ export function validate(content: string, file: string, paperMap?: string): Resu
       if (!substantive(lineField(paperMap, field))) errors.push(`paper-map 缺少材料字段：${field}`);
     }
     if (currentFormat) {
-      const noteSource = content.match(/^#\+source:[ \t]*(.*)$/im)?.[1]?.trim() ?? "";
-      if (noteSource !== lineField(paperMap, "原文位置")) errors.push("笔记 #+source 与研究记录的原文位置不一致");
+      if (noteSource !== lineField(paperMap, "原文位置")) errors.push(`笔记 ${label("source")} 与研究记录的原文位置不一致`);
     }
     const injectionScan = lineField(paperMap, "外部指令扫描");
     if (substantive(injectionScan) && !/^(?:未发现|已停止)/.test(injectionScan)) {
@@ -419,7 +436,7 @@ function main(): never {
 
   if (!file || (mapFlag >= 0 && !mapPath)) {
     console.error("用法：bun scripts/validate_note.ts <note.md> --map <paper-map.md>");
-    console.error("或：  bun scripts/validate_note.ts --stdin <denote-filename> --map <paper-map.md>");
+    console.error("或：  bun scripts/validate_note.ts --stdin <note-filename> --map <paper-map.md>");
     process.exit(2);
   }
 

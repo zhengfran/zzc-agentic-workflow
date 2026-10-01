@@ -296,6 +296,17 @@ describe("validate ljg-book note", () => {
     expect(result.checks.top_headings).toBe(2);
   });
 
+  test("accepts quoted vault frontmatter in Markdown notes", () => {
+    const quoted = markdownNote()
+      .replace(/^title: (.*)$/m, 'title: "$1"')
+      .replace("date: 2026-08-12", 'date: "2026-08-12"')
+      .replace("tags: book,test", "tags: [book, test]")
+      .replace("identifier: 20260812T120000", 'identifier: "20260812T120000"\nauthor: "郑之成"');
+    const result = validate(quoted, filename.replace(/\.org$/, ".md"), coverage("初拆"));
+    expect(result.errors).toEqual([]);
+    expect(validate(quoted.replace('"20260812T120000"', '"20260812T000000"'), filename.replace(/\.org$/, ".md"), coverage("初拆")).errors.join("\n")).toContain("IDENTIFIER");
+  });
+
   for (const count of [2, 4] as const) {
     test(`accepts ${count} content-led headings`, () => {
       const headings = [

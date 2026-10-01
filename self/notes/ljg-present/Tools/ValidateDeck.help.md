@@ -5,10 +5,10 @@
 ## Usage
 
 ```bash
-bun Tools/ValidateDeck.ts <deck.html> --theme hacker
-bun Tools/ValidateDeck.ts SloganTemplate.html --template --theme hacker
-bun Tools/ValidateDeck.ts --self-test
-bun Tools/ValidateDeck.ts --help
+npx -y bun Tools/ValidateDeck.ts <deck.html> --theme hacker
+npx -y bun Tools/ValidateDeck.ts SloganTemplate.html --template --theme hacker
+npx -y bun Tools/ValidateDeck.ts --self-test
+npx -y bun Tools/ValidateDeck.ts --help
 ```
 
 ## Options

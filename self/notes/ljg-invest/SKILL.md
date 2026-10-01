@@ -100,8 +100,20 @@ disable-model-invocation: true
 ## 输出
 
 - 格式：markdown
-- 目录：`~/Documents/notes/`
-- 命名按 denote：`YYYYMMDDTHHMMSS==z--投资分析-PROJECT_NAME.md`，如 `20260326153000==z--投资分析-example-ai.md`
+- 目录：`~/obsidian/00-Inbox/`
+- 命名：`YYYYMMDDTHHMMSS--投资分析-PROJECT_NAME.md`，如 `20260326T153000--投资分析-example-ai.md`；时间戳由 `date +%Y%m%dT%H%M%S` 生成
+- 文件头：
+
+```markdown
+---
+title: "投资分析：{项目名}"
+date: "{YYYY-MM-DD}"
+tags: [invest]
+identifier: "{YYYYMMDDTHHMMSS}"
+author: "郑之成"
+---
+```
+
 - 用 Write 工具写入，写完把完整路径报给用户
 
 ## 生成规则

@@ -122,7 +122,7 @@ controlled screentone and ink mass
 ## 7. 截图
 
 ```bash
-bun assets/capture.ts /tmp/ljg_cast_comic_{name}.html ~/Downloads/{name}.png 1080 1500 fullpage
+npx -y bun assets/capture.ts /tmp/ljg_cast_comic_{name}.html ~/Downloads/{name}.png 1080 1500 fullpage
 ```
 
 ## 8. 自检

@@ -111,7 +111,7 @@ URL 输入先获取正文；本地文件优先直接读取。不能获取完整�
 ## 8. Static Validation
 
 ```bash
-bun Tools/ValidateDeck.ts ~/Downloads/{title}.html --theme <theme>
+npx -y bun Tools/ValidateDeck.ts ~/Downloads/{title}.html --theme <theme>
 ```
 
 失败即停止交付并修复。不要删掉 validator 不喜欢的规则来换 PASS；检查它指出的契约是否真的被破坏。

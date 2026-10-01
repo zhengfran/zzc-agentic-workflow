@@ -69,10 +69,10 @@
 复制技能根目录的 `Template.md`，生成：
 
 ```text
-~/Context/{时间戳}--理解-{目标片段}__is.md
+~/obsidian/00-Inbox/{时间戳}--理解-{目标片段}__is.md
 ```
 
-- 时间戳使用 `date +%Y%m%dT%H%M%S`；可读时间使用 `date "+%Y-%m-%d %a %H:%M"`。
+- 时间戳使用 `date +%Y%m%dT%H%M%S`；日期使用 `date +%Y-%m-%d`。
 
 - 目标片段保留 4–24 个有意义字符；不足四字时增加真正说明主题的词，不用无意义填充。
 
@@ -94,14 +94,14 @@
 
 - 结尾由内容决定，可以是判断、原则或真问题，不要求问号。
 
-除非用户明确说「只分析」「不落盘」或 `read-only`，否则保存到 `~/Context`。
+除非用户明确说「只分析」「不落盘」或 `read-only`，否则保存到 `~/obsidian/00-Inbox`。
 
 ## 验收合同
 
 保存后，把 `SKILL_DIR` 解析为安装后的 `ljg-is` 目录，再运行：
 
 ```bash
-bun "${SKILL_DIR}/Tools/ValidateNote.ts" "<Markdown 文件路径>"
+npx -y bun "${SKILL_DIR}/Tools/ValidateNote.ts" "<Markdown 文件路径>"
 ```
 
 验证器通过后仍要全文读回。机械检查只能确认理解骨架存在，不能证明中文已经自然。读回时做四次测试：

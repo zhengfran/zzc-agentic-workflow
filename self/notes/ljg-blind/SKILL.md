@@ -129,7 +129,7 @@ curl -s -X POST https://i.weread.qq.com/api/agent/gateway \
 Resolve `SKILL_DIR` to the directory containing this `SKILL.md`, then run:
 
 ```bash
-bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>" "<chapterUid>"
+npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>" "<chapterUid>"
 ```
 
 工具输出形如：
@@ -143,24 +143,26 @@ https://weread.qq.com/web/reader/{encodedBookId}k{encodedChapterUid}
 **兜底**：搜索全空 / 没对症章节 → 选整本相关书，只传 bookId 生成网页版书籍入口：
 
 ```bash
-bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>"
+npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>"
 ```
 
 文里说明为什么没能精准到章。
 
 ### 第五步 · 写笔记
 
-获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`（时间用当前，不是 target）。
+获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`（时间用当前，不是 target）。
 
-写入 `~/Context/{时间戳}--盲区-{主题}__blind.md`。Markdown 格式，禁止 Org 语法。
+写入 `~/obsidian/00-Inbox/{时间戳}--盲区-{主题}__blind.md`。Markdown 格式，禁止 Org 语法。
 
 正文模板：
 
 ```markdown
 ---
-title: 盲区扫描 · {一句话点出这个盲区}
-date: [YYYY-MM-DD Weekday HH:MM]
-tags: blind weread topology
+title: "盲区扫描 · {一句话点出这个盲区}"
+date: "{YYYY-MM-DD}"
+tags: [blind, weread, topology]
+identifier: "{时间戳}"
+author: "郑之成"
 ---
 # 昨天你在想什么
 <1-2 段。当天对话的思维地形——哪几件事、绕着哪个核心在转。给证据：哪几句话看出来的。不流水账，抓主线。>

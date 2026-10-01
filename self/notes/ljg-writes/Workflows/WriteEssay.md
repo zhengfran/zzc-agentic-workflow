@@ -142,6 +142,6 @@
 
 ## Step 10 — 保存与验证
 
-按 `SKILL.md` 的 Markdown 与 Denote 契约生成最终文件。只保存最终稿，不把内部分析表和检查清单写入笔记。
+按 `SKILL.md` 的 Markdown 与文件名约定生成最终文件。只保存最终稿，不把内部分析表和检查清单写入笔记。
 
-保存后回读全文，检查字数、Markdown 标题、文件名与 identifier，再运行 Denote 接受检查。
+保存后回读全文，检查字数、Markdown 标题、文件名与 identifier 是否一致。

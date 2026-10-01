@@ -136,7 +136,7 @@ Hacker 有两个静态阅读变体。二者都拒绝荧光特效堆叠：
 写出 HTML 后运行：
 
 ```bash
-bun Tools/ValidateDeck.ts ~/Downloads/<deck>.html --theme <theme>
+npx -y bun Tools/ValidateDeck.ts ~/Downloads/<deck>.html --theme <theme>
 ```
 
 Validator 负责静态契约：模板版本、JS 语法、标题 cover、header/footer、零动效、公式保护、多行布局、fit guard、页面类型、翻页键和外链资源。

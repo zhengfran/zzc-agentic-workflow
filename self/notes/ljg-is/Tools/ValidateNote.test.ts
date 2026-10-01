@@ -213,6 +213,12 @@ describe("ValidateNote v5 usable-understanding contract", () => {
 
   test("accepts a complete v5 Markdown note", () => {
     expect(validateNoteText(v5MdPath, goodV5Markdown()).ok).toBe(true);
+    const quoted = goodV5Markdown()
+      .replace(/^title: (.+)$/mu, 'title: "$1"')
+      .replace(/^date: .+$/mu, 'date: "2026-08-23"')
+      .replace(/^identifier: (.+)$/mu, 'identifier: "$1"\nauthor: "郑之成"')
+      .replace(/^schema: (.+)$/mu, 'schema: "$1"');
+    expect(validateNoteText(v5MdPath, quoted).errors).toEqual([]);
   });
 
   test("requires definition, operation, recognition and guidance", () => {

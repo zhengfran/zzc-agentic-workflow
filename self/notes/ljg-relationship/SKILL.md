@@ -189,15 +189,16 @@ Assistant: [识别"反复出现的模式"信号，启动结构+精神分析双�
 
 将分析整合为 markdown 格式并写入文件：
 1. 运行 `date +%Y%m%dT%H%M%S` 获取时间戳
-2. 写入 `~/Documents/notes/{timestamp}--关系分析-{关键词}__relationship.md`
+2. 写入 `~/obsidian/00-Inbox/{timestamp}--关系分析-{关键词}__relationship.md`
 
 Markdown 文件结构：
 ```markdown
 ---
-title: 关系分析：{关系描述}
-date: [{日期}]
-tags: relationship
-identifier: {timestamp}
+title: "关系分析：{关系描述}"
+date: "{YYYY-MM-DD}"
+tags: [relationship]
+identifier: "{timestamp}"
+author: "郑之成"
 ---
 # 背景
 {关系基本信息}

@@ -60,7 +60,18 @@ disable-model-invocation: true
 
 ## 输出
 
-1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
-2. 写入 `~/Documents/notes/{时间戳}--追本-{主题}__think.md`
-3. Markdown 格式，禁止 Org 语法
+1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`
+2. 写入 `~/obsidian/00-Inbox/{时间戳}--追本-{主题}__think.md`
+3. Markdown 格式，禁止 Org 语法。文件头：
+
+```markdown
+---
+title: "追本：{主题}"
+date: "{YYYY-MM-DD}"
+tags: [think]
+identifier: "{时间戳}"
+author: "郑之成"
+---
+```
+
 4. 报告文件路径给用户

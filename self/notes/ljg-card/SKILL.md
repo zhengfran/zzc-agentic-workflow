@@ -78,14 +78,14 @@ version: 7.3.1
 从 skill 根目录运行：
 
 ```bash
-bun assets/capture.ts <html> <png> <width> <height> [fullpage]
+npx -y bun assets/capture.ts <html> <png> <width> <height> [fullpage]
 ```
 
 `-w` 截图前必须先从精确来源快照生成独立清单，并把二者一起交给截图门禁：
 
 ```bash
-bun assets/prepare-whiteboard-source.ts /tmp/<task>/source.txt /tmp/<task>/whiteboard-source-inventory.json
-bun assets/capture.ts <html> <png> 1080 1600 fullpage /tmp/<task>/whiteboard-source-inventory.json /tmp/<task>/source.txt
+npx -y bun assets/prepare-whiteboard-source.ts /tmp/<task>/source.txt /tmp/<task>/whiteboard-source-inventory.json
+npx -y bun assets/capture.ts <html> <png> 1080 1600 fullpage /tmp/<task>/whiteboard-source-inventory.json /tmp/<task>/source.txt
 ```
 
 来源清单必须直接由本次输入生成，不能由论证账本反推；否则账本漏掉的段落也会一起消失，完整性校验失去意义。
@@ -93,8 +93,8 @@ bun assets/capture.ts <html> <png> 1080 1600 fullpage /tmp/<task>/whiteboard-sou
 依赖缺失时：
 
 ```bash
-bun install
-bunx playwright install chromium
+npx -y bun install
+npx -y bun x playwright install chromium
 ```
 
 截图脚本会等待字体与本地图片。不要绕过它的加载门禁。
@@ -179,9 +179,9 @@ User: 「这篇文稿用 -f 铸成全文卡片，原文不要动」
 升级模板或 mode 后运行：
 
 ```bash
-bun run audit
-bun test
-bun run fixtures
+npx -y bun run audit
+npx -y bun test
+npx -y bun run fixtures
 ```
 
 第一条检查共享协议、四路引用、位图槽、白板来源对账、全文忠实度合同与禁用项；第二条运行纯函数与反例测试；第三条在 `/tmp/ljg-card-v7-fixtures/` 生成代表 HTML，运行全文与白板来源校验，随后用 `capture.ts` 实际截图并读回 PNG。
