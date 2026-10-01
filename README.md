@@ -33,11 +33,14 @@ skills-install notes ~/org --copy
 
 For a one-time migration of an old copied install or broken assembly symlink that has no ownership file, add `--adopt-existing`. Ordinary runs reject unmanaged same-name entries. Live symlinks resolving to the same source are adopted automatically.
 
-Project packs default to Claude Code, Kiro, Codex, and the shared project-level `.agents/skills` convention. Global installs default to Claude Code, Kiro, Codex, Hermes, and DeepSeek Harness. Pi discovers the shared `~/.agents/skills` catalog directly, so it is intentionally not a `skills-install global` target; installing the same pack into `~/.pi/agent/skills` creates duplicate skill names. That exclusion is global-scope only — the project-level `.agents/skills` target above is unrelated and always included by default. Narrow the targets when needed:
+Project packs default to Claude Code (`.claude/skills`), Kiro (`.kiro/skills`), and the shared Agent Skills location (`.agents/skills`). Both Codex and Pi discover project `.agents/skills`, so they do not need separate destinations. The old project Codex target (`.codex/skills`) is available only by explicitly selecting `--agents codex`; it is not a documented Codex skill location and may result in duplicate skills if also installed to `.agents/skills`. Removing it from the defaults does **not** delete previously installed `.codex/skills` entries. Global installs still target Claude Code, Kiro, Codex, Hermes, and DeepSeek Harness; the global Codex destination remains `~/.codex/skills` pending a separate migration to the documented `~/.agents/skills` location. Pi is not a global target because it discovers `~/.agents/skills` directly; after removing the old catalog symlink, Pi has no skills from that global location until a new catalog is installed there. Narrow the project targets when needed:
 
 ```bash
 skills-install coding /path/to/repo --agents claude,kiro
+skills-install coding /path/to/repo --agents agents
 ```
+
+Kiro's documented `.kiro/skills` discovery is for its V3 engine; verify Kiro symlink support before relying on the default symlink mode (or install with `--copy`).
 
 Symlink mode is the default. `--copy` creates detached files for cloud-synced directories.
 

@@ -3,18 +3,15 @@
 # vendored/<pack>/* into per-agent skill directories.
 #
 # Usage:
-#   skills-install <pack> [target-dir] [--agents claude,kiro] [--copy] [--adopt-existing]
+#   skills-install <pack> [target-dir] [--agents claude,kiro,agents] [--copy] [--adopt-existing]
 #     pack        notes | coding  → project-level install
 #                 global          → machine-level install into the agent home
 #                                   dirs, ignores target-dir
 #     target-dir  project root for notes/coding (default: current dir); ignored for global
-#     --agents    project packs: claude,kiro,codex,agents
+#     --agents    project packs: claude,kiro,agents (codex: legacy opt-in)
+#                 agents -> .agents/skills (Codex and Pi discover this)
 #                 global pack: claude,kiro,codex,hermes,dsh
-#                 (Pi discovers the shared ~/.agents/skills catalog directly.
-#                 "agents" targets the project-level .agents/skills convention
-#                 shared by newer tools; it is project-scope only — the global
-#                 pack has no ~/.agents/skills target, for the same reason Pi
-#                 is excluded there.)
+#                 (Pi discovers the shared ~/.agents/skills catalog directly.)
 #                 (defaults: all supported agents for that scope)
 #     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
 #     --adopt-existing
@@ -52,7 +49,7 @@ OWNER_ID="zzc-skills"
 STATE_NAME=".zzc-skills-managed"
 
 usage() {
-  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,codex,agents,...] [--copy] [--adopt-existing]" >&2
+  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,...] [--copy] [--adopt-existing]" >&2
   exit 2
 }
 
@@ -76,9 +73,9 @@ while [[ $# -gt 0 ]]; do
     *)                target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,codex,agents"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,agents"; }
 
-# Confirmed project-level skill dirs. Keep speculative adapters out until tested.
+# Project-level skill dirs. Codex's .codex/skills is legacy; use agents for Codex.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
 agentdir() {
   case "$1" in
@@ -108,6 +105,9 @@ IFS=',' read -ra AGENT_LIST <<< "$agents"
 [[ ${#AGENT_LIST[@]} -gt 0 ]] || { echo "no agents specified" >&2; exit 2; }
 for ((i = 0; i < ${#AGENT_LIST[@]}; i++)); do
   destdir "${AGENT_LIST[$i]}" >/dev/null || { echo "unknown agent: ${AGENT_LIST[$i]}" >&2; exit 2; }
+  if [[ "$pack" != global && "${AGENT_LIST[$i]}" == codex ]]; then
+    echo "warning: project .codex/skills is a legacy target; use --agents agents for Codex's documented .agents/skills path" >&2
+  fi
 done
 
 # --- gather managed skill names from self/<pack> + vendored/<pack> ----------
