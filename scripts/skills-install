@@ -38,7 +38,7 @@ while [[ $# -gt 0 ]]; do
     *)                target="$1"; shift;;
   esac
 done
-[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,codex,hermes,dsh" || agents="claude,kiro,agents"; }
+[[ -n "$agents" ]] || { [[ "$pack" == global ]] && agents="claude,kiro,agents,hermes,dsh" || agents="claude,kiro,agents"; }
 
 # Project-level skill dirs. Codex's .codex/skills is legacy; use agents for Codex.
 # (plain case/function instead of `declare -A`: macOS ships bash 3.2, which has no associative arrays)
@@ -53,11 +53,12 @@ agentdir() {
 }
 
 # per-agent machine-level (home dir) skill dir, used only for pack=global.
+# ~/.agents/skills is read by both Codex and Pi, so neither gets its own target.
 homedir() {
   case "$1" in
     claude) echo "$HOME/.claude/skills";;
     kiro)   echo "$HOME/.kiro/skills";;
-    codex)  echo "$HOME/.codex/skills";;
+    agents) echo "$HOME/.agents/skills";;
     hermes) echo "$HOME/.hermes/skills";;
     dsh)    echo "${DSH_HOME:-$HOME/.dsh}/skills";;
     *)      return 1;;

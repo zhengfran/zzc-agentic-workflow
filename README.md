@@ -71,7 +71,7 @@ Install only named skills within a pack:
 
 ```bash
 scripts/skills-install global --skills wayfinder
-scripts/skills-install global --skills retro,writing-for-agents --agents codex
+scripts/skills-install global --skills retro,writing-for-agents --agents agents
 ```
 
 `--skills` is additive: it installs the named entries without removing other
@@ -80,9 +80,10 @@ pack, including pruning names removed from the catalog.
 
 Symlinks are the default. `--copy` creates detached copies. Project defaults are
 `.claude/skills`, `.kiro/skills`, and `.agents/skills`. Global defaults are
-`~/.claude/skills`, `~/.kiro/skills`, `~/.codex/skills`, `~/.hermes/skills`, and
-`${DSH_HOME:-~/.dsh}/skills`. `--agents` narrows these destinations. The legacy
-project `.codex/skills` target is available with `--agents codex`.
+`~/.claude/skills`, `~/.kiro/skills`, `~/.agents/skills` (read by both Codex
+and Pi), `~/.hermes/skills`, and `${DSH_HOME:-~/.dsh}/skills`. `--agents`
+narrows these destinations. The legacy project `.codex/skills` target is
+available with `--agents codex`.
 
 Each destination's `.zzc-skills-managed` records ownership by package and pack.
 Reinstallation updates/prunes only that scope, preserving other scopes and
