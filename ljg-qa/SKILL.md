@@ -1,8 +1,9 @@
 ---
 name: ljg-qa
-description: Extract a source's reasoning as a sequence of incisive question-answer pairs.
-disable-model-invocation: true
+description: 信息提问机。给一篇文章/论文/书，把核心观点抽成 Q-A 对——Question 切要害，不教科书；Answer 简洁清晰，有形式化收口，逻辑链完整。读者顺 Q 链走过，每个 A 砸下一枚钉子，复现作者整套推理。Use when user says '问答', 'Q&A', 'QA', '提问', '抽取问题', '/ljg-qa', or shares an article/paper/book and asks for Q-A extraction. Triggers when the user wants ideas extracted not as a summary but as a sequence of incisive questions with answered. NOT FOR FAQ generation, glossary creation, or comprehension quizzes — this is intellectual scaffolding, not study aids.
+user_invocable: true
 ---
+
 # ljg-qa: 问答提取
 
 读一份东西，把它的思想拆成「为什么—怎么—边界」的问答链。
@@ -56,8 +57,8 @@ Running **Extract** in **ljg-qa**...
 ## 输出
 
 - 格式：Markdown（`**bold**`，禁 Org 语法）
-- 路径：`~/obsidian/00-Inbox/`
-- 文件名：`{YYYYMMDDTHHMMSS}--qa-{核心主题 5-10 字}__qa.md`
+- 路径：`~/LifeOS/00-Inbox/`
+- denote 文件名：`{YYYYMMDDTHHMMSS}--qa-{核心主题 5-10 字}__qa.md`
 
 ## Examples
 
@@ -67,7 +68,7 @@ Running **Extract** in **ljg-qa**...
 User: /ljg-qa https://example.com/article
 → WebFetch 获取
 → 找观点骨架 → 设计 Q 链 → 写 A 三段
-→ markdown 输出到 ~/obsidian/00-Inbox/
+→ markdown 输出到 ~/LifeOS/00-Inbox/
 ```
 
 *Example 2: 论文 PDF*

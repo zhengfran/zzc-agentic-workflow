@@ -1,8 +1,9 @@
 ---
 name: ljg-think
-description: Drill vertically through a claim or phenomenon to its irreducible root.
-disable-model-invocation: true
+description: 追本之箭——纵向深钻思维工具。给一个观点、现象或问题，像箭一样一路向下钻到不可再分的本质。Use when user says '想透', '追本', '本质是什么', '为什么会这样', '深挖', '钻到底', 'think deep', 'drill down', or wants to trace any idea/phenomenon vertically to its irreducible root. Also trigger when user provides a statement and wants depth analysis, not breadth survey.
+user_invocable: true
 ---
+
 # 追本之箭
 
 输入一个观点，一路向下，钻到底。
@@ -60,18 +61,7 @@ disable-model-invocation: true
 
 ## 输出
 
-1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`
-2. 写入 `~/obsidian/00-Inbox/{时间戳}--追本-{主题}__think.md`
-3. Markdown 格式，禁止 Org 语法。文件头：
-
-```markdown
----
-title: "追本：{主题}"
-date: "{YYYY-MM-DD}"
-tags: [think]
-identifier: "{时间戳}"
-author: "郑之成"
----
-```
-
+1. 获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`
+2. 写入 `~/LifeOS/00-Inbox/{时间戳}--追本-{主题}__think.md`
+3. Markdown 格式，禁止 Org 语法
 4. 报告文件路径给用户

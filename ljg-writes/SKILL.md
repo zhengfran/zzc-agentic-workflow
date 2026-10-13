@@ -1,9 +1,10 @@
 ---
 name: ljg-writes
-description: Develop one idea into a rigorous 1000–1500-word Chinese article.
-disable-model-invocation: true
-version: 8.0.1
+description: "写作引擎。把一个观点写成可理解、可迁移、经得住反例的 1000-1500 字中文文章。USE WHEN 写文章 OR 优化思想内容 OR 展开观点 OR 改写成逻辑递进的中文。NOT FOR 普通摘要、事实查询或结构风洞（用 ljg-structure）。"
+user_invocable: true
+version: "8.0.1"
 ---
+
 # 写作引擎
 
 把一个观点讲清楚，让一个具体的人读懂它为什么成立、能用在哪里。用容易理解的案例说明关键关系；需要引入抽象概念时，先交代它能解释什么。
@@ -103,19 +104,19 @@ User: 「预测是一种选择压，它逼出对结构的理解。帮我完整�
 - 总量默认 1000-1500 字；用户明确要短改、金句或标题时服从用户长度。
 - Markdown 加粗使用双星号，标题从 `#` 开始且不跳级。
 - 图表只用纯 ASCII 字符。
-- 取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date +%Y-%m-%d`。
-- 文件名：`~/obsidian/00-Inbox/{时间戳}--{标题关键词}__write.md`。
+- 取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date "+%Y-%m-%d %a %H:%M"`。
+- 文件名：`~/LifeOS/00-Inbox/{时间戳}==z--{标题关键词}__write.md`。
 - 文件头：
 
 ```markdown
 ---
-title: "{标题}"
-date: "{YYYY-MM-DD}"
-tags: [write]
-identifier: "{YYYYMMDDTHHMMSS}"
-author: "郑之成"
+title: {标题}
+date: [{YYYY-MM-DD Day HH:MM}]
+tags: write
+identifier: {YYYYMMDDTHHMMSS}
+author: 李继刚
 ---
 ```
 
 - 初稿完成后，先检查观点与证据，再通读修改中文。按整段的意思和衔接选择表达，不把两稿的漂亮句子逐句拼接；只保存最终稿。
-- 保存后读回文件，确认 identifier 与文件名一致、frontmatter 能被 Obsidian 解析，再报告路径。
+- 保存后读回文件，验证 Denote 接受，再报告路径。

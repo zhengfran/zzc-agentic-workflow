@@ -10,11 +10,9 @@
 
 `ljg-is-v4`、`ljg-is-v3`、`ljg-is-v2` 和无 schema 的 legacy 笔记仍可读取验证，但不会被新工作流生成。
 
-Resolve `SKILL_DIR` to the installed `ljg-is` directory, then run:
-
 ```bash
-npx -y bun "${SKILL_DIR}/Tools/ValidateNote.ts" \
-  ~/obsidian/00-Inbox/20260823T010203--理解-目标函数__is.md
+bun ~/.agents/skills/ljg-is/Tools/ValidateNote.ts \
+  "$HOME/LifeOS/00-Inbox/20260823T010203--理解-目标函数__is.md"
 ```
 
 成功时向 stdout 输出 `{"status":"ok", ...}` 并退出 0；失败时向 stderr 输出错误数组并退出 1；缺少文件参数时退出 2。
@@ -22,5 +20,5 @@ npx -y bun "${SKILL_DIR}/Tools/ValidateNote.ts" \
 运行自检：
 
 ```bash
-npx -y bun test "${SKILL_DIR}/Tools/ValidateNote.test.ts"
+bun test ~/.agents/skills/ljg-is/Tools/ValidateNote.test.ts
 ```

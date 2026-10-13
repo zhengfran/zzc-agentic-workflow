@@ -1,9 +1,10 @@
 ---
 name: ljg-is
-description: Define the minimum A-to-B transformation that makes a goal complete.
-disable-model-invocation: true
-version: 5.0.0
+version: "5.0.0"
+description: 把一个名词或概念写成可使用的理解：先用普通话讲清它是什么、与相邻概念差在哪里，再说明它怎样运作、会改写什么判断，最后给出面对它时的行动抓手。USE WHEN 用户问 X 是什么、怎么理解、意味着什么、为什么重要、以后怎样判断或使用；尤其适合技术概念、制度、产品、角色、方法、规范与实践。NOT FOR 单纯查事实、公式证明、逐步操作教程、纵向因果深挖（用 ljg-think）或母题结构（用 ljg-structure）。
+user_invocable: true
 ---
+
 # 把一个名词讲到能用
 
 只给定义，读者可能记住了词，却仍不知道怎样认出它。只讲动词，读者又可能知道它做了什么，却不清楚它究竟是哪一类东西、边界在哪里。
@@ -46,7 +47,7 @@ version: 5.0.0
 默认写入：
 
 ```text
-~/obsidian/00-Inbox/{时间戳}--理解-{目标片段}__is.md
+~/LifeOS/00-Inbox/{时间戳}--理解-{目标片段}__is.md
 ```
 
 新成品使用 `ljg-is-v5` schema。正文使用两到四个随内容生出的标题和四到十个自然段，不把「是什么 / 怎样运作 / 认知改变 / 行动指导」直接用作四个栏目。

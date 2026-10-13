@@ -53,9 +53,7 @@ const OLD_CONTRACT = /(?:^|\n)(?:核心|完整|容易误认|真正问题|结构�
 
 function metadataValue(content: string, key: string, format: NoteFormat): string | undefined {
   const prefix = format === "org" ? "#\\+" : "";
-  const value = content.match(new RegExp(`^${prefix}${key}:\\s*(.+?)\\s*$`, "mi"))?.[1]?.trim();
-  // Markdown frontmatter may quote scalar values.
-  return format === "md" ? value?.replace(/^(["'])(.*)\1$/u, "$2").trim() : value;
+  return content.match(new RegExp(`^${prefix}${key}:\\s*(.+?)\\s*$`, "mi"))?.[1]?.trim();
 }
 
 function nonEmptyLines(body: string): string[] {

@@ -1,8 +1,8 @@
 ---
 name: ljg-invest
-description: Evaluate whether a company or project is an order-creating machine.
-disable-model-invocation: true
+description: 投资分析。给一个项目（公司名、BP、创始人对话记录），写一份深度投资分析报告。不走传统投资分析的路——核心判断只有一个：这个项目是不是一台「秩序创造机器」。Use when user says '投资报告', '投资分析', '分析这个项目', '写投资报告', 'investment report', 'invest analysis', or provides entrepreneur conversation records wanting investment evaluation. Also trigger when user pastes or references meeting notes, pitch decks, or founder interviews and asks for analysis.
 ---
+
 # ljg-invest: 投资报告
 
 给一个项目，写一份投资分析。整份报告只回答一个问题：这个东西在创造新秩序，还是在搬运旧秩序。
@@ -100,20 +100,8 @@ disable-model-invocation: true
 ## 输出
 
 - 格式：markdown
-- 目录：`~/obsidian/00-Inbox/`
-- 命名：`YYYYMMDDTHHMMSS--投资分析-PROJECT_NAME.md`，如 `20260326T153000--投资分析-example-ai.md`；时间戳由 `date +%Y%m%dT%H%M%S` 生成
-- 文件头：
-
-```markdown
----
-title: "投资分析：{项目名}"
-date: "{YYYY-MM-DD}"
-tags: [invest]
-identifier: "{YYYYMMDDTHHMMSS}"
-author: "郑之成"
----
-```
-
+- 目录：`~/LifeOS/00-Inbox/`
+- 命名按 denote：`YYYYMMDDTHHMMSS==z--投资分析-PROJECT_NAME.md`，如 `20260326153000==z--投资分析-example-ai.md`
 - 用 Write 工具写入，写完把完整路径报给用户
 
 ## 生成规则

@@ -35,8 +35,7 @@ for (const file of activeFiles) {
   if (body.toLowerCase().includes(fragmentFilter)) failures.push(`fragment filter remains: ${file}`);
   if (file.endsWith(".md") || file.endsWith("capture.ts")) {
     for (const command of legacyPackageCommands) {
-      // `npx -y bun` only launches Bun on machines without a global install.
-      if (body.toLowerCase().replaceAll("npx -y bun", "").includes(command)) failures.push(`legacy package command remains: ${file}`);
+      if (body.toLowerCase().includes(command)) failures.push(`legacy package command remains: ${file}`);
     }
   }
 }
@@ -101,7 +100,6 @@ for (const term of [
   "非专属视觉属性",
   "无论参照对象身份",
   "不写创作者姓名",
-  ".evidence-boundary",
   ".closing-judgment",
 ]) {
   requireThat(longMode.includes(term), `long-mode contract missing: ${term}`);
@@ -158,7 +156,6 @@ for (const primitive of [
   ".whiteboard-header",
   ".whiteboard-title",
   ".whiteboard-question",
-  ".whiteboard-boundary",
   ".reasoning-spine",
   ".spine-rail",
   ".logic-step",
@@ -240,7 +237,6 @@ for (const contract of [
   "dataset.visibility",
   "relation-arrowhead",
   "transition-sentence",
-  "whiteboard-boundary",
   "Ledger/DOM step mismatch",
   "Relation endpoint not found",
   "must keep bridge empty",
@@ -324,7 +320,6 @@ for (const primitive of [
   ".beat-index",
   ".metric-row",
   ".metric",
-  ".evidence-boundary",
   ".closing-judgment",
 ]) {
   requireThat(longTemplate.includes(primitive), `long CSS surface missing: ${primitive}`);
@@ -397,7 +392,6 @@ for (const primitive of [
   'class="beat-index"',
   'class="metric-row"',
   'class="metric"',
-  'class="evidence-boundary"',
   'class="closing-judgment"',
 ]) {
   requireThat(fixtureBuilder.includes(primitive), `long fixture does not exercise: ${primitive}`);

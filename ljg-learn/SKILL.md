@@ -1,8 +1,8 @@
 ---
 name: ljg-learn
-description: Anatomize one concept through multiple philosophical dimensions.
-disable-model-invocation: true
+description: Deep concept anatomist that deconstructs any concept through 8 exploration dimensions (history, dialectics, phenomenology, linguistics, formalization, existentialism, aesthetics, meta-philosophy) and compresses insights into an epiphany. Use when user asks to explain, dissect, or deeply understand a concept, term, or idea. Triggers on '解剖概念', '概念解剖', 'explain concept', 'learn concept', '/ljg-learn'. Produces markdown output.
 ---
+
 ## Usage
 
 <example>
@@ -56,11 +56,9 @@ Assistant: [对"熵"进行八维解剖，生成 markdown 报告]
 
 ```markdown
 ---
-title: "概念解剖：{概念名}"
-date: "{YYYY-MM-DD}"
-tags: [concept]
-identifier: "{timestamp}"
-author: "郑之成"
+title: 概念解剖：{概念名}
+tags: concept
+date: [YYYY-MM-DD]
 ---
 # 定锚
 # 八刀
@@ -78,5 +76,5 @@ author: "郑之成"
 
 写入文件：
 1. 运行 `date +%Y%m%dT%H%M%S` 获取时间戳。
-2. 写入 `~/obsidian/00-Inbox/{timestamp}--概念解剖-{概念名}__concept.md`。
+2. 写入 `~/LifeOS/00-Inbox/{timestamp}--概念解剖-{概念名}__concept.md`。
 3. 报告路径，完成。

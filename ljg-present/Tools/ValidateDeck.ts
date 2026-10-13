@@ -1,437 +1,182 @@
 #!/usr/bin/env bun
-
-import { resolve } from "node:path";
-
-const VERSION = "4.5.0";
-
-const HELP = `ValidateDeck ${VERSION}
-
-Usage:
-  bun Tools/ValidateDeck.ts <deck.html> [--theme black|red|yellow|hacker|hacker-dark] [--template] [--json]
-  bun Tools/ValidateDeck.ts --self-test
-  bun Tools/ValidateDeck.ts --help
-
-Checks:
-  template version and JavaScript syntax
-  stable centered stage axis, finite composition grammar, whitespace budget, header/footer contract
-  semantic-atom Takahashi typography, CJK tail guard, grouped rows and measured fit guard
-  offline math guards and presentation key map
-  zero motion and zero external resources
-  Hacker theme grammar when --theme hacker or --theme hacker-dark
-`;
-
-type Check = { id: string; pass: boolean; detail: string };
-type Options = {
-  file?: string;
-  theme?: string;
-  template: boolean;
-  json: boolean;
-  selfTest: boolean;
-  help: boolean;
-};
-
-function parseArgs(args: string[]): Options {
-  const options: Options = { template: false, json: false, selfTest: false, help: false };
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (arg === "--help" || arg === "-h") options.help = true;
-    else if (arg === "--template") options.template = true;
-    else if (arg === "--json") options.json = true;
-    else if (arg === "--self-test") options.selfTest = true;
-    else if (arg === "--theme") options.theme = args[++index];
-    else if (arg.startsWith("--theme=")) options.theme = arg.slice("--theme=".length);
-    else if (arg.startsWith("-")) throw new Error(`Unknown option: ${arg}`);
-    else if (!options.file) options.file = arg;
-    else throw new Error(`Unexpected argument: ${arg}`);
+import {resolve} from 'node:path';
+import {runInNewContext} from 'node:vm';
+import {VERSION,dataErrors,normalizedTemplate,parseDeck,prepareDeck,materialize,hash,safeJson} from './DeckData';
+function isEmbeddedAsset(uri: string, family: "font" | "image"): boolean {
+  const match = uri.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match || match[2].length % 4 !== 0) return false;
+  const mime = match[1].toLowerCase();
+  const bytes = Buffer.from(match[2], "base64");
+  if (!bytes.length || bytes.toString("base64") !== match[2]) return false;
+  const start = bytes.subarray(0, 4).toString("latin1");
+  if (family === "font") {
+    return (mime === "font/ttf" && (start === "\x00\x01\x00\x00" || start === "true"))
+      || (mime === "font/otf" && start === "OTTO")
+      || (mime === "font/woff" && start === "wOFF")
+      || (mime === "font/woff2" && start === "wOF2");
   }
-  return options;
+  return (mime === "image/png" && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])))
+    || (mime === "image/jpeg" && bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255)
+    || (mime === "image/webp" && start === "RIFF" && bytes.subarray(8, 12).toString("ascii") === "WEBP");
 }
 
-function materializeTemplate(html: string, theme = "hacker") {
-  const fixtureSlides = [
-    { emphasis: true, lines: [{ indent: 0, chunks: [{ t: "章节" }] }], sourceIds: ["SRC-001"] },
-    { lines: [{ indent: 0, chunks: [{ t: "脑力：组织信息" }] }, { indent: 0, chunks: [{ t: "心力：组织自己" }] }], sourceIds: ["SRC-002", "SRC-003"] },
-    { lines: [{ indent: 0, chunks: [{ t: "一" }] }, { indent: 0, chunks: [{ t: "二" }] }, { indent: 0, chunks: [{ t: "三" }] }], sourceIds: ["SRC-004", "SRC-005", "SRC-006"] },
-    { lines: [{ indent: 0, chunks: [{ t: "A" }] }, { indent: 0, chunks: [{ t: "B" }] }, { indent: 0, chunks: [{ t: "C" }] }, { indent: 0, chunks: [{ t: "D" }] }], sourceIds: ["SRC-007", "SRC-008", "SRC-009", "SRC-010"] },
-    { lines: [{ indent: 0, chunks: [{ t: "$$C(Q)=C_1 \\cdot Q^{-b}$$" }] }], sourceIds: ["SRC-011"] },
-    { lines: [{ indent: 0, chunks: [{ t: "定价: $20/month" }] }], sourceIds: ["SRC-012"] },
-    { lines: [{ indent: 0, chunks: [{ t: "AI 为火药，人为点火者。" }] }], sourceIds: ["SRC-013"] },
-    { quote: true, lines: [{ indent: 0, chunks: [{ t: "人 → 人 + Agents" }] }], sourceIds: ["SRC-014"] },
-    { semanticGroup: "list-run", lines: [{ indent: 0, chunks: [{ t: "System 0: 本能" }] }, { indent: 0, chunks: [{ t: "System 1: 快思考" }] }, { indent: 0, chunks: [{ t: "System 2: 慢思考" }] }], sourceIds: ["SRC-015", "SRC-016", "SRC-017"] },
-    { table: { caption: "无表头", header: false, rows: [["能量", "太阳能"], ["组织", "国家"]] }, sourceIds: ["SRC-018"] },
-    { pre: "+---+\n|AI |\n+---+", sourceIds: ["SRC-019"] }
-  ];
-  return html
-    .replaceAll("{{TITLE}}", () => "Fixture Deck")
-    .replaceAll("{{SUBTITLE}}", () => "Fixture Meta")
-    .replaceAll("{{THEME}}", () => theme)
-    .replaceAll("{{SLIDES_JSON}}", () => JSON.stringify(fixtureSlides));
-}
-
-function mathSegments(text: string) {
-  return [...text.matchAll(/\$\$([\s\S]+?)\$\$|\$(?![\d?])([^$\n]+?)\$/g)].map((match) => match[0]);
-}
-
-function chooseLayout(weights: number[]) {
-  const lineCount = weights.length;
-  if (lineCount >= 2 && lineCount <= 4) return "rows";
-  return "single";
-}
-
-function ruleBodies(style: string, exactSelector: string) {
-  const bodies: string[] = [];
-  for (const match of style.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const selectors = match[1].split(",").map((value) => value.trim());
-    if (selectors.includes(exactSelector)) bodies.push(match[2]);
+function offlineViolations(html: string, style: string, script: string): string[] {
+  // Inspect markup separately so literal source text and the SVG namespace are not mistaken for dependencies.
+  const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) => tag.match(/^<script\b[^>]*>/i)?.[0] || "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+  const violations: string[] = [];
+  if ([...html.matchAll(/<script\b[^>]*>[\s\S]*?<\/script>/gi)].length !== 1) violations.push("deck must contain exactly one inline runtime script");
+  if (/<(?:link|iframe|video|audio|source|object|embed|foreignObject)\b/i.test(markup)) violations.push("resource or embedded-content tag");
+  if (/<script\b[^>]*\bsrc\s*=/i.test(markup)) violations.push("external script");
+  if (/<[a-z][^>]*\bon[a-z]+\s*=/i.test(markup)) violations.push("inline event handler");
+  for (const match of markup.matchAll(/<([a-z][a-z0-9:-]*)\b([^>]*)>/gi)) {
+    const tag = match[1].toLowerCase();
+    const attributes = [...match[2].matchAll(/(?:^|\s)([a-z][a-z0-9:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)]
+      .map((attribute) => ({ name: attribute[1].toLowerCase(), value: attribute[2] ?? attribute[3] ?? attribute[4] ?? "" }));
+    const rasterReferences = attributes.filter(({ name }) => tag === "img" ? name === "src" : tag === "image" && ["href", "xlink:href"].includes(name));
+    if (["img", "image"].includes(tag) && (!rasterReferences.length || !rasterReferences.every(({ value }) => isEmbeddedAsset(value, "image")))) violations.push("image must embed PNG, JPEG or WEBP with a matching data MIME and signature");
+    for (const attribute of attributes) {
+      if (["srcset", "poster"].includes(attribute.name)) violations.push("unsupported resource attribute");
+      if (!["href", "xlink:href", "src"].includes(attribute.name)) continue;
+      if (rasterReferences.includes(attribute)) continue;
+      if (!attribute.value.startsWith("#")) violations.push("non-local resource reference");
+    }
   }
-  return bodies;
+  const inlineStyles = [...markup.matchAll(/\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)].map((match) => match[1] ?? match[2] ?? "").join("\n");
+  const css = `${style}\n${inlineStyles}`;
+  if (/@import\b|\bimage-set\s*\(/i.test(css)) violations.push("CSS dependency");
+  const fontFaces = [...css.matchAll(/@font-face\s*\{[^}]*\}/gi)].map((match) => ({ start: match.index!, end: match.index! + match[0].length }));
+  for (const match of css.matchAll(/\burl\s*\(\s*([^)]+)\)/gi)) {
+    const raw = match[1].trim();
+    const uri = raw.startsWith('"') || raw.startsWith("'") ? (raw.at(-1) === raw[0] ? raw.slice(1, -1) : "") : raw;
+    const fontFace = fontFaces.find((range) => match.index! > range.start && match.index! < range.end);
+    const descriptor = fontFace && [...css.slice(fontFace.start, match.index!).matchAll(/[;{]\s*([a-z-]+)\s*:/gi)].at(-1)?.[1].toLowerCase();
+    const isFontSource = descriptor === "src";
+    if (!isFontSource || !isEmbeddedAsset(uri, "font")) violations.push("CSS URL must be an embedded TTF, OTF, WOFF or WOFF2 font source");
+  }
+  if (/\b(?:fetch|importScripts)\s*\(|\bnew\s+(?:XMLHttpRequest|WebSocket|EventSource|Worker)\s*\(|\bimport\s*\(/.test(script)) violations.push("script network dependency");
+  if (/createElement(?:NS)?\(\s*(?:[^,]+,\s*)?["'](?:img|image|script|iframe|link|object|embed|foreignObject)["']/i.test(script)) violations.push("script resource element");
+  return violations;
 }
 
-function relativeLuminance(hex: string) {
-  const channels = hex.match(/[0-9a-f]{2}/gi)?.map((value) => parseInt(value, 16) / 255) || [];
-  if (channels.length !== 3) return Number.NaN;
-  const linear = channels.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+
+// A deliberately small DOM fixture tests geometry and text safety, not browser layout.
+class ChartFixtureNode {
+  tagName: string;
+  className = "";
+  textContent = "";
+  children: ChartFixtureNode[] = [];
+  dataset: Record<string, string> = {};
+  attributes: Record<string, string> = {};
+  properties: Record<string, string> = {};
+  constructor(tag: string) { this.tagName = tag; }
+  classList = { add: (...names: string[]) => { this.className = [this.className, ...names].filter(Boolean).join(" "); } };
+  style = { setProperty: (name: string, value: unknown) => { this.properties[name] = String(value); } };
+  setAttribute(name: string, value: string) { this.attributes[name] = value; if (name === "class") this.className = value; }
+  append(...nodes: ChartFixtureNode[]) { this.children.push(...nodes); }
+  appendChild(node: ChartFixtureNode) { this.children.push(node); return node; }
+  set innerHTML(_value: string) { throw new Error("Chart text must not be assigned as HTML"); }
 }
 
-function contrastRatio(foreground: string, background: string) {
-  const fg = relativeLuminance(foreground);
-  const bg = relativeLuminance(background);
-  return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
-}
-
-function validateHtml(original: string, options: Pick<Options, "theme" | "template">): Check[] {
-  const html = options.template || original.includes("{{SLIDES_JSON}}")
-    ? materializeTemplate(original, options.theme || "hacker")
-    : original;
-  const style = html.match(/<style>([\s\S]*?)<\/style>/i)?.[1] ?? "";
-  const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1] ?? "";
-  const checks: Check[] = [];
-  const add = (id: string, pass: boolean, detail: string) => checks.push({ id, pass, detail });
-
-  let syntaxPass = false;
-  try {
-    new Function(script);
-    syntaxPass = true;
-  } catch (error) {
-    add("javascript-syntax", false, String(error));
-  }
-  if (syntaxPass) add("javascript-syntax", true, "script compiles");
-
-  add("template-version", html.includes('data-template-version="4.5.0"'), "template version is 4.5.0");
-  add("title-present", /<title>[^<]+<\/title>/i.test(html), "document title is non-empty");
-  add("cover-normalization", script.includes("function normalizeSlides") && script.includes("cover: true") && script.includes("linesText(slides[0]) === title"), "title cover is synthesized or deduplicated");
-  add("no-information-header", !/<header\b/i.test(html) && !/first-guide/i.test(html), "no header or top guide");
-  add("footer-cover-only", script.includes("metaFooter.hidden = index !== 0") && html.includes('id="pager"') && html.includes('id="metaFooter"'), "meta footer is cover-only; pager persists");
-
-  const centeredStageAxis = ruleBodies(style, '.slide[data-cover="true"]').some((body) =>
-    /flex-direction\s*:\s*column/.test(body)
-    && /align-items\s*:\s*center/.test(body)
-    && /justify-content\s*:\s*center/.test(body)
-  ) && style.includes('transform-origin: center center');
-  add("centered-stage-axis", centeredStageAxis, "cover explicitly uses a centered column axis and centered fit origin");
-
-  const centeredText = ruleBodies(style, ".lines").some((body) =>
-    /align-items\s*:\s*center/.test(body) && /text-align\s*:\s*center/.test(body)
-  ) && ruleBodies(style, ".line").some((body) => /text-align\s*:\s*center/.test(body))
-    && !script.includes("node.style.textAlign");
-  add("centered-text-contract", centeredText, "all line-based pages inherit centered text without inline alignment overrides");
-
-  const compositionTokens = [
-    "function compositionFor(slide)",
-    'if (slide?.cover) return "identity"',
-    'if (slide?.emphasis || slide?.title) return "chapter"',
-    'if (slide?.table || slide?.pre != null) return "evidence"',
-    'if (slide?.quote) return "quotation"',
-    'slide?.semanticGroup === "list-run" || (lineCount >= 2 && lineCount <= 4)',
-    'return "sequence"',
-    'return "statement"',
-    "element.dataset.composition = compositionFor(slide)"
-  ];
-  add("composition-grammar", compositionTokens.every((token) => script.includes(token)), "all six composition roles derive deterministically from source-semantic fields");
-  add("composition-audit-interface", script.includes("composition: slides[index]?.dataset.composition"), "runtime audit exposes each slide's composition role");
-
-  const whitespaceBudget = ruleBodies(style, ".lines").some((body) =>
-    /width\s*:\s*min\(82vw,\s*1480px\)/.test(body)
-  ) && ruleBodies(style, ".slide").some((body) =>
-    /padding\s*:[^;]*var\(--stage-inline\)[^;]*;/.test(body)
-  );
-  add("whitespace-budget", whitespaceBudget, "regular text stays within 82vw on symmetric stage padding");
-
-  const titleSignal = ruleBodies(style, '.slide[data-title="true"] .lines').some((body) =>
-    /border-top\s*:\s*0/.test(body)
-    && body.includes("var(--title-signal-w)")
-    && /center\s+top/.test(body)
-    && /linear-gradient\(var\(--hl\),\s*var\(--hl\)\)/.test(body)
-  );
-  add("title-short-signal", titleSignal, "title page uses a short signal rule instead of a full-width border");
-
-  const cssMotion = style.match(/\b(?:animation|transition|view-transition)(?:-[a-z-]+)?\s*:|@keyframes\b|scroll-behavior\s*:\s*smooth\b/gi) || [];
-  const jsMotion = script.match(/\.animate\s*\(|setInterval\s*\(/g) || [];
-  add("zero-motion", cssMotion.length === 0 && jsMotion.length === 0, `css=${cssMotion.length}, js=${jsMotion.length}`);
-
-  const externalMarkup = html.match(/<(?:img|svg|link|iframe|video|audio|source)\b|https?:\/\//gi) || [];
-  const externalCss = style.match(/@import\b|\burl\s*\(|\bimage-set\s*\(/gi) || [];
-  add("offline", externalMarkup.length === 0 && externalCss.length === 0, `markup=${externalMarkup.length}, css=${externalCss.length}`);
-
-  add("render-lines", script.includes("slide.lines?.length") && script.includes('lines.className = "lines fit-box"'), "lines renderer exists");
-  add("render-table", script.includes("slide.table") && script.includes("slide.table.header === true") && script.includes('document.createElement("thead")') && script.includes('document.createElement("tbody")'), "table renderer respects explicit header flag and semantic sections");
-  add("render-pre", script.includes("slide.pre != null") && script.includes('document.createElement("pre")'), "pre renderer exists");
-
-  const layoutTokens = ["lineCount", "maxWeight", "totalWeight", '"rows"', '"single"', "dataset.density"];
-  add("density-layout", layoutTokens.every((token) => script.includes(token)), "line count and density route a stable rows/single layout");
-  add("rows-only-layout", script.includes('lineCount >= 2 && lineCount <= 4 ? "rows" : "single"') && !/["'](?:duo|triptych|matrix)["']/.test(script), "two-to-four line pages always use one centered column");
-  add("projection-size-tokens", ["9.2vmin", "8.2vmin", "7.4vmin", "7.2vmin", "6.8vmin", "6.4vmin"].every((token) => style.includes(token)), "density-specific projection sizes exist");
-  add("portrait-centered-stage", style.includes("@media (max-aspect-ratio: 1/1)") && style.includes('--stage-inline: clamp(34px, 8vw, 78px)'), "portrait keeps symmetric centered stage padding");
-  add("grid-safety", style.includes("min-width: 0") && style.includes("overflow-wrap: break-word") && style.includes("word-break: normal"), "grid items can shrink and wrap naturally");
-  add("length-tier-boundary", script.includes('if (max <= 10) return "medium";'), "medium tier ends at weighted length 10");
-  add("takahashi-tier", script.includes('element.dataset.takahashi = "true"') && style.includes('data-len="single"') && style.includes('data-len="short"') && style.includes('data-len="medium"'), "short single-line pages expose Takahashi sizing");
-  const semanticAtomLineBodies = ruleBodies(style, 'body[data-theme] .slide[data-semantic-atom="true"] .line');
-  const semanticAtomContainerBodies = ruleBodies(style, 'body[data-theme] .slide[data-semantic-atom="true"] .lines');
-  const semanticAtomTokens = ["Intl.Segmenter", "function glyphCount", "semanticAtom", 'element.dataset.semanticAtom = "true"'].every((token) => html.includes(token))
-    && semanticAtomLineBodies.some((body) => /white-space\s*:\s*nowrap/.test(body) && /overflow-wrap\s*:\s*normal/.test(body) && /word-break\s*:\s*normal/.test(body) && /text-wrap\s*:\s*nowrap/.test(body))
-    && semanticAtomContainerBodies.some((body) => /width\s*:\s*max-content/.test(body) && /max-width\s*:\s*none/.test(body))
-    && style.includes('body[data-theme] .slide[data-semantic-atom="true"][data-len="xlong"] .lines')
-    && style.includes("font-size: clamp(64px, 12vmin, 190px)");
-  add("semantic-atom-nowrap", semanticAtomTokens, "short non-list semantic atoms stay on one line and enter Takahashi mode");
-  const cjkTailTokens = ["function renderPlainAware", 'class="keep-cjk-tail"'].every((token) => html.includes(token))
-    && ruleBodies(style, ".keep-cjk-tail").some((body) => /white-space\s*:\s*nowrap/.test(body));
-  add("cjk-tail-protection", cjkTailTokens, "wrapped CJK text keeps a meaningful tail instead of one orphan character");
-  add("semantic-group-runtime", script.includes("slide.semanticGroup") && script.includes("dataset.semanticGroup"), "semantic list groups remain queryable for browser verification");
-  add("xlong-start-size", /\.slide\[data-len="xlong"\] \.lines\s*\{[^}]*font-size:\s*clamp\(42px,\s*8\.4vmin,\s*136px\)/.test(style), "xlong wraps from a projection-readable 8.4vmin");
-
-  const fitTokens = ["function fitSlide", "availableWidth", "availableHeight", "scrollWidth", "scrollHeight", 'addEventListener("resize"', 'addEventListener("fullscreenchange"', "document.fonts?.ready", '"ResizeObserver" in window'];
-  add("measured-fit", fitTokens.every((token) => script.includes(token)), "fit uses both dimensions and four refit triggers");
-  add("fit-audit", script.includes("data.fitScale") || script.includes("dataset.fitScale"), "fit scale is exposed for readability audit");
-
-  const mathTokens = ["function latexBody", "function renderMathAware", "<sup>", "<sub>", "\\\\cdot", "\\\\propto", "\\\\alpha"];
-  add("offline-math", mathTokens.every((token) => script.includes(token)), "offline math subset and scripts exist");
-  add("price-protection", mathSegments("$20/month\n$200/month\n$???/month").length === 0, "unclosed price strings are plain text");
-  const preDensity = ["preRows", "preCols", 'preDensity = preRows >= 25 ? "x-dense" : preRows >= 17 ? "dense" : "normal"'].every((token) => script.includes(token));
-  add("ascii-density-size", preDensity && ["clamp(22px, 3.8vmin, 70px)", "clamp(18px, 3vmin, 52px)", "clamp(15.5px, 2.5vmin, 42px)"].every((token) => style.includes(token)), "pre sizing follows physical row-density floors");
-  add("table-projection-size", style.includes("font-size: clamp(30px, 5.2vmin, 82px)"), "tables start at a projection-readable size");
-  add("source-continuation-runtime", script.includes("slide.sourceParts?.length") && script.includes("dataset.sourceParts"), "continuation provenance is exposed at runtime");
-
-  const nextKeys = ["ArrowRight", "ArrowDown", "PageDown"].every((key) => script.includes(`"${key}"`));
-  const prevKeys = ["ArrowLeft", "ArrowUp", "PageUp"].every((key) => script.includes(`"${key}"`));
-  const inputGuard = script.includes("function isEditableTarget") && script.includes("contenteditable") && script.includes("if (isEditableTarget(event.target)) return");
-  add("presenter-keys", nextKeys && prevKeys && inputGuard, "horizontal, vertical and page keys exist with editable-target guard");
-  add("audit-interface", script.includes("window.__DECK_AUDIT") && script.includes("currentLayout") && script.includes("footerState"), "runtime audit interface exists");
-
-  const activeTheme = options.theme || html.match(/<body[^>]*data-theme="([^"]+)"/i)?.[1];
-  if (activeTheme === "hacker" || activeTheme === "cyber") {
-    const hackerColors = [
-      /--hacker-void:\s*#07110D/i,
-      /--hacker-paper:\s*#EAF4EC/i,
-      /--hacker-signal:\s*#00C46A/i
-    ];
-    add("hacker-palette", hackerColors.every((pattern) => pattern.test(style)), "exact void, paper and signal colors exist");
-    add("hacker-reading-strategy", style.includes('body[data-theme="hacker"] .slide') && style.includes('slide[data-cover="true"]') && style.includes("var(--hacker-paper)") && style.includes("var(--hacker-void)"), "regular paper and dark cover/chapter rules exist");
-    const hackerSlideBodies = ruleBodies(style, 'body[data-theme="hacker"] .slide');
-    const hackerRailBodies = ruleBodies(style, 'body[data-theme="hacker"] .slide::after');
-    const symmetricHacker = hackerSlideBodies.length > 0
-      && hackerSlideBodies.every((body) => !/padding-left\s*:/.test(body))
-      && style.includes("padding: clamp(28px, 6vmin, 96px) var(--stage-inline)")
-      && hackerRailBodies.some((body) => /left\s*:\s*50%/.test(body) && /translateX\(-50%\)/.test(body));
-    add("symmetric-hacker-stage", symmetricHacker, "Hacker ornament and stage padding share the centered axis");
-  }
-  if (activeTheme === "hacker-dark") {
-    const darkColors = [
-      /--hacker-dark-bg:\s*#06110D/i,
-      /--hacker-dark-deep:\s*#020806/i,
-      /--hacker-dark-panel:\s*#0A1A13/i,
-      /--hacker-dark-fg:\s*#CFE1D5/i,
-      /--hacker-dark-signal:\s*#25E981/i
-    ];
-    add("hacker-dark-palette", darkColors.every((pattern) => pattern.test(style)), "exact low-glare dark Hacker palette exists");
-    add("hacker-dark-contrast", contrastRatio("CFE1D5", "06110D") >= 9, `contrast=${contrastRatio("CFE1D5", "06110D").toFixed(2)}:1`);
-    const darkSlideBodies = ruleBodies(style, 'body[data-theme="hacker-dark"] .slide');
-    const darkRailBodies = ruleBodies(style, 'body[data-theme="hacker-dark"] .slide::after');
-    const darkCoverBodies = ruleBodies(style, 'body[data-theme="hacker-dark"] .slide[data-cover="true"]');
-    add("hacker-dark-all-pages", darkSlideBodies.some((body) => body.includes("var(--hacker-dark-bg)")) && darkCoverBodies.some((body) => body.includes("var(--hacker-dark-deep)")), "regular and cover pages both use distinct dark fields");
-    add("hacker-dark-signal-scope", style.includes("--fg: var(--hacker-dark-fg)") && !/\.line\s*\{[^}]*color\s*:\s*var\(--hacker-dark-signal\)/s.test(style), "signal green is not the body-text color");
-    add("hacker-dark-no-effects", !/\b(?:text-shadow|box-shadow)\s*:|drop-shadow\s*\(|@keyframes\b|\banimation(?:-[a-z-]+)?\s*:|\btransition(?:-[a-z-]+)?\s*:/i.test(style), "dark theme has no glow, shadow, animation, or transition effects");
-    const symmetricDark = darkSlideBodies.length > 0
-      && darkRailBodies.some((body) => /left\s*:\s*50%/.test(body) && /translateX\(-50%\)/.test(body));
-    add("symmetric-hacker-dark-stage", symmetricDark, "dark Hacker ornament remains on the centered stage axis");
-  }
-
-  if (options.template) {
-    const placeholders = ["{{TITLE}}", "{{SUBTITLE}}", "{{THEME}}", "{{SLIDES_JSON}}"];
-    add("template-placeholders", placeholders.every((placeholder) => original.includes(placeholder)), "four template placeholders remain");
-  }
-
-  return checks;
-}
-
-function printResult(label: string, checks: Check[], json: boolean) {
-  const failed = checks.filter((check) => !check.pass);
-  const result = {
-    status: failed.length === 0 ? "PASS" : "FAIL",
-    label,
-    passed: checks.length - failed.length,
-    total: checks.length,
-    failed
+function chartRendererFixtures(template: string): Record<string, boolean> {
+  const script = template.match(/<script>([\s\S]*?)<\/script>/i)?.[1] || "";
+  const start = script.indexOf("function chartElement(");
+  const end = script.indexOf("// END CHART RENDERER", start);
+  if (start < 0 || end < 0) return { rendererExtracted: false };
+  const source = script.slice(start, end);
+  const document = {
+    createElement: (tag: string) => new ChartFixtureNode(tag),
+    createElementNS: (_namespace: string, tag: string) => new ChartFixtureNode(tag)
   };
-  if (json) console.log(JSON.stringify(result, null, 2));
-  else {
-    console.log(`${result.status} ${label} — ${result.passed}/${result.total}`);
-    for (const failure of failed) console.error(`  ${failure.id}: ${failure.detail}`);
-  }
-  return failed.length === 0;
+  const body = new ChartFixtureNode("body");
+  const palette: Record<string, string> = { "--fg": "#E8E5DF", "--bg": "#18191C", "--hl": "#D7AF74" };
+  const getComputedStyle = (node: ChartFixtureNode) => {
+    if (node !== body) throw new Error("Fixture only provides the body palette");
+    return { getPropertyValue: (name: string) => ` ${palette[name] || ""} `, fontFamily: '"Fixture Mono", monospace' };
+  };
+  const render = (chart: unknown): ChartFixtureNode => runInNewContext(`${source}\nrenderChart(input);`, { document, body, getComputedStyle, input: chart }, { timeout: 1000 });
+  const all = (node: ChartFixtureNode): ChartFixtureNode[] => [node, ...node.children.flatMap(all)];
+  const byClass = (node: ChartFixtureNode, name: string) => all(node).filter((item) => item.className.split(/\s+/).includes(name));
+  const text = (node: ChartFixtureNode): string => node.textContent + node.children.map(text).join("");
+  try {
+    const bars = render({ kind: "bar", title: "收支", items: [{ label: "负", value: -2 }, { label: "零", value: 0 }, { label: "正", value: 3 }] });
+    const tracks = byClass(bars, "bar-track");
+    const zeroBars = render({ kind: "bar", title: "零", items: [{ label: "A", value: 0 }, { label: "B", value: 0 }] });
+    const line = render({ kind: "line", title: "变化", items: [{ label: "A", x: 1, value: -2 }, { label: "B", x: 2, value: 0 }, { label: "C", x: 5, value: 3, emphasis: true }] });
+    const points = byClass(line, "plot-point");
+    const xs = points.map((node) => Number(node.attributes.cx));
+    const mobile = byClass(line, "chart-data")[0];
+    const unsafeTitle = '<img src="missing.png"> & <script>';
+    const literalText = render({ kind: "compare", title: unsafeTitle, items: [{ label: "<svg>", text: "fetch('x')" }, { label: "B", text: "https://example.com" }] });
+    const compare = byClass(literalText, "relation-item");
+    return {
+      sharedBarZero: tracks.length === 3 && tracks.every((node) => node.properties["--zero"] === "40%"),
+      signedBarGeometry: tracks.map((node) => node.properties["--start"]).join() === "0%,40%,40%" && tracks.map((node) => node.properties["--length"]).join() === "40%,0%,60%",
+      allZeroBarsFinite: byClass(zeroBars, "bar-track").every((node) => Object.values(node.properties).every((value) => Number.isFinite(Number.parseFloat(value)))),
+      numericLineSpacing: xs.length === 3 && Math.abs((xs[1] - xs[0]) / (xs[2] - xs[0]) - .25) < 1e-9,
+      lineUsesOriginalPoints: byClass(line, "plot-line")[0]?.attributes.points.split(" ").length === 3 && points.length === 3,
+      svgLineHasExplicitPaint: byClass(line, "plot-line")[0]?.attributes.fill === "none" && byClass(line, "plot-line")[0]?.attributes.stroke === palette["--fg"] && byClass(line, "plot-axis")[0]?.attributes.stroke === palette["--fg"],
+      svgPointsHaveExplicitPaint: points.length === 3 && points.slice(0, 2).every((node) => node.attributes.fill === palette["--bg"] && node.attributes.stroke === palette["--fg"]) && points[2].attributes.fill === palette["--hl"] && points[2].attributes.stroke === palette["--hl"],
+      svgLabelsHaveExplicitPaint: all(line).filter((node) => node.tagName === "text").length === 6 && all(line).filter((node) => node.tagName === "text").every((node) => node.attributes.fill === palette["--fg"] && node.attributes["font-size"] === "32" && node.attributes["font-family"] === '"Fixture Mono", monospace'),
+      mobileDataKeepsOrder: mobile?.children.length === 3 && text(mobile.children[0]).includes("A") && text(mobile.children[1]).includes("B") && text(mobile.children[2]).includes("C"),
+      mobileDataKeepsCoordinates: mobile?.children.length === 3 && byClass(mobile, "chart-label").map((node) => node.textContent).join("|") === "A · 1|B · 2|C · 5",
+      literalChartText: byClass(literalText, "chart-title")[0]?.textContent === unsafeTitle && all(literalText).every((node) => !["img", "script", "svg"].includes(node.tagName)),
+      comparisonPreservesOrder: compare.length === 2 && text(compare[0]) === "<svg>fetch('x')" && text(compare[1]) === "Bhttps://example.com"
+    };
+  } catch { return { rendererExecutesSafely: false }; }
 }
 
-async function selfTest() {
-  const templatePath = resolve(import.meta.dir, "..", "SloganTemplate.html");
-  const template = await Bun.file(templatePath).text();
-  const goodChecks = validateHtml(template, { theme: "hacker", template: true });
-  const goodPass = goodChecks.every((check) => check.pass);
-  const darkChecks = validateHtml(template, { theme: "hacker-dark", template: true });
-  const darkPass = darkChecks.every((check) => check.pass);
 
-  const motionFixtures = [
-    ".bad{transition:opacity 1s}",
-    ".bad{transition-property:opacity;transition-duration:1s}",
-    ".bad{animation-name:pulse}",
-    ".bad{scroll-behavior:smooth}",
-    ".bad{view-transition-name:card}"
-  ];
-  const motionFixturesRejected = motionFixtures.every((fixture) => {
-    const bad = template.replace("</style>", `${fixture}</style>`);
-    return validateHtml(bad, { theme: "hacker", template: true })
-      .some((check) => check.id === "zero-motion" && !check.pass);
-  });
-
-  const resourceFixtures = [
-    ".bad{background-image:url(external.png)}",
-    '@import "theme.css";',
-    '.bad{background-image:image-set("one.png" 1x)}'
-  ];
-  const resourceFixturesRejected = resourceFixtures.every((fixture) => {
-    const bad = template.replace("</style>", `${fixture}</style>`);
-    return validateHtml(bad, { theme: "hacker", template: true })
-      .some((check) => check.id === "offline" && !check.pass);
-  });
-
-  const spatialFixtures = [
-    {
-      id: "centered-stage-axis",
-      html: template.replace(
-        '.slide[data-cover="true"] {\n    flex-direction: column;\n    align-items: center;\n    justify-content: center;',
-        '.slide[data-cover="true"] {\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-end;'
-      )
-    },
-    {
-      id: "centered-text-contract",
-      html: template.replace("text-align: center;", "text-align: left;")
-    },
-    {
-      id: "title-short-signal",
-      html: template.replace(
-        "background: linear-gradient(var(--hl), var(--hl)) center top / var(--title-signal-w) clamp(4px, .55vmin, 8px) no-repeat;",
-        "background: none;"
-      )
-    },
-    {
-      id: "length-tier-boundary",
-      html: template.replace('if (max <= 10) return "medium";', 'if (max <= 14) return "medium";')
-    },
-    {
-      id: "xlong-start-size",
-      html: template.replace("font-size: clamp(42px, 8.4vmin, 136px);", "font-size: clamp(34px, 5.2vmin, 96px);")
-    },
-    {
-      id: "symmetric-hacker-stage",
-      html: template.replace("left: 50%;\n    top: clamp(22px, 5vh, 66px);", "left: 12%;\n    top: clamp(22px, 5vh, 66px);")
-    },
-    {
-      id: "composition-grammar",
-      html: template.replace("element.dataset.composition = compositionFor(slide);", "")
-    },
-    {
-      id: "composition-audit-interface",
-      html: template.replace("composition: slides[index]?.dataset.composition,", "")
-    },
-    {
-      id: "whitespace-budget",
-      html: template.replace("width: min(82vw, 1480px);", "width: min(96vw, 1700px);")
-    }
-  ];
-  const spatialFixturesRejected = spatialFixtures.every((fixture) =>
-    validateHtml(fixture.html, { theme: "hacker", template: true })
-      .some((check) => check.id === fixture.id && !check.pass)
-  );
-
-  const semanticFixtures = [
-    {
-      id: "semantic-atom-nowrap",
-      html: template.replace(
-        'body[data-theme] .slide[data-semantic-atom="true"] .line {\n    white-space: nowrap;',
-        'body[data-theme] .slide[data-semantic-atom="true"] .line {\n    white-space: normal;'
-      )
-    },
-    {
-      id: "cjk-tail-protection",
-      html: template.replace(".keep-cjk-tail { white-space: nowrap; }", ".keep-cjk-tail { white-space: normal; }")
-    },
-    {
-      id: "semantic-group-runtime",
-      html: template.replace('if (slide.semanticGroup) element.dataset.semanticGroup = slide.semanticGroup;', "")
-    }
-  ];
-  const semanticFixturesRejected = semanticFixtures.every((fixture) =>
-    validateHtml(fixture.html, { theme: "hacker", template: true })
-      .some((check) => check.id === fixture.id && !check.pass)
-  );
-
-  const layouts = [
-    chooseLayout([22, 24]),
-    chooseLayout([48, 45]),
-    chooseLayout([12, 13, 14]),
-    chooseLayout([30, 28, 24]),
-    chooseLayout([20, 21, 22, 23])
-  ];
-  const layoutPass = layouts.every((layout) => layout === "rows");
-  const mathPass = mathSegments("$$C(Q)=C_1\\cdot Q^{-b}$$ and $V\\propto n^2$").length === 2
-    && mathSegments("$20/month $200/month $???/month").length === 0;
-  const dollarSafeMaterialization = materializeTemplate(template).includes('"$$C(Q)=C_1 \\\\cdot Q^{-b}$$"');
-
-  const pass = goodPass && darkPass && motionFixturesRejected && resourceFixturesRejected && spatialFixturesRejected && semanticFixturesRejected && layoutPass && mathPass && dollarSafeMaterialization;
-  console.log(JSON.stringify({
-    status: pass ? "PASS" : "FAIL",
-    goodTemplateChecks: `${goodChecks.filter((check) => check.pass).length}/${goodChecks.length}`,
-    darkTemplateChecks: `${darkChecks.filter((check) => check.pass).length}/${darkChecks.length}`,
-    motionFixturesRejected,
-    resourceFixturesRejected,
-    spatialFixturesRejected,
-    semanticFixturesRejected,
-    layouts,
-    stableRowsLayout: layoutPass,
-    mathAndPriceFixtures: mathPass,
-    dollarSafeMaterialization
-  }, null, 2));
-  if (!pass) process.exit(1);
+export async function validateHtml(html:string,theme?:string,browser?:any){
+ const checks:{id:string;pass:boolean;detail:string}[]=[];const add=(id:string,pass:boolean,detail:string)=>checks.push({id,pass,detail});
+ const canonical=await Bun.file(resolve(import.meta.dir,'../SloganTemplate.html')).text();
+ add('canonical-template',normalizedTemplate(html)===normalizedTemplate(canonical),'Only data and embedded fonts may differ from the current template; old token presence cannot certify an alternate renderer.');
+ add('template-version',html.includes('data-template-version="'+VERSION+'"'),'Template '+VERSION);
+ let data:any;try{data=parseDeck(html);const errs=dataErrors({...data.meta,slides:data.slides});add('data-and-source-contract',!errs.length,errs.join('; ')||'Explicit roles, source coverage and content contracts hold.');const {buildId,...meta}=data.meta;add('payload-integrity',buildId===hash(safeJson({slides:data.slides,meta}))&&meta.templateId===hash(normalizedTemplate(canonical)),'Content, metadata and renderer match the build fingerprint.');if(theme)add('requested-theme',theme===data.meta.theme,'Requested theme matches compiled metadata.');}catch(e){add('data-and-source-contract',false,String(e));}
+ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1]??'',style=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join('\n');
+ try{new Function(script);add('javascript-syntax',true,'Runtime compiles.');}catch(e){add('javascript-syntax',false,String(e));}
+ const engine=script.replace(/const (RAW_SLIDES|DECK_META) = [\s\S]*?;\n/g,'');
+ const fonts=html.match(/\/\* BEGIN DECK FONTS \*\/([\s\S]*?)\/\* END DECK FONTS \*\//)?.[1]??'';
+ const fontRemainder=fonts.replace(/@font-face\s*\{[^}]*\}/gi,'').replace(/\/\*[\s\S]*?\*\//g,'').trim();
+ const license=html.match(/<template id="deck-font-license">([\s\S]*?)<\/template>/)?.[1];
+ const knownLicense=(await Bun.file(resolve(import.meta.dir,'../Fonts/IBMPlexMono-OFL.txt')).text()).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+ add('asset-slot-boundary',!fontRemainder&&(license===undefined||license===knownLicense),'Font slot contains only font faces and the bundled license.');
+ const offline=offlineViolations(html,style,engine);add('offline',!offline.length,offline.join('; ')||'One runtime, inline resources, no network dependencies.');
+ const motion=/\b(?:animation|transition|view-transition)(?:-[a-z-]+)?\s*:|@keyframes\b|scroll-behavior\s*:\s*smooth/i.test(style)||/\.animate\s*\(|set(?:Interval|Timeout)\s*\(/.test(engine)||/<(?:animate|animateMotion|animateTransform|set)\b/i.test(html.replace(/<script>[\s\S]*?<\/script>/g,''));add('zero-motion',!motion,'Hard cuts only; animation-frame callbacks are for measurement.');
+ if(browser&&data){
+  const report=browser.value??browser;add('browser-build',report.buildId===data.meta.buildId,'Live probe belongs to this payload.');
+  add('browser-coverage',report.count===data.slides.length&&report.pages?.length===data.slides.length,'Every slide was inspected.');
+  add('browser-rendered-content',report.pages?.every((p:any)=>p.pass)&&report.pass===true,'Rendered roles, primary objects, text, geometry and fonts passed for the recorded viewport.');
+ }
+ return checks;
 }
-
-async function main() {
-  const options = parseArgs(Bun.argv.slice(2));
-  if (options.help) {
-    console.log(HELP);
-    return;
-  }
-  if (options.selfTest) {
-    await selfTest();
-    return;
-  }
-  if (!options.file) {
-    console.error(HELP);
-    process.exit(2);
-  }
-
-  const html = await Bun.file(options.file).text();
-  const checks = validateHtml(html, options);
-  const pass = printResult(options.file, checks, options.json);
-  if (!pass) process.exit(1);
+async function selfTest(){
+ const template=await Bun.file(resolve(import.meta.dir,'../SloganTemplate.html')).text();const fixture=await Bun.file(resolve(import.meta.dir,'../References/CompositionDeck.json')).json();
+ const prepared=prepareDeck(fixture),html=materialize(template,prepared);const checks=await validateHtml(html);const result:Record<string,boolean>={templatePass:checks.every(c=>c.pass)};
+ const mutations={bypass:html.replace('SLIDES.forEach((s,i)=>{','SLIDES.forEach((s,i)=>{ return;'),cssOverride:html.replace('</style>','.claim{font-size:8px}</style>'),extraScript:html.replace('</body>','<script>console.log(1)</script></body>'),externalResource:html.replace('</head>','<link rel="stylesheet" href="https://example.com/x.css"></head>'),fakeFont:html.replace('/* BEGIN DECK FONTS */','/* BEGIN DECK FONTS */\n@font-face{font-family:X;src:url(data:font/ttf;base64,AAAA)}'),fontSlotStyle:html.replace('/* BEGIN DECK FONTS */','/* BEGIN DECK FONTS */\n.claim{display:none}')};
+ for(const [name,bad] of Object.entries(mutations))result['reject_'+name]=(await validateHtml(bad)).some(c=>!c.pass);
+ const variants=[structuredClone(fixture),structuredClone(fixture),structuredClone(fixture),structuredClone(fixture)];variants[0].slides[1].lines[0].chunks[0].t='changed';variants[1].slides[3].diagram.edges[0].to='missing';delete variants[2].slides[1].role;variants[3].mode='editorial';result.dataMutationsRejected=variants.every(v=>dataErrors(v).length>0);
+ result.shareStaysDark=prepareDeck({...fixture,tags:['share','talk']}).meta.theme==='hacker-dark';
+ result.explicitThemeWins=prepareDeck({...fixture,theme:'hacker',tags:['share']}).meta.theme==='hacker';
+ result.twoLineStatement=prepared.slides.some(s=>s.role==='statement'&&s.lines.length===2);
+ const dollar=structuredClone(fixture);dollar.title='$$x$$ $& $`';const d=prepareDeck(dollar);result.dollarSafeInjection=parseDeck(materialize(template,d)).meta.title===dollar.title;
+ const token=structuredClone(fixture);token.title='{{DECK_META_JSON}}';const tp=prepareDeck(token);result.placeholderLiteralsPreserved=parseDeck(materialize(template,tp)).meta.title===token.title;
+ const incomplete=structuredClone(fixture);incomplete.slides[1].sourceParts=[{id:incomplete.slides[1].sourceIds[0],index:1,total:2,joinBefore:''}];result.incompleteContinuationRejected=dataErrors(incomplete).length>0;
+ result.staleBrowserRejected=(await validateHtml(html,undefined,{buildId:'old',count:prepared.slides.length,pages:prepared.slides.map(()=>({pass:true})),pass:true})).some(c=>c.id==='browser-build'&&!c.pass);
+ for(const [k,v] of Object.entries(chartRendererFixtures(template)))result['chart_'+k]=v;
+ const mathCode=template.slice(template.indexOf('  function escapeHtml('),template.indexOf('// BEGIN CHART RENDERER'));const renderMath=(text:string)=>runInNewContext(mathCode+'\nrenderMathAware(input)',{input:text},{timeout:1000});
+ result.priceProtection=!String(renderMath('$20/month 与 $200/month')).includes('class="math"');result.mathClosedDelimiters=String(renderMath('$$x^2 \\cdot y$$')).includes('<sup>2</sup>');
+ const validFonts=['data:font/ttf;base64,AAEAAA==','data:font/otf;base64,T1RUTw=='];result.fontSignatures=validFonts.every(x=>isEmbeddedAsset(x,'font'))&&!isEmbeddedAsset('data:font/ttf;base64,VEVYVA==','font');
+ const ok=Object.values(result).every(Boolean);console.log(JSON.stringify({status:ok?'PASS':'FAIL',...result,failedChecks:checks.filter(c=>!c.pass)},null,2));return ok;
 }
-
-await main();
+async function main(){
+ const args=process.argv.slice(2);if(args.includes('--help')||!args.length){console.log('ValidateDeck <deck.html> [--theme NAME] [--json] [--template] [--browser-report report.json]\nValidateDeck --self-test\nStatic validation checks a canonical renderer and data. Use ProbeDeck.js in the isolated browser for actual rendering.');return;}
+ if(args.includes('--self-test')){if(!await selfTest())process.exitCode=1;return;}
+ const path=args[0],theme=args.includes('--theme')?args[args.indexOf('--theme')+1]:undefined;let html=await Bun.file(path).text();
+ if(args.includes('--template')){const fixture=await Bun.file(resolve(import.meta.dir,'../References/CompositionDeck.json')).json();if(theme)fixture.theme=theme;html=materialize(html,prepareDeck(fixture));}
+ let report:any;if(args.includes('--browser-report')){report=await Bun.file(args[args.indexOf('--browser-report')+1]).json();if(report.results)report=report.results.at(-1).value;}
+ const checks=await validateHtml(html,theme,report),failed=checks.filter(c=>!c.pass);const result={status:failed.length?'FAIL':'PASS',file:path,passed:checks.length-failed.length,total:checks.length,failed,browser:report?'checked':'not supplied; visual verification remains separate'};
+ if(args.includes('--json'))console.log(JSON.stringify(result,null,2));else{console.log(result.status+' '+path+' — '+result.passed+'/'+result.total);failed.forEach(f=>console.error(f.id+': '+f.detail));}
+ if(failed.length)process.exitCode=1;
+}
+if(import.meta.main)await main();

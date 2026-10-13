@@ -75,49 +75,65 @@
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-blind"
+      "path": "skills/ljg-blind",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "9f8922a66904f1b52911f610069a56f3f77f8502"
     },
     "ljg-book": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-book"
+      "path": "skills/ljg-book",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "0e195359bce5dbff56eb89dd30abf5a88ed69335"
     },
     "ljg-card": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-card"
+      "path": "skills/ljg-card",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "69fbec819b30b92a5a47cae24ede08e15dbd1152"
     },
     "ljg-constraint": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-constraint"
+      "path": "skills/ljg-constraint",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "ae38f652f53c006d0e092c9a059ad4ebea64f048"
     },
     "ljg-invest": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-invest"
+      "path": "skills/ljg-invest",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "8823a854911228316ebe31b14c14ee23f0c7ae96"
     },
     "ljg-is": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-is"
+      "path": "skills/ljg-is",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "3da014ed15377bcdde8bac252b3fc89479480ff2"
     },
     "ljg-learn": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-learn"
+      "path": "skills/ljg-learn",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "c11e78281ef02712b8949e7278cfdfea6455fd44"
     },
     "ljg-paper": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-paper"
+      "path": "skills/ljg-paper",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "66afce7bc85d0d63ebaec8cf56f8d96c5aad892f"
     },
     "ljg-plain": {
       "pack": "notes",
@@ -129,67 +145,89 @@
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-present"
+      "path": "skills/ljg-present",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "2857cde0fcb3ed33d94395046996cca0e22659d6"
     },
     "ljg-qa": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-qa"
+      "path": "skills/ljg-qa",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "2ba3e97baa8869460ff406d405cc82eb188b178c"
     },
     "ljg-rank": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-rank"
+      "path": "skills/ljg-rank",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "cac6ef84d530f46c595dc0543a7d11a57a5d553d"
     },
     "ljg-read": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-read"
+      "path": "skills/ljg-read",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "b8bbc81744cd565f6be56deef6f68aab8ea16ac7"
     },
     "ljg-relationship": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-relationship"
+      "path": "skills/ljg-relationship",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "d6bddd3081d86db7acbb9834663fafb6f59ee522"
     },
     "ljg-roundtable": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-roundtable"
+      "path": "skills/ljg-roundtable",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "aef20e1ef2e272627983ee97e888ba33742ad388"
     },
     "ljg-structure": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-structure"
+      "path": "skills/ljg-structure",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "cae890eec08476a44e9b3c186e0d4e1f82cc0fc1"
     },
     "ljg-teach": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-teach"
+      "path": "skills/ljg-teach",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "bc91b73ca898dbf626c03ea8846a35ea1d19c339"
     },
     "ljg-think": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-think"
+      "path": "skills/ljg-think",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "89ce4c70240f5be1c2003e193701ff2a02501760"
     },
     "ljg-word": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-word"
+      "path": "skills/ljg-word",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "77116e3993322cb72917d87cce2b5f165b7e6768"
     },
     "ljg-writes": {
       "pack": "notes",
       "update": "custom",
       "repository": "ljg-skills",
-      "path": "skills/ljg-writes"
+      "path": "skills/ljg-writes",
+      "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
+      "hash": "a9d2ca861b36eed2240d0b1cbbe012305931b1ca"
     },
     "read-working-memory": {
       "pack": "global",

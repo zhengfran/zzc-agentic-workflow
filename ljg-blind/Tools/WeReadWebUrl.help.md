@@ -4,10 +4,8 @@
 
 ## 用法
 
-Resolve `SKILL_DIR` to the installed `ljg-blind` directory, then run:
-
 ```bash
-npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" <bookId> [chapterUid]
+bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" <bookId> [chapterUid]
 ```
 
 - 同时传 bookId、chapterUid：输出目标章节网页链接。
@@ -18,7 +16,7 @@ npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" <bookId> [chapterUid]
 ## 示例
 
 ```bash
-npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" 573976 13
+bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" 573976 13
 ```
 
 输出：

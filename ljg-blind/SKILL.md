@@ -1,8 +1,9 @@
 ---
 name: ljg-blind
-description: Analyze a specified day of AI conversations for cognitive blind spots and save the result.
-disable-model-invocation: true
+description: 盲区扫描——读昨天你与 AI 的全部对话，照出暴露的思维盲区（不是不懂的知识，是让某类真相一直看不见的思维习惯），再从微信读书挑一本书的一章精准补上，落成一篇完整分析笔记。Use when user says '扫盲区', '盲区', '照盲区', '看看我的思维盲区', '我昨天想漏了什么', 'blind spot', 'ljg-blind', '/ljg-blind', or wants yesterday's AI conversations analyzed for cognitive blind spots plus a targeted weread chapter to fill them. 可选参数：传一个日期(YYYY-MM-DD)扫那天而非昨天。NOT FOR 纵向深钻一个观点（用 ljg-think）、一个领域降秩（用 ljg-rank）、陪读一篇文本（用 ljg-read）、找一个领域的约束（用 ljg-constraint）。
+user_invocable: true
 ---
+
 # 盲区扫描
 
 读你昨天跟 AI 的全部对话，照出那个你自己看不见的思维盲区，从微信读书点亮补它的一章。
@@ -126,10 +127,8 @@ curl -s -X POST https://i.weread.qq.com/api/agent/gateway \
 
 4. **构造网页版链接**——微信读书网页阅读器不接受裸 `bookId` / `chapterUid`，必须先编码。用技能自带工具生成：
 
-Resolve `SKILL_DIR` to the directory containing this `SKILL.md`, then run:
-
 ```bash
-npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>" "<chapterUid>"
+bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" "<bookId>" "<chapterUid>"
 ```
 
 工具输出形如：
@@ -143,26 +142,24 @@ https://weread.qq.com/web/reader/{encodedBookId}k{encodedChapterUid}
 **兜底**：搜索全空 / 没对症章节 → 选整本相关书，只传 bookId 生成网页版书籍入口：
 
 ```bash
-npx -y bun "${SKILL_DIR}/Tools/WeReadWebUrl.ts" "<bookId>"
+bun "${HOME}/.agents/skills/ljg-blind/Tools/WeReadWebUrl.ts" "<bookId>"
 ```
 
 文里说明为什么没能精准到章。
 
 ### 第五步 · 写笔记
 
-获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date +%Y-%m-%d`（时间用当前，不是 target）。
+获取时间戳：`date +%Y%m%dT%H%M%S` 和 `date "+%Y-%m-%d %a %H:%M"`（时间用当前，不是 target）。
 
-写入 `~/obsidian/00-Inbox/{时间戳}--盲区-{主题}__blind.md`。Markdown 格式，禁止 Org 语法。
+写入 `~/LifeOS/00-Inbox/{时间戳}--盲区-{主题}__blind.md`。Markdown 格式，禁止 Org 语法。
 
 正文模板：
 
 ```markdown
 ---
-title: "盲区扫描 · {一句话点出这个盲区}"
-date: "{YYYY-MM-DD}"
-tags: [blind, weread, topology]
-identifier: "{时间戳}"
-author: "郑之成"
+title: 盲区扫描 · {一句话点出这个盲区}
+date: [YYYY-MM-DD Weekday HH:MM]
+tags: blind weread topology
 ---
 # 昨天你在想什么
 <1-2 段。当天对话的思维地形——哪几件事、绕着哪个核心在转。给证据：哪几句话看出来的。不流水账，抓主线。>

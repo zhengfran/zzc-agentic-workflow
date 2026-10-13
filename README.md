@@ -30,6 +30,12 @@ The catalog contains 34 skills: 12 following upstream and 22 locally customized.
 The six Nowledge entries are explicitly selected; future additions to their
 repository do not expand this set.
 
+The customized `ljg-*` snapshots were refreshed from the `md` branch. Their
+default note output is `~/LifeOS/00-Inbox/`, replacing upstream
+`~/Documents/notes/` and `~/Context/`. Card images and presentations default to
+`~/LifeOS/01-Extras/`. The local `ljg` router is retained; `ljg-plain` is retained
+from the previous snapshot because it is absent from the current upstream.
+
 ## Upstream credits
 
 Thanks to the original authors and maintainers for these skills:

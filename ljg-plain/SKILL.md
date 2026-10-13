@@ -26,7 +26,7 @@ version: 5.0.0
 - 时间戳：`date +%Y%m%dT%H%M%S`
 - 日期：`date +%Y-%m-%d`
 - 文件名：`{时间戳}--plain-{简短标题}__plain.md`
-- 输出目录：`~/obsidian/00-Inbox/`
+- 输出目录：`~/LifeOS/00-Inbox/`
 
 ### Markdown 文件头
 
@@ -97,7 +97,7 @@ URL → WebFetch | 文本 → 直接用 | 文件路径 → Read | 概念 → 直
 
 ### 4. 生成 Markdown 文件
 
-按上面的文件规范获取时间戳，写出文件头 + 正文，存入 `~/obsidian/00-Inbox/`。
+按上面的文件规范获取时间戳，写出文件头 + 正文，存入 `~/LifeOS/00-Inbox/`。
 
 ## 验收
 

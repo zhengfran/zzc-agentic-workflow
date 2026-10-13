@@ -1,8 +1,13 @@
 ---
 name: ljg-roundtable
-description: Explore one issue through a moderated multi-perspective roundtable.
-disable-model-invocation: true
+description: >-
+  一个议题，一场圆桌：主持人请来 3-5 位真实人物，定义开场，逐轮交锋，
+  每轮收一张 ASCII 结构图，用户用指令控节奏（可/止/深入此节/引入新人物），
+  散场后全文存入 Markdown 笔记。Use when user says "圆桌讨论", "圆桌",
+  "roundtable", "辩论", or wants to explore a topic through
+  multi-perspective structured debate.
 ---
+
 ## Usage
 
 <example>
@@ -90,16 +95,14 @@ Assistant: [就自由意志展开圆桌]
 讨论全文写进 Markdown 文件，一字不差。发言、ASCII 图、综述，全部原文照录，不摘要，不压缩，不改写。
 
 1. `date +%Y%m%dT%H%M%S` 取时间戳
-2. 写入 `~/obsidian/00-Inbox/{timestamp}--圆桌-{议题关键词}__roundtable.md`
+2. 写入 `~/LifeOS/00-Inbox/{timestamp}--圆桌-{议题关键词}__roundtable.md`
 3. 文件结构：
 
    ```markdown
    ---
-   title: "圆桌：{议题}"
-   date: "{YYYY-MM-DD}"
-   tags: [roundtable]
-   identifier: "{timestamp}"
-   author: "郑之成"
+   title: 圆桌：{议题}
+   date: [{日期}]
+   tags: roundtable
    ---
    # 议题与参会者
    [人物名单：姓名、MBTI、立场、入选理由]

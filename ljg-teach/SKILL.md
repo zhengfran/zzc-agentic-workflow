@@ -1,9 +1,10 @@
 ---
 name: ljg-teach
-description: Teach a concept through situations, choices, surprises, and transfer tests.
-disable-model-invocation: true
-version: 1.0.0
+version: "1.0.0"
+description: "用体验而不是定义来教授概念、原理或检验观点：先给与学习者认知水平相称的局面，让其选择，再用公平的意外显化认知缺口，结构化后才命名，并以迁移局面循环复测。USE WHEN 用户调用 '/ljg-teach'、说 '用情境教我'、'别先讲答案'、'通过案例让我学会'，或希望通过选择与反馈理解一个概念或观点。NOT FOR 直接定义查询（用 ljg-is/ljg-word）、八维概念解剖（用 ljg-learn）、伴读文本（用 ljg-read）。"
+user_invocable: true
 ---
+
 # ljg-teach：体验优先学习
 
 不先解释概念。先让学习者进入一个局面，做出在其当前认知里合理的选择；再让局面向前走，直到旧模型解释不了结果。结构被看见以后，才给它名字。

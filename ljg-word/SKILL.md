@@ -1,12 +1,16 @@
 ---
 name: ljg-word
-description: Build deep mastery of one English word from its core semantics.
-disable-model-invocation: true
-version: 1.0.1
+description: Deep-dive English word mastery tool. Deconstructs a single English word into core semantics and epiphany. Use when user asks to explain/master a specific English word.
+version: "1.0.1"
+user_invocable: true
 ---
+
 ## Usage
 
-Apply this skill directly to the single English word supplied by the user. Do not delegate to another word-explanation skill.
+<example>
+User: Deeply explain the word "Serendipity".
+Assistant: [Calls ljg-explain-words with "Serendipity"]
+</example>
 
 ## Instructions
 

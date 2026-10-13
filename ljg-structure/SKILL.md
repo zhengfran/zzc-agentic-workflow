@@ -1,8 +1,9 @@
 ---
 name: ljg-structure
-description: Find and test the generative mechanism beneath supplied information.
-disable-model-invocation: true
+description: 找出一段信息中母题级别的结构，把抽象关系展开回具体可见的现象，再用风洞检验关键因果与边界。USE WHEN user says '找结构', '母题是什么', '结构风洞', '背后的结构', '不要只做AB测试', or wants the generative mechanism beneath a problem. 仅当用户明确要求时展开跨域来源或多母题组合。NOT FOR 普通摘要、单个类比、事实查询或已有明确唯一解的执行题。
+user_invocable: true
 ---
+
 # 母题结构风洞
 
 输入一段信息，穿过表象找到它反复上演的母题，再把真正起作用的几根结构画清楚，送进风洞校准。默认结果要轻：读者带走一个说得明白的母题、一张能运行的关系图、一个既能迁移又会改口的结论。
@@ -71,9 +72,9 @@ disable-model-invocation: true
 
 默认约 800-1500 汉字。一级标题严格只有：`输入`、`母题`、`结构`、`结论`。风洞是内部推理步骤，不作为一级标题输出。母题用一问一例让关系先跑起来；结构卡以自然短段完成「概念明确、关系明确、示例映射」，不强制可见字段。跨域来源不设默认标题；通常不输出，确有帮助时只用一句话带一个例子。结构超过一个时，用纯 ASCII 连接符画关系图，禁止 Unicode 箭头和方框字符。关系图后用一句普通话说明「这张图在例子里怎样运行」。
 
-默认取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date +%Y-%m-%d`。写入：
+默认取得两个时间值：`date +%Y%m%dT%H%M%S` 与 `date "+%Y-%m-%d %a %H:%M"`。写入：
 
-`~/obsidian/00-Inbox/{时间戳}--结构-{主题}__structure.md`
+`~/LifeOS/00-Inbox/{时间戳}--结构-{主题}__structure.md`
 
 若用户明确说「只分析」「不落盘」或 `read-only`，直接在对话中给出同等完整的分析，不创建文件。
 
@@ -81,11 +82,10 @@ disable-model-invocation: true
 
 ```markdown
 ---
-title: "结构：{主题}"
-date: "{YYYY-MM-DD}"
-tags: [structure]
-identifier: "{时间戳}"
-author: "郑之成"
+title: 结构：{主题}
+date: [{可读时间}]
+identifier: {时间戳}
+tags: structure
 ---
 # 输入
 # 母题
