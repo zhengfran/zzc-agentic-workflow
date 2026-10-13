@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""List the explicit flat catalog, optionally selecting an install pack."""
+import argparse
+import sys
+from skills_common import ROOT, PACKS, load_catalog
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--pack', choices=PACKS)
+    p.add_argument('--names', action='store_true')
+    p.add_argument('--select', help='comma-separated names within the pack')
+    args = p.parse_args()
+    data = load_catalog()
+    selected = set(args.select.split(',')) if args.select is not None else None
+    candidates = {n: e for n, e in data['skills'].items() if not args.pack or e['pack'] == args.pack}
+    if selected is not None and (not selected or selected - candidates.keys()):
+        p.error('unknown skills in this pack: ' + ', '.join(sorted(selected - candidates.keys())))
+    entries = {n: e for n, e in candidates.items() if selected is None or n in selected}
+    for name in entries:
+        if not (ROOT / name / 'SKILL.md').is_file():
+            p.error(f'missing skill: {name}/SKILL.md; refusing incomplete installation')
+    for name, entry in sorted(entries.items()):
+        print(name if args.names else f'{name:24} {entry["pack"]:7} {entry["update"]}')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError) as error:
+        sys.exit(str(error))

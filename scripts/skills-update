@@ -1,433 +1,98 @@
 #!/usr/bin/env python3
-"""skills-update — refresh vendored skills from upstreams.json.
-
-Reads upstreams.json (schema: {version, repositories: {id: {url, ref?,
-commit?}}, skills: {name: {repository, pack, path, hash?, commit?}}}) and
-syncs vendored/<pack>/<name> from <path> — the upstream skill's directory,
-not necessarily where its SKILL.md lives — inside that skill's repo.
-
-Each repository is cloned/fetched once (at `ref` if given, else its
-default branch) and shared by every skill that names it. A pre-existing
-cache clone's `origin` remote is checked against the configured url first —
-if they don't match (e.g. the url was repointed in upstreams.json) the
-cache is discarded and recloned rather than silently serving skills from
-the wrong source. Otherwise the cache is fetched then hard-reset to
-FETCH_HEAD — the commit that fetch just retrieved — never to a possibly-
-stale ref; any failure there falls back to a fresh clone.
-
-Change detection uses content+metadata hashes: a skill's `hash` in
-upstreams.json is the refresh baseline. A local copy that no longer
-matches it is a hand-edit; if upstream also changed since the baseline,
-that's a CONFLICT and is skipped unless --force. The hash covers each
-regular file's path, content and executable bit, and each symlink's path
-and target (without following it); any other file type is a hard error
-rather than being silently mis-hashed. Copies preserve the same: symlinks
-are recreated as symlinks (not dereferenced) and file modes are preserved.
-
-Every successfully refreshed skill records the commit it was refreshed at
-in its own `commit` field — that's the only place a *partial* (some
-skills selected) update can truthfully report provenance from. The
-repository-wide `commit` field is only touched (added/updated) when a run
-covers every skill tracked against that repository, since otherwise it
-would claim untouched skills are at a commit they were never synced to.
-
-Before touching the network or the filesystem, upstreams.json is
-validated: version must be 1, `repositories`/`skills` must have the right
-shapes, every skill's pack must be a known one, every skill's `path` must
-be a safe relative path (no absolute path, no `..` traversal), and every
-skill's `hash` must either be absent (allowed only when no local copy
-exists yet — i.e. this would be its first install) or a well-formed
-40-hex-char sha1. Any violation aborts the whole run before anything is
-cloned or written.
-
-Usage:
-  skills-update [--force] [skill ...]
-
-  --force   overwrite local edits when the upstream copy has also changed
-  skill     only refresh these tracked skills (default: all)
-
-Exit status is non-zero if any skill failed to refresh or was left as an
-unresolved conflict.
-"""
+"""Check selected upstream skills; applying changes requires explicit selection."""
 import argparse
-import hashlib
-import json
-import os
-import re
-import shutil
-import subprocess
-import sys
 from collections import defaultdict
-from pathlib import Path, PurePosixPath
-
-ROOT = Path(__file__).resolve().parent.parent          # tools/ai/skills
-VENDORED = ROOT / "vendored"
-UPSTREAMS = ROOT / "upstreams.json"
-CACHE = ROOT / ".cache" / "repos"                       # keyed by repository id
-
-VALID_PACKS = ("global", "notes", "coding")
-ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
-
-FORCE = False   # set from argv in main()
+import sys
+import tempfile
+from skills_common import (
+    ROOT, CATALOG, REPO_PATHS, load_catalog, clone_or_fetch, folder_hash,
+    head_commit, atomic_replace_dir, write_json_atomic, sh,
+)
 
 
-def sh(args, cwd=None):
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True)
-
-
-def folder_hash(d):
-    """Stable hash of a folder's tracked content, ignoring .git.
-
-    A regular file contributes its relative path, content, and an
-    executable-bit marker (only present when the bit is set, so the
-    common non-executable case hashes identically to a scheme that never
-    tracked mode at all). A symlink contributes its relative path and
-    raw target (via os.readlink, never followed) instead of content, so
-    two skills that differ only in "real file" vs "symlink to identical
-    content" no longer hash the same. Any other file type (fifo, socket,
-    device, ...) is a hard error rather than being silently skipped or
-    mis-hashed as something else.
-    """
-    h = hashlib.sha1()
-    for p in sorted(x for x in d.rglob("*") if ".git" not in x.parts):
-        if p.is_symlink():
-            rel = str(p.relative_to(d))
-            h.update(rel.encode()); h.update(b"\0")
-            h.update(b"symlink\0")
-            h.update(os.readlink(p).encode()); h.update(b"\0")
-        elif p.is_dir():
-            continue   # directory presence is implied by the files under it
-        elif p.is_file():
-            rel = str(p.relative_to(d))
-            h.update(rel.encode()); h.update(b"\0")
-            if os.access(p, os.X_OK):
-                h.update(b"executable\0")
-            h.update(p.read_bytes()); h.update(b"\0")
-        else:
-            raise ValueError(f"unsupported file type in {d}: {p}")
-    return h.hexdigest()
-
-
-def clone_or_fetch(repo_id, url, ref):
-    """Shallow clone/fetch ``repo_id`` at ``ref`` (its default branch if
-    None) into the cache. Returns ``(path, None)`` on success or
-    ``(None, error_message)`` on failure. An existing cache dir whose
-    ``origin`` remote no longer matches ``url`` is discarded outright —
-    it may be tracking a repo that was repointed in upstreams.json, and
-    fetching it would silently serve skills from the wrong source.
-    Otherwise it's refreshed by fetching and hard-resetting to
-    FETCH_HEAD; on any failure it's discarded and a fresh clone is
-    attempted instead."""
-    dest = CACHE / repo_id
-    err = None
-    if dest.exists():
-        origin = sh(["git", "-C", str(dest), "remote", "get-url", "origin"])
-        cached_url = origin.stdout.strip() if origin.returncode == 0 else None
-        if cached_url != url:
-            err = f"cached origin for {repo_id} is {cached_url!r}, expected {url!r} — discarding cache"
-            shutil.rmtree(dest, ignore_errors=True)
-        else:
-            fetch = sh(["git", "-C", str(dest), "fetch", "--depth", "1", "origin", ref or "HEAD"])
-            if fetch.returncode == 0:
-                reset = sh(["git", "-C", str(dest), "reset", "--hard", "FETCH_HEAD"])
-                if reset.returncode == 0:
-                    return dest, None
-                err = f"reset --hard FETCH_HEAD failed for {repo_id}: {reset.stderr.strip()}"
-            else:
-                err = f"fetch failed for {repo_id}: {fetch.stderr.strip()}"
-            shutil.rmtree(dest, ignore_errors=True)     # cache dir may be inconsistent — reclone
-
-    CACHE.mkdir(parents=True, exist_ok=True)
-    args = ["git", "clone", "--depth", "1"]
-    if ref:
-        args += ["--branch", ref]
-    args += [url, str(dest)]
-    cloned = sh(args)
-    if cloned.returncode == 0:
-        return dest, None
-    clone_err = f"clone failed for {repo_id} ({url}): {cloned.stderr.strip()}"
-    return None, f"{err}; {clone_err}" if err else clone_err
-
-
-def head_commit(repo_dir):
-    out = sh(["git", "-C", str(repo_dir), "rev-parse", "HEAD"])
-    return out.stdout.strip() if out.returncode == 0 else None
-
-
-def atomic_replace_dir(dest, src):
-    """Replace ``dest`` (a directory, may not yet exist) with a copy of
-    ``src``, staging the copy at a sibling temp path first so ``dest`` is
-    never left half-written. Symlinks under ``src`` are recreated as
-    symlinks (not dereferenced), and file modes — including the
-    executable bit — are preserved.
-
-    If swapping the staged copy into place fails after the previous
-    content was already moved aside, that previous content is rolled
-    back into ``dest`` so it's never lost. If the rollback rename itself
-    fails, the backup is left on disk (never deleted) rather than
-    silently discarded, and the original exception propagates either
-    way."""
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp_new = dest.parent / f".{dest.name}.new.{os.getpid()}"
-    tmp_old = dest.parent / f".{dest.name}.old.{os.getpid()}"
-    shutil.rmtree(tmp_new, ignore_errors=True)
-    shutil.rmtree(tmp_old, ignore_errors=True)
-    shutil.copytree(src, tmp_new, symlinks=True, ignore=shutil.ignore_patterns(".git"))
-
-    had_old = dest.exists() or dest.is_symlink()
-    if had_old:
-        os.replace(dest, tmp_old)
-    try:
-        os.replace(tmp_new, dest)
-    except Exception:
-        if had_old:
-            try:
-                os.replace(tmp_old, dest)   # rollback: restore the previous content
-            except Exception:
-                # rollback itself failed: leave tmp_old as a recoverable backup
-                raise
-            else:
-                shutil.rmtree(tmp_new, ignore_errors=True)
-        raise
-    else:
-        if had_old:
-            shutil.rmtree(tmp_old, ignore_errors=True)
-
-
-def write_json_atomic(path, data):
-    tmp = path.parent / f".{path.name}.tmp.{os.getpid()}"
-    tmp.write_text(json.dumps(data, indent=2) + "\n")
-    os.replace(tmp, path)
-
-
-def _safe_relative_path(path):
-    if not isinstance(path, str) or not path or "\\" in path:
-        return False
-    if path.startswith("/") or path.startswith("~"):
-        return False
-    parts = PurePosixPath(path).parts
-    return ".." not in parts and not any(p in ("", ".") for p in parts)
-
-
-def validate_schema(data):
-    """Fail-closed schema validation, run before any network access or
-    filesystem writes. Raises SystemExit with a descriptive message on
-    the first violation found."""
-    def fail(msg):
-        sys.exit(f"invalid upstreams.json: {msg}")
-
-    if data.get("version") != 1:
-        fail(f"unsupported version {data.get('version')!r} (expected 1)")
-
-    if "repositories" not in data or "skills" not in data:
-        fail("both 'repositories' and 'skills' objects are required")
-
-    repositories = data["repositories"]
-    if not isinstance(repositories, dict):
-        fail("'repositories' must be an object")
-    for repo_id, repo in repositories.items():
-        if not isinstance(repo_id, str) or not ID_RE.match(repo_id):
-            fail(f"unsafe repository id {repo_id!r}")
-        if not isinstance(repo, dict):
-            fail(f"repository {repo_id!r} must be an object")
-        if not isinstance(repo.get("url"), str) or not repo["url"]:
-            fail(f"repository {repo_id!r} missing a non-empty 'url'")
-        if repo.get("ref") is not None and not isinstance(repo["ref"], str):
-            fail(f"repository {repo_id!r} 'ref' must be a string")
-        if repo.get("commit") is not None and not isinstance(repo["commit"], str):
-            fail(f"repository {repo_id!r} 'commit' must be a string")
-
-    skills = data["skills"]
-    if not isinstance(skills, dict):
-        fail("'skills' must be an object")
-    for name, e in skills.items():
-        if not isinstance(name, str) or not ID_RE.match(name):
-            fail(f"unsafe skill name {name!r}")
-        if not isinstance(e, dict):
-            fail(f"skill {name!r} must be an object")
-
-        repo_id = e.get("repository")
-        if not isinstance(repo_id, str) or repo_id not in repositories:
-            fail(f"skill {name!r} 'repository' must reference a known repository id")
-
-        pack = e.get("pack")
-        if pack not in VALID_PACKS:
-            fail(f"skill {name!r} has invalid 'pack' {pack!r} (expected one of {VALID_PACKS})")
-
-        if not _safe_relative_path(e.get("path")):
-            fail(f"skill {name!r} has unsafe 'path' {e.get('path')!r}")
-
-        h = e.get("hash")
-        if h is not None:
-            if not isinstance(h, str) or not SHA1_RE.match(h):
-                fail(f"skill {name!r} has malformed 'hash' {h!r} (expected 40-char lowercase sha1 hex)")
-        else:
-            local = VENDORED / pack / name
-            if local.is_dir():
-                fail(f"skill {name!r} is missing 'hash' but a local copy already exists at {local} "
-                     f"(absent hash is only valid for a skill's first install)")
-
-        if e.get("commit") is not None and not isinstance(e["commit"], str):
-            fail(f"skill {name!r} 'commit' must be a string")
-
-
-def refresh_one(name, e, repo_dir, stats, changed):
-    """Refresh vendored/<pack>/<name> from ``repo_dir``/<path>. Mutates
-    ``e``'s ``hash`` in place when it changes and sets ``changed[0]``.
-    Returns False if this skill is now an error or unresolved conflict."""
-    pack, path = e.get("pack"), e.get("path")
-
-    src = repo_dir / path
-    if not src.is_dir():
-        print(f"  !! {name}: upstream path not found: {path}")
-        stats["error"] += 1
-        return False
-    if not (src / "SKILL.md").is_file():
-        print(f"  !! {name}: upstream path has no SKILL.md after fetch: {path}")
-        stats["error"] += 1
-        return False
-
-    local = VENDORED / pack / name
-    up = folder_hash(src)
-    baseline = e.get("hash")
-    loc = folder_hash(local) if local.is_dir() else None
-
-    def apply(tag, key):
-        """Stage+swap the local copy in, counting toward ``stats[key]`` on
-        success. A failed replace counts toward ``stats["error"]`` instead
-        (via atomic_replace_dir's own rollback) rather than ``key``, since
-        nothing was actually applied."""
-        try:
-            atomic_replace_dir(local, src)
-        except Exception as ex:
-            print(f"  !! {name}: failed to replace local copy: {ex}")
-            stats["error"] += 1
-            return False
-        e["hash"] = up
-        changed[0] = True
-        stats[key] += 1
-        print(f"  {tag} {name}")
-        return True
-
-    if loc is None:
-        return apply("added   ", "added")
-    elif baseline is None or loc == baseline:       # no local edits (or no baseline yet)
-        if up != loc:
-            return apply("updated ", "updated")
-        else:
-            if e.get("hash") != loc:
-                e["hash"] = loc; changed[0] = True
-            stats["ok"] += 1
-            return True
-    elif up == baseline:                             # local hand-edited, upstream unchanged
-        print(f"  kept    {name}: local edits, upstream unchanged")
-        stats["kept"] += 1
-        return True
-    elif FORCE:                                      # local hand-edited, upstream changed
-        return apply("forced  ", "updated")
-    else:
-        print(f"  CONFLICT {name}: local edits + upstream changed — skipped (--force)")
-        stats["conflict"] += 1
-        return False
-
-
-def parse_args(argv):
-    p = argparse.ArgumentParser(prog="skills-update",
-                                 description="Refresh vendored/<pack>/<name> copies from the "
-                                             "upstream repos tracked in upstreams.json.")
-    p.add_argument("--force", action="store_true",
-                    help="overwrite local edits when upstream also changed (CONFLICT otherwise)")
-    p.add_argument("skills", nargs="*", metavar="skill",
-                    help="only refresh these tracked skill names (default: all)")
-    return p.parse_args(argv)
-
-
-def main():
-    global FORCE
-    args = parse_args(sys.argv[1:])
-    FORCE = args.force
-
-    if not UPSTREAMS.exists():
-        sys.exit(f"no upstreams file at {UPSTREAMS}")
-    data = json.loads(UPSTREAMS.read_text())
-    validate_schema(data)   # fail-closed: before any network access or write
-
-    repositories = data.get("repositories", {})
-    skills = data.get("skills", {})
-    if not skills:
-        print("no tracked skills in upstreams.json")
-        return 0
-
-    only = set(args.skills)
-    if only:
-        unknown = only - set(skills)
-        if unknown:
-            sys.exit(f"not in upstreams.json: {', '.join(sorted(unknown))}")
-
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('skills', nargs='*', metavar='skill')
+    parser.add_argument('--apply', action='store_true', help='apply clean updates to named skills (or --all)')
+    parser.add_argument('--all', action='store_true', help='select all entries with update=upstream')
+    parser.add_argument('--diff', action='store_true', help='show local/upstream file differences')
+    args = parser.parse_args(argv)
+    if args.all and args.skills:
+        parser.error('use skill names or --all, not both')
+    if args.apply and not (args.skills or args.all):
+        parser.error('--apply requires skill names or --all')
+    data = load_catalog()
+    skills = data['skills']
+    names = sorted(set(args.skills) if args.skills else
+                   {name for name, e in skills.items() if e['update'] == 'upstream'})
+    unknown = set(names) - skills.keys()
+    if unknown:
+        parser.error('unknown skills: ' + ', '.join(sorted(unknown)))
+    custom = [n for n in names if skills[n]['update'] == 'custom']
+    if custom:
+        parser.error('local custom skills cannot be updated: ' + ', '.join(custom))
     by_repo = defaultdict(list)
-    for name, e in skills.items():
-        if only and name not in only:
+    for name in names:
+        by_repo[skills[name]['repository']].append(name)
+    failed = False
+    for repo_id, selected in sorted(by_repo.items()):
+        repo = data['repositories'][repo_id]
+        REPO_PATHS[repo_id] = sorted({skills[n]['path'] for n in selected})
+        print(f'==> {repo_id}: {", ".join(selected)}', flush=True)
+        repo_dir, error = clone_or_fetch(repo_id, repo['url'], repo.get('ref'))
+        if error:
+            print(f'  ERROR: {error}', file=sys.stderr)
+            failed = True
             continue
-        by_repo[e.get("repository")].append(name)
-
-    stats = {"ok": 0, "updated": 0, "added": 0, "conflict": 0, "kept": 0, "error": 0}
-    changed = [False]
-    exit_code = 0
-
-    for repo_id in sorted(by_repo, key=lambda r: r or ""):
-        names = sorted(by_repo[repo_id])
-        repo = repositories.get(repo_id) if repo_id else None
-        if repo is None or not repo.get("url"):
-            print(f"  !! {', '.join(names)}: unknown or url-less repository {repo_id!r}")
-            stats["error"] += len(names); exit_code = 1
-            continue
-
-        url, ref = repo["url"], repo.get("ref")
-        print(f"==> {repo_id} ({ref or 'default branch'})  {len(names)} skill(s)")
-        repo_dir, err = clone_or_fetch(repo_id, url, ref)
-        if repo_dir is None:
-            print(f"  !! {err}")
-            stats["error"] += len(names); exit_code = 1
-            continue
-
-        succeeded = []
-        for name in names:
-            if refresh_one(name, skills[name], repo_dir, stats, changed):
-                succeeded.append(name)
-            else:
-                exit_code = 1
-
-        # Per-skill commit is the truthful provenance record for a partial
-        # (selected-subset) update; the repository-wide commit is only
-        # touched when this run covered every skill tracked to this repo,
-        # since otherwise it would claim untouched skills are at a commit
-        # they were never actually synced to.
         commit = head_commit(repo_dir)
-        if commit:
-            for name in succeeded:
-                e = skills[name]
-                if e.get("commit") != commit:
-                    e["commit"] = commit; changed[0] = True
+        if not commit:
+            print('  ERROR: cannot determine fetched commit', file=sys.stderr)
+            failed = True
+            continue
+        for name in selected:
+            entry = skills[name]
+            source, local = repo_dir / entry['path'], ROOT / name
+            if not (source / 'SKILL.md').is_file() or repo_dir.resolve() not in source.resolve().parents:
+                print(f'  ERROR {name}: upstream skill path missing or escapes repository: {entry["path"]}')
+                failed = True
+                continue
+            upstream_hash = folder_hash(source)
+            local_hash = folder_hash(local) if local.is_dir() else None
+            baseline = entry.get('hash')
+            if local_hash == upstream_hash:
+                status = 'current'
+            elif local_hash is not None and local_hash != baseline:
+                status = 'local edits; skipped' if upstream_hash == baseline else 'CONFLICT; skipped'
+            else:
+                status = 'update available' if local_hash is not None else 'missing locally; restore available'
+            print(f'  {name}: {status}')
+            if args.diff and local_hash != upstream_hash:
+                # git diff returns 1 for ordinary differences, >1 for errors.
+                with tempfile.TemporaryDirectory(prefix='skills-empty-') as empty:
+                    result = sh(['git', 'diff', '--no-index', '--no-ext-diff', '--',
+                                 str(local) if local.exists() else empty, str(source)])
+                print(result.stdout, end='')
+                if result.returncode > 1:
+                    print(result.stderr, file=sys.stderr)
+                    failed = True
+            if 'skipped' in status:
+                failed = True
+                continue
+            if not args.apply:
+                continue
+            if local_hash != upstream_hash:
+                atomic_replace_dir(local, source)
+                print(f'    applied {commit[:12]}')
+            entry['hash'], entry['commit'] = upstream_hash, commit
+            # Persist after each successful skill, so partial failure retains provenance.
+            write_json_atomic(CATALOG, data)
+    if not args.apply:
+        print('Check only; skill files and skills.json were not changed. Use --apply with names or --all.')
+    return 1 if failed else 0
 
-            all_repo_names = {n for n, ee in skills.items() if ee.get("repository") == repo_id}
-            full_refresh = set(names) == all_repo_names
-            if full_refresh and len(succeeded) == len(names) and repo.get("commit") != commit:
-                repo["commit"] = commit; changed[0] = True
 
-    if changed[0]:
-        write_json_atomic(UPSTREAMS, data)
-
-    print("\n== summary ==")
-    line = "  ".join(f"{k}={v}" for k, v in stats.items() if v)
-    print("  " + line if line else "  nothing to do")
-    if stats["conflict"]:
-        print("  re-run with --force to overwrite conflicting local edits.")
-    if stats["error"]:
-        print("  one or more skills failed to refresh — see errors above.")
-
-    return exit_code
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError) as error:
+        sys.exit(str(error))

@@ -1,92 +1,144 @@
 # zzc-skills
 
-Curated AI-agent skills for Claude Code, Kiro, Codex, Pi, Hermes, and DeepSeek Harness.
-The repository keeps authored skills and pinned upstream snapshots in one portable tree; there is no generated assembly layer.
+A curated, flat catalog of skills for the agent environments used here.
+Requires Python 3.8+, Bash 3.2+, and Git.
 
-## Layout
+## Layout and selection
 
-```text
-self/{global,notes,coding}/<skill>/      # locally owned skills
-vendored/{global,notes,coding}/<skill>/  # unmodified upstream snapshots
-upstreams.json                           # provenance for vendored snapshots
-scripts/skills-install                   # safe destination reconciliation
-scripts/skills-update                    # explicit upstream refresh
+Each skill lives directly at `<name>/SKILL.md`. Its supporting `scripts/`,
+`references/`, assets, and other runtime files stay inside that skill.
+There are no `self/`, `vendored/`, or generated `assembled/` trees.
+
+`skills.json` is the explicit catalog. It records installation packs and update
+policies independently of directory layout. A new upstream skill is never added
+automatically. Only entries in this file are installed or checked for updates.
+
+```bash
+scripts/skills-catalog
+scripts/skills-catalog --pack coding
 ```
 
-The directory tree is the active catalog. Every immediate child containing `SKILL.md` is installed; removing or moving that directory disables it. `skills-install` rejects duplicate `<pack>/<skill>` names across `self/` and `vendored/`.
+| Pack | Skills | Update policy |
+| --- | --- | --- |
+| global | check-integration, distill-memory, read-working-memory, save-handoff, search-memory, status | Follow Nowledge's agent-neutral skills |
+| global | i-have-adhd, grilling, handoff | Follow upstream |
+| coding | archify, retro, writing-for-agents | Follow upstream |
+| coding | wayfinder | Local customization |
+| notes | Existing `ljg` and `ljg-*` skills | Local customization |
 
-## Packs
-
-- **global** — cross-scenario skills installed in agent home directories.
-- **notes** — note and knowledge workflows, normally copied into `~/org`.
-- **coding** — project-specific engineering skills installed on demand.
+The catalog contains 34 skills: 12 following upstream and 22 locally customized.
+The six Nowledge entries are explicitly selected; future additions to their
+repository do not expand this set.
 
 ## Install
 
-The scripts resolve the repository from their own location, so commands do not depend on a canonical clone path. When this repository's `scripts/` directory is on `PATH`:
+Preview a reconciliation before applying it:
 
 ```bash
-skills-install global
-skills-install coding /path/to/repo
-skills-install notes ~/org --copy
+scripts/skills-install global --dry-run
+scripts/skills-install global
+scripts/skills-install coding /path/to/project --dry-run
+scripts/skills-install coding /path/to/project
+scripts/skills-install notes ~/obsidian --copy
 ```
 
-For a one-time migration of an old copied install or broken assembly symlink that has no ownership file, add `--adopt-existing`. Ordinary runs reject unmanaged same-name entries. Live symlinks resolving to the same source are adopted automatically.
+Packs are installation presets, not folders. `global` targets the agent home
+folders. `coding` and `notes` target the supplied project directory (default:
+current directory). Existing destinations and command syntax are preserved.
 
-Project packs default to Claude Code (`.claude/skills`), Kiro (`.kiro/skills`), and the shared Agent Skills location (`.agents/skills`). Both Codex and Pi discover project `.agents/skills`, so they do not need separate destinations. The old project Codex target (`.codex/skills`) is available only by explicitly selecting `--agents codex`; it is not a documented Codex skill location and may result in duplicate skills if also installed to `.agents/skills`. Removing it from the defaults does **not** delete previously installed `.codex/skills` entries. Global installs still target Claude Code, Kiro, Codex, Hermes, and DeepSeek Harness; the global Codex destination remains `~/.codex/skills` pending a separate migration to the documented `~/.agents/skills` location. Pi is not a global target because it discovers `~/.agents/skills` directly; after removing the old catalog symlink, Pi has no skills from that global location until a new catalog is installed there. Narrow the project targets when needed:
+Install only named skills within a pack:
 
 ```bash
-skills-install coding /path/to/repo --agents claude,kiro
-skills-install coding /path/to/repo --agents agents
+scripts/skills-install coding /path/to/project --skills wayfinder
+scripts/skills-install coding /path/to/project --skills retro,writing-for-agents --agents agents
 ```
 
-Kiro's documented `.kiro/skills` discovery is for its V3 engine; verify Kiro symlink support before relying on the default symlink mode (or install with `--copy`).
+`--skills` is additive: it installs the named entries without removing other
+previously installed skills. A later full-pack installation reconciles the entire
+pack, including pruning names removed from the catalog.
 
-Symlink mode is the default. `--copy` creates detached files for cloud-synced directories.
+Symlinks are the default. `--copy` creates detached copies. Project defaults are
+`.claude/skills`, `.kiro/skills`, and `.agents/skills`. Global defaults are
+`~/.claude/skills`, `~/.kiro/skills`, `~/.codex/skills`, `~/.hermes/skills`, and
+`${DSH_HOME:-~/.dsh}/skills`. `--agents` narrows these destinations. The legacy
+project `.codex/skills` target is available with `--agents codex`.
 
-Each destination receives `.zzc-skills-managed`, an ownership record scoped by package and pack. Reinstallation updates and prunes only entries owned by that scope; unrelated skills, another pack, and agent-owned directories such as `.system` are preserved.
+Each destination's `.zzc-skills-managed` records ownership by package and pack.
+Reinstallation updates/prunes only that scope, preserving other scopes and
+unrelated skills. All destinations are checked for collisions before any are
+changed. Unmanaged same-name entries require explicit `--adopt-existing` after
+inspection; links already pointing at the intended source are adopted safely.
+`--dry-run` performs those checks and prints installs and removals without writing.
 
-## Update vendored skills
+## Check and apply updates
 
 ```bash
-skills-update                 # refresh every explicit upstream entry
-skills-update tdd research    # refresh selected entries
+scripts/skills-update                      # check selected upstream skills only
+scripts/skills-update retro --diff         # review its changes
+scripts/skills-update retro --apply        # apply this skill's clean update
+scripts/skills-update --all --apply        # explicitly apply all tracked upstream skills
 ```
 
-The updater:
+Checking fetches into the ignored `.cache/repos/` directory but does not change
+skill files or `skills.json`. Repositories are fetched once per run and sparse
+checkout selects only the requested skill paths. Failed fetches report errors
+without deleting the existing cache.
 
-1. reads only explicitly declared entries from `upstreams.json`;
-2. validates cached origins, fetches each repository once, and resets to the fetched commit;
-3. compares content, executable modes, symlinks, and file types;
-4. replaces snapshots atomically with rollback;
-5. records per-skill commits and exits nonzero on malformed metadata, missing paths, fetch failures, or unresolved conflicts.
+Applying requires named skills or `--all`. Only `update: upstream` entries can
+be selected; `update: custom` entries are rejected before fetching. There is no
+force-overwrite option. Local edits are preserved and reported for manual review.
+To accept upstream intentionally, inspect `--diff`, save your changes, and restore
+the local tracked snapshot before applying; to retain ongoing customization,
+change the entry to `update: custom`.
 
-A locally edited vendored snapshot is preserved while upstream is unchanged. If both changed, resolve the conflict or intentionally overwrite it with `--force`. Locally maintained variants belong under `self/`, not `vendored/`.
+Each successful application records the content hash and fetched commit for that
+skill. No repository-wide commit claims that unselected skills were refreshed.
+File contents, executable bits, and symlink targets participate in change
+checking. Replacements are staged and rolled back on swap failure. Nonzero exit
+status signals a fetch, path, metadata, or local-edit conflict requiring attention.
 
-`upstreams.json` groups shared repository data and records each skill's repository, pack, upstream path, baseline hash, and last refreshed commit. A repository-wide commit is updated only after a successful full-source refresh. The committed files under `vendored/` remain the reproducible runtime snapshot.
+The initial flat migration preserves the existing selected skill contents. Its
+`hash` is a local safety baseline, not a claim that the snapshot equals upstream.
+An absent `commit` means its exact upstream revision is unknown; the first
+explicit update establishes that provenance. Archify follows the upstream
+`archify/` skill directory, including its runtime resources.
 
-## Add or remove a skill
+## Maintain the catalog
 
-### Self-authored
+To add a skill, create `<name>/SKILL.md` and add its entry to `skills.json`:
 
-Create or delete:
-
-```text
-self/<pack>/<name>/SKILL.md
+```json
+"my-skill": { "pack": "coding", "update": "custom" }
 ```
 
-### Vendored
+An upstream entry also needs a known `repository`, its relative upstream `path`,
+and a `hash` whenever a local copy already exists. Compute the baseline with:
 
-1. Copy the upstream runtime directory to `vendored/<pack>/<name>/`.
-2. Add its repository and skill mapping to `upstreams.json`.
-3. Set `hash` to the stable content hash used by `scripts/skills-update`.
-4. Run `skills-update <name>` and `skills-install <pack> ...`.
+```bash
+PYTHONPATH=scripts python3 -c 'from pathlib import Path; from skills_common import folder_hash; print(folder_hash(Path("my-skill")))'
+```
 
-New upstream skills are never auto-discovered or assigned to a pack. Selection is an explicit repository decision.
+Custom entries may retain repository/path metadata as provenance; it never makes
+them eligible for updates. To remove a skill, remove both its catalog entry and
+folder, then preview/re-run the affected pack installation. Missing catalogued
+skill files abort installation instead of silently pruning destinations.
 
-## Ownership policy
+## Migrating existing installations
 
-- `self/` may be simplified, forked, and tailored to this environment.
-- `vendored/` follows the exact upstream path recorded in `upstreams.json`.
-- A removed upstream skill must be deleted or promoted to `self/`; there is no permanent orphan state.
-- Full applications should ship a runtime artifact. Archify is therefore self-owned and excludes upstream tests and pre-rendered examples while retaining its complete runtime.
+Re-run the same pack install at each previously used destination. Existing
+ownership records are retained, so old nested links are replaced with flat links
+and deselected owned skills are removed. Detached project copies also need an
+explicit reinstall. For installations lacking ownership records, inspect the
+collisions and use `--adopt-existing` only for verified legacy installs.
+
+## Validation
+
+```bash
+bash -n scripts/skills-install
+python3 -m unittest discover -s tests -v
+scripts/skills-catalog
+```
+
+Tests use temporary local Git repositories and installation directories; they
+exercise selection, check-only behavior, conflicts, ownership, and rollback
+without accessing the network or changing live agent installations.

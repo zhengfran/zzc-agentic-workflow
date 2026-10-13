@@ -8,10 +8,6 @@
 /.copilot/
 /.kiro/
 
-# Machine-local aqrp workspace registry: absolute paths that must never reach
-# another machine. NB `skills-install --copy` (cp -rL) would still carry it along.
-self/coding/aqrp/workspaces.yaml
-
 # Python bytecode
 __pycache__/
 *.pyc

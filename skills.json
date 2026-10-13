@@ -1,0 +1,249 @@
+{
+  "version": 2,
+  "repositories": {
+    "i-have-adhd": {
+      "url": "https://github.com/ayghri/i-have-adhd.git"
+    },
+    "mattpocock-skills": {
+      "url": "https://github.com/mattpocock/skills.git"
+    },
+    "nowledge-community": {
+      "url": "https://github.com/nowledge-co/community.git"
+    },
+    "archify": {
+      "url": "https://github.com/tt-a1i/archify.git"
+    },
+    "ljg-skills": {
+      "url": "https://github.com/lijigang/ljg-skills.git",
+      "ref": "md"
+    }
+  },
+  "skills": {
+    "archify": {
+      "pack": "coding",
+      "update": "upstream",
+      "repository": "archify",
+      "path": "archify",
+      "hash": "ac411eee949d7176c20ecb757595c2abcec1592e",
+      "commit": "58ab0b98d2d0def8e49dced705c7b566936723ec"
+    },
+    "check-integration": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/check-integration",
+      "hash": "f4cf49d11e0d9c253726d4b0ec5cc0d0bba2ab84",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "distill-memory": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/distill-memory",
+      "hash": "df4a748d844f9468e325357a317f4e6a105a80d6",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "grilling": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "mattpocock-skills",
+      "path": "skills/productivity/grilling",
+      "hash": "848de5f114d17ef0a2ae1207d02fe58f07e54a3f",
+      "commit": "49dd158d1076134a641b33efb035946536778336"
+    },
+    "handoff": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "mattpocock-skills",
+      "path": "skills/productivity/handoff",
+      "hash": "0c1df30b9725cb286252490e1f82259a922e1001",
+      "commit": "49dd158d1076134a641b33efb035946536778336"
+    },
+    "i-have-adhd": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "i-have-adhd",
+      "path": "skills/i-have-adhd",
+      "hash": "36caba0b61e05b1341b208fe012b77fc22616e51",
+      "commit": "1ecea1993b7fce257ffbd686c070948b5e07eda6"
+    },
+    "ljg": {
+      "pack": "notes",
+      "update": "custom"
+    },
+    "ljg-blind": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-blind"
+    },
+    "ljg-book": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-book"
+    },
+    "ljg-card": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-card"
+    },
+    "ljg-constraint": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-constraint"
+    },
+    "ljg-invest": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-invest"
+    },
+    "ljg-is": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-is"
+    },
+    "ljg-learn": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-learn"
+    },
+    "ljg-paper": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-paper"
+    },
+    "ljg-plain": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-plain"
+    },
+    "ljg-present": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-present"
+    },
+    "ljg-qa": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-qa"
+    },
+    "ljg-rank": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-rank"
+    },
+    "ljg-read": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-read"
+    },
+    "ljg-relationship": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-relationship"
+    },
+    "ljg-roundtable": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-roundtable"
+    },
+    "ljg-structure": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-structure"
+    },
+    "ljg-teach": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-teach"
+    },
+    "ljg-think": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-think"
+    },
+    "ljg-word": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-word"
+    },
+    "ljg-writes": {
+      "pack": "notes",
+      "update": "custom",
+      "repository": "ljg-skills",
+      "path": "skills/ljg-writes"
+    },
+    "read-working-memory": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/read-working-memory",
+      "hash": "c4daedad4a68635fcb15333683cc18d797e3c7a5",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "retro": {
+      "pack": "coding",
+      "update": "upstream",
+      "repository": "mattpocock-skills",
+      "path": "skills/engineering/retro",
+      "hash": "ebaffce062d2cdfad5b9738e5eb921ed8659e120",
+      "commit": "49dd158d1076134a641b33efb035946536778336"
+    },
+    "save-handoff": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/save-handoff",
+      "hash": "cef7e913a185188373782525df550d750418b12b",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "search-memory": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/search-memory",
+      "hash": "30c007de5caa4f8c78ac43be03a7ed71df42bc4d",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "status": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "nowledge-community",
+      "path": "nowledge-mem-npx-skills/skills/status",
+      "hash": "96afe579cb42b943b8cf6b3784a5198fbe27b8a5",
+      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+    },
+    "wayfinder": {
+      "pack": "coding",
+      "update": "custom",
+      "repository": "mattpocock-skills",
+      "path": "skills/engineering/wayfinder"
+    },
+    "writing-for-agents": {
+      "repository": "mattpocock-skills",
+      "pack": "coding",
+      "path": "skills/productivity/writing-for-agents",
+      "hash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "update": "upstream"
+    }
+  }
+}

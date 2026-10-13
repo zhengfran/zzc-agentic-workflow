@@ -1,47 +1,8 @@
 #!/usr/bin/env bash
-# skills-install — install a pack's skills straight from self/<pack>/* and
-# vendored/<pack>/* into per-agent skill directories.
-#
-# Usage:
-#   skills-install <pack> [target-dir] [--agents claude,kiro,agents] [--copy] [--adopt-existing]
-#     pack        notes | coding  → project-level install
-#                 global          → machine-level install into the agent home
-#                                   dirs, ignores target-dir
-#     target-dir  project root for notes/coding (default: current dir); ignored for global
-#     --agents    project packs: claude,kiro,agents (codex: legacy opt-in)
-#                 agents -> .agents/skills (Codex and Pi discover this)
-#                 global pack: claude,kiro,codex,hermes,dsh
-#                 (Pi discovers the shared ~/.agents/skills catalog directly.)
-#                 (defaults: all supported agents for that scope)
-#     --copy      copy real files instead of symlinking (for dirs synced elsewhere, e.g. ~/org on a cloud drive)
-#     --adopt-existing
-#                 overwrite otherwise-unmanaged same-name entries, including
-#                 pre-state-file copies or broken legacy assembly symlinks.
-#                 Without this flag such collisions abort the run. A live
-#                 symlink resolving to the exact source is adopted automatically.
-#
-# Every destination dir gets a small state file (.zzc-skills-managed) recording
-# which names this package/pack installed there. Re-runs only add/update/remove
-# those recorded names — anything else already in the destination (another
-# tool's files, an agent's own ".system" entries, hand-placed skills, a
-# different pack sharing the same dir) is left untouched. A name claimed by a
-# different package/pack scope in that state file is always rejected, even if
-# its destination path happens to be missing right now.
-#
-# Symlink mode keeps installs in lockstep with the repo; copy mode detaches.
-#
-# All destinations are preflighted (collision-checked) before any of them are
-# mutated, and each skill is staged to a temp path and atomically swapped into
-# place with a rollback that restores the previous content on failure — so a
-# single unlucky copy/rename never leaves a destination half-written or a
-# skill's prior content lost.
-#
-# Indexed (never associative) arrays throughout, and every array is walked
-# with a C-style `for ((i=0; i<${#arr[@]}; i++))` index loop rather than
-# `"${arr[@]}"`/`"${!arr[@]}"` — macOS ships bash 3.2, whose `set -u` treats
-# a *declared-but-empty* array's `[@]`/`![@]` expansion as an unbound
-# variable (fixed only in bash 4.4+); `${#arr[@]}` and indexed element access
-# don't have that bug on any bash version, so we stick to those.
+# Install the explicit skills.json catalog from flat <skill>/ directories.
+# Full pack installs reconcile only owned entries; --skills is additive.
+# --dry-run prints changes without touching destinations.
+# Requires Python 3.8+ and Bash 3.2+.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -49,7 +10,7 @@ OWNER_ID="zzc-skills"
 STATE_NAME=".zzc-skills-managed"
 
 usage() {
-  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,...] [--copy] [--adopt-existing]" >&2
+  echo "usage: skills-install <pack> [target-dir] [--agents claude,kiro,...] [--skills name,...] [--copy] [--dry-run] [--adopt-existing]" >&2
   exit 2
 }
 
@@ -61,12 +22,16 @@ case "$pack" in
   *) echo "unknown pack: $pack (expected global, notes, or coding)" >&2; exit 2;;
 esac
 
-target="."; agents=""; mode="symlink"; adopt_existing=0
+target="."; agents=""; mode="symlink"; adopt_existing=0; dry_run=0; selection=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agents)
       [[ $# -ge 2 ]] || { echo "--agents requires a value" >&2; exit 2; }
       agents="$2"; shift 2;;
+    --skills)
+      [[ $# -ge 2 && -n "$2" ]] || { echo "--skills requires names" >&2; exit 2; }
+      selection="$2"; shift 2;;
+    --dry-run)        dry_run=1; shift;;
     --copy)           mode="copy"; shift;;
     --adopt-existing) adopt_existing=1; shift;;
     -*)               echo "unknown flag: $1" >&2; exit 2;;
@@ -110,12 +75,16 @@ for ((i = 0; i < ${#AGENT_LIST[@]}; i++)); do
   fi
 done
 
-# --- gather managed skill names from self/<pack> + vendored/<pack> ----------
-# indexed (not associative) arrays throughout, for macOS bash 3.2 compat.
+# Validate the entire catalog before selecting skills or touching destinations.
 names=()
-srcs=()      # parallel array: origin ("self/<pack>" or "vendored/<pack>") for names[i]
+catalog_args=(--pack "$pack" --names)
+[[ -z "$selection" ]] || catalog_args+=(--select "$selection")
+catalog_names="$(python3 "$ROOT/scripts/skills-catalog" "${catalog_args[@]}")" || exit 1
+while IFS= read -r name; do
+  [[ -z "$name" ]] || names+=("$name")
+done <<< "$catalog_names"
 
-name_index() {   # sets REPLY to the index of $1 in names[], returns 1 if absent
+name_index() {
   local n="$1" i
   for ((i = 0; i < ${#names[@]}; i++)); do
     if [[ "${names[$i]}" == "$n" ]]; then REPLY=$i; return 0; fi
@@ -124,35 +93,7 @@ name_index() {   # sets REPLY to the index of $1 in names[], returns 1 if absent
   return 1
 }
 
-for base in self vendored; do
-  d="$ROOT/$base/$pack"
-  [[ -d "$d" ]] || continue
-  for s in "$d"/*/; do
-    [[ -d "$s" ]] || continue
-    name="$(basename "$s")"
-    if name_index "$name"; then
-      echo "duplicate skill name '$name': found in both ${srcs[$REPLY]} and $base/$pack" >&2
-      exit 1
-    fi
-    if [[ ! -f "$s/SKILL.md" ]]; then
-      echo "missing SKILL.md: $base/$pack/$name" >&2
-      exit 1
-    fi
-    names+=("$name")
-    srcs+=("$base/$pack")
-  done
-done
-if [[ ${#names[@]} -eq 0 ]]; then
-  echo "note: no skills found for pack '$pack' under self/ or vendored/ — will prune any previously installed entries" >&2
-fi
-
-srcpath() {   # $1 = managed name -> absolute source dir
-  local i
-  for ((i = 0; i < ${#names[@]}; i++)); do
-    if [[ "${names[$i]}" == "$1" ]]; then echo "$ROOT/${srcs[$i]}/$1"; return 0; fi
-  done
-  return 1
-}
+srcpath() { echo "$ROOT/$1"; }
 
 STATE_PREFIX="$OWNER_ID"$'\t'"$pack"$'\t'
 
@@ -169,6 +110,10 @@ read_state() {
     [[ -n "$line" ]] || continue
     owner=""; row_pack=""; row_name=""; extra=""
     IFS=$'\t' read -r owner row_pack row_name extra <<< "$line"
+    if [[ -z "$row_name" || "$row_name" == *[!a-zA-Z0-9._-]* || "$row_name" == .* ]]; then
+      echo "invalid ownership state name in $statefile: $row_name" >&2
+      return 1
+    fi
     if [[ -z "$extra" && -n "$row_name" && "$row_pack" == "$pack" \
           && ( "$owner" == "$OWNER_ID" || "$owner" == /* ) ]]; then
       PREV+=("$row_name")
@@ -199,7 +144,7 @@ keep_claims_name() {   # $1 = name -> true if some *other* scope's state line cl
 # destination that doesn't exist yet (nothing to collide with).
 preflight_one() {
   local dst="$1" n path s i
-  read_state "$dst"
+  read_state "$dst" || return 1
   for ((i = 0; i < ${#names[@]}; i++)); do
     n="${names[$i]}"
     if keep_claims_name "$n"; then
@@ -284,14 +229,14 @@ replace_one() {
 commit_one() {
   local dst="$1" statefile="$1/$STATE_NAME" statetmp n i failed=0
   if ! mkdir -p "$dst"; then echo "failed to create destination: $dst" >&2; return 1; fi
-  read_state "$dst"
+  read_state "$dst" || return 1
 
   # Prune names dropped from this pack, unless another pack still claims the
   # same path. Every destructive result is checked explicitly because this
   # function is called from an `||` context where Bash disables `set -e`.
   for ((i = 0; i < ${#PREV[@]}; i++)); do
     n="${PREV[$i]}"
-    if ! name_index "$n" && ! keep_claims_name "$n"; then
+    if [[ -z "$selection" ]] && ! name_index "$n" && ! keep_claims_name "$n"; then
       if ! rm -rf "$dst/$n"; then echo "failed to prune $dst/$n" >&2; failed=1; fi
     fi
   done
@@ -303,6 +248,11 @@ commit_one() {
   statetmp="$statefile.tmp.$$"
   if ! {
     for ((i = 0; i < ${#KEEP[@]}; i++)); do printf '%s\n' "${KEEP[$i]}"; done
+    if [[ -n "$selection" ]]; then
+      for ((i = 0; i < ${#PREV[@]}; i++)); do
+        if ! name_index "${PREV[$i]}"; then printf '%s%s\n' "$STATE_PREFIX" "${PREV[$i]}"; fi
+      done
+    fi
     for ((i = 0; i < ${#names[@]}; i++)); do printf '%s%s\n' "$STATE_PREFIX" "${names[$i]}"; done
   } > "$statetmp"; then
     echo "failed to write ownership state: $statetmp" >&2
@@ -333,6 +283,23 @@ for ((i = 0; i < ${#dest_list[@]}; i++)); do
   preflight_one "${dest_list[$i]}" || preflight_failed=1
 done
 [[ "$preflight_failed" == 0 ]] || exit 1
+
+if [[ "$dry_run" == 1 ]]; then
+  for ((d = 0; d < ${#dest_list[@]}; d++)); do
+    dst="${dest_list[$d]}"
+    read_state "$dst" || exit 1
+    for ((i = 0; i < ${#names[@]}; i++)); do
+      echo "install $mode: $dst/${names[$i]} -> $(srcpath "${names[$i]}")"
+    done
+    if [[ -z "$selection" ]]; then
+      for ((i = 0; i < ${#PREV[@]}; i++)); do
+        n="${PREV[$i]}"
+        if ! name_index "$n" && ! keep_claims_name "$n"; then echo "prune owned: $dst/$n"; fi
+      done
+    fi
+  done
+  exit 0
+fi
 
 mutate_failed=0
 for ((i = 0; i < ${#dest_list[@]}; i++)); do
