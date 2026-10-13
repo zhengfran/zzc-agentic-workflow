@@ -200,7 +200,7 @@
       "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
     },
     "retro": {
-      "pack": "coding",
+      "pack": "global",
       "update": "upstream",
       "repository": "mattpocock-skills",
       "path": "skills/engineering/retro",
@@ -232,14 +232,14 @@
       "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
     },
     "wayfinder": {
-      "pack": "coding",
+      "pack": "global",
       "update": "custom",
       "repository": "mattpocock-skills",
       "path": "skills/engineering/wayfinder"
     },
     "writing-for-agents": {
       "repository": "mattpocock-skills",
-      "pack": "coding",
+      "pack": "global",
       "path": "skills/productivity/writing-for-agents",
       "hash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa",
       "commit": "49dd158d1076134a641b33efb035946536778336",

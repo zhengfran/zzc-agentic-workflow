@@ -21,14 +21,29 @@ scripts/skills-catalog --pack coding
 | Pack | Skills | Update policy |
 | --- | --- | --- |
 | global | check-integration, distill-memory, read-working-memory, save-handoff, search-memory, status | Follow Nowledge's agent-neutral skills |
-| global | i-have-adhd, grilling, handoff | Follow upstream |
-| coding | archify, retro, writing-for-agents | Follow upstream |
-| coding | wayfinder | Local customization |
+| global | i-have-adhd, grilling, handoff, retro, writing-for-agents | Follow upstream |
+| coding | archify | Follow upstream |
+| global | wayfinder | Local customization |
 | notes | Existing `ljg` and `ljg-*` skills | Local customization |
 
 The catalog contains 34 skills: 12 following upstream and 22 locally customized.
 The six Nowledge entries are explicitly selected; future additions to their
 repository do not expand this set.
+
+## Upstream credits
+
+Thanks to the original authors and maintainers for these skills:
+
+| Original repository | Skills in this catalog |
+| --- | --- |
+| [Nowledge — community](https://github.com/nowledge-co/community) | check-integration, distill-memory, read-working-memory, save-handoff, search-memory, status |
+| [ayghri — i-have-adhd](https://github.com/ayghri/i-have-adhd) | i-have-adhd |
+| [Matt Pocock — skills](https://github.com/mattpocock/skills) | grilling, handoff, retro, writing-for-agents; also the source of our customized wayfinder |
+| [tt-a1i — archify](https://github.com/tt-a1i/archify) | archify |
+| [Li Jigang — ljg-skills](https://github.com/lijigang/ljg-skills) | Source of our locally customized `ljg-*` skills |
+
+Upstream skills retain their original content and bundled license notices.
+Repository paths and snapshot commits are recorded in `skills.json`.
 
 ## Install
 
@@ -49,8 +64,8 @@ current directory). Existing destinations and command syntax are preserved.
 Install only named skills within a pack:
 
 ```bash
-scripts/skills-install coding /path/to/project --skills wayfinder
-scripts/skills-install coding /path/to/project --skills retro,writing-for-agents --agents agents
+scripts/skills-install global --skills wayfinder
+scripts/skills-install global --skills retro,writing-for-agents --agents codex
 ```
 
 `--skills` is additive: it installs the named entries without removing other
