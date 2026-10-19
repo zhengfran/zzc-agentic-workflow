@@ -26,7 +26,7 @@ scripts/skills-catalog --pack coding
 | global | wayfinder | Local customization |
 | notes | Existing `ljg` and `ljg-*` skills | Local customization |
 
-The catalog contains 34 skills: 12 following upstream and 22 locally customized.
+The catalog contains 35 skills: 12 following upstream and 23 locally customized.
 The six Nowledge entries are explicitly selected; future additions to their
 repository do not expand this set.
 
@@ -46,6 +46,7 @@ Thanks to the original authors and maintainers for these skills:
 | [ayghri — i-have-adhd](https://github.com/ayghri/i-have-adhd) | i-have-adhd |
 | [Matt Pocock — skills](https://github.com/mattpocock/skills) | grilling, handoff, retro, writing-for-agents; also the source of our customized wayfinder |
 | [tt-a1i — archify](https://github.com/tt-a1i/archify) | archify |
+| [op7418 — humanizer-zh](https://github.com/op7418/humanizer-zh) | humanizer-zh |
 | [Li Jigang — ljg-skills](https://github.com/lijigang/ljg-skills) | Source of our locally customized `ljg-*` skills |
 
 Upstream skills retain their original content and bundled license notices.

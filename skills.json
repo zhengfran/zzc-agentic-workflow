@@ -24,16 +24,16 @@
       "update": "upstream",
       "repository": "archify",
       "path": "archify",
-      "hash": "ac411eee949d7176c20ecb757595c2abcec1592e",
-      "commit": "58ab0b98d2d0def8e49dced705c7b566936723ec"
+      "hash": "cc5b541ba16b10cf11d54bbfc93a58bf93791e42",
+      "commit": "d0c8c7e9f4e06f303389f804208d387f27019ef5"
     },
     "check-integration": {
       "pack": "global",
       "update": "upstream",
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/check-integration",
-      "hash": "f4cf49d11e0d9c253726d4b0ec5cc0d0bba2ab84",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "hash": "fcec7f566dbcf7ed372630fd1292accc5de3fcca",
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "distill-memory": {
       "pack": "global",
@@ -41,7 +41,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/distill-memory",
       "hash": "df4a748d844f9468e325357a317f4e6a105a80d6",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "grilling": {
       "pack": "global",
@@ -58,6 +58,10 @@
       "path": "skills/productivity/handoff",
       "hash": "0c1df30b9725cb286252490e1f82259a922e1001",
       "commit": "49dd158d1076134a641b33efb035946536778336"
+    },
+    "humanizer-zh": {
+      "pack": "global",
+      "update": "custom"
     },
     "i-have-adhd": {
       "pack": "global",
@@ -235,7 +239,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/read-working-memory",
       "hash": "c4daedad4a68635fcb15333683cc18d797e3c7a5",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "retro": {
       "pack": "global",
@@ -251,7 +255,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/save-handoff",
       "hash": "cef7e913a185188373782525df550d750418b12b",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "search-memory": {
       "pack": "global",
@@ -259,7 +263,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/search-memory",
       "hash": "30c007de5caa4f8c78ac43be03a7ed71df42bc4d",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "status": {
       "pack": "global",
@@ -267,7 +271,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/status",
       "hash": "96afe579cb42b943b8cf6b3784a5198fbe27b8a5",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "4eafe6b620970bc3304e0192a81739a45fe99e4a"
     },
     "wayfinder": {
       "pack": "global",
