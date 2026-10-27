@@ -16,13 +16,19 @@ def main(argv=None):
     parser.add_argument('--apply', action='store_true', help='apply clean updates to named skills (or --all)')
     parser.add_argument('--all', action='store_true', help='select all entries with update=upstream')
     parser.add_argument('--diff', action='store_true', help='show local/upstream file differences')
+    parser.add_argument('--custom', action='store_true',
+                        help='report upstream changes since the snapshot commit of custom skills (read-only)')
     args = parser.parse_args(argv)
     if args.all and args.skills:
         parser.error('use skill names or --all, not both')
     if args.apply and not (args.skills or args.all):
         parser.error('--apply requires skill names or --all')
+    if args.custom and (args.apply or args.all):
+        parser.error('--custom is read-only and cannot be combined with --apply or --all')
     data = load_catalog()
     skills = data['skills']
+    if args.custom:
+        return check_custom(parser, data, args)
     names = sorted(set(args.skills) if args.skills else
                    {name for name, e in skills.items() if e['update'] == 'upstream'})
     unknown = set(names) - skills.keys()
@@ -88,6 +94,65 @@ def main(argv=None):
             write_json_atomic(CATALOG, data)
     if not args.apply:
         print('Check only; skill files and skills.json were not changed. Use --apply with names or --all.')
+    return 1 if failed else 0
+
+
+def check_custom(parser, data, args):
+    """Compare upstream at each custom skill's snapshot commit with the fetched head."""
+    skills = data['skills']
+    names = sorted(set(args.skills) if args.skills else
+                   {n for n, e in skills.items() if e['update'] == 'custom' and 'repository' in e})
+    unknown = set(names) - skills.keys()
+    if unknown:
+        parser.error('unknown skills: ' + ', '.join(sorted(unknown)))
+    invalid = [n for n in names if skills[n]['update'] != 'custom' or 'repository' not in skills[n]]
+    if invalid:
+        parser.error('not custom skills with an upstream repository: ' + ', '.join(invalid))
+    by_repo = defaultdict(list)
+    for name in names:
+        by_repo[skills[name]['repository']].append(name)
+    failed = False
+    for repo_id, selected in sorted(by_repo.items()):
+        repo = data['repositories'][repo_id]
+        REPO_PATHS[repo_id] = sorted({skills[n]['path'] for n in selected})
+        print(f'==> {repo_id}: {", ".join(selected)}', flush=True)
+        repo_dir, error = clone_or_fetch(repo_id, repo['url'], repo.get('ref'))
+        commit = error is None and head_commit(repo_dir)
+        if not commit:
+            print(f'  ERROR: {error or "cannot determine fetched commit"}', file=sys.stderr)
+            failed = True
+            continue
+        git = ['git', '-C', str(repo_dir)]
+        for name in selected:
+            entry = skills[name]
+            base, path = entry.get('commit'), entry['path']
+            if not base:
+                print(f'  {name}: snapshot commit unknown; cannot compare')
+                continue
+            # The cache is a depth-1 clone, so the snapshot commit must be fetched explicitly.
+            if sh(git + ['cat-file', '-e', f'{base}^{{commit}}']).returncode:
+                result = sh(git + ['fetch', '--depth', '1', 'origin', base])
+                if result.returncode:
+                    print(f'  ERROR {name}: cannot fetch snapshot {base[:12]}: {result.stderr.strip()}',
+                          file=sys.stderr)
+                    failed = True
+                    continue
+            old = sh(git + ['rev-parse', '--verify', '-q', f'{base}:{path}']).stdout.strip()
+            new = sh(git + ['rev-parse', '--verify', '-q', f'{commit}:{path}']).stdout.strip()
+            if old == new:
+                status = 'upstream unchanged since snapshot'
+            elif not new:
+                status = 'REMOVED upstream'
+            else:
+                status = f'upstream changed {base[:12]}..{commit[:12]}; port manually'
+            print(f'  {name}: {status}')
+            if args.diff and old != new:
+                result = sh(git + ['diff', '--no-ext-diff', base, commit, '--', path])
+                print(result.stdout, end='')
+                if result.returncode:
+                    print(result.stderr, file=sys.stderr)
+                    failed = True
+    print('Read-only; skill files and skills.json were not changed.')
     return 1 if failed else 0
 
 

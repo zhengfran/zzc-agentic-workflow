@@ -24,24 +24,16 @@
       "update": "upstream",
       "repository": "archify",
       "path": "archify",
-      "hash": "ac411eee949d7176c20ecb757595c2abcec1592e",
-      "commit": "58ab0b98d2d0def8e49dced705c7b566936723ec"
+      "hash": "2032e0d5486a24245e76f125e3d91f4c2a273816",
+      "commit": "25cf37080fc8b1dbe758a4efc3935b55f3327083"
     },
     "check-integration": {
       "pack": "global",
       "update": "upstream",
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/check-integration",
-      "hash": "f4cf49d11e0d9c253726d4b0ec5cc0d0bba2ab84",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
-    },
-    "distill-memory": {
-      "pack": "global",
-      "update": "upstream",
-      "repository": "nowledge-community",
-      "path": "nowledge-mem-npx-skills/skills/distill-memory",
-      "hash": "df4a748d844f9468e325357a317f4e6a105a80d6",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "hash": "fcec7f566dbcf7ed372630fd1292accc5de3fcca",
+      "commit": "081d11695fb0bdbcab8604fa11c509576f0772a2"
     },
     "grilling": {
       "pack": "global",
@@ -49,7 +41,7 @@
       "repository": "mattpocock-skills",
       "path": "skills/productivity/grilling",
       "hash": "848de5f114d17ef0a2ae1207d02fe58f07e54a3f",
-      "commit": "49dd158d1076134a641b33efb035946536778336"
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
     },
     "handoff": {
       "pack": "global",
@@ -57,7 +49,7 @@
       "repository": "mattpocock-skills",
       "path": "skills/productivity/handoff",
       "hash": "0c1df30b9725cb286252490e1f82259a922e1001",
-      "commit": "49dd158d1076134a641b33efb035946536778336"
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
     },
     "i-have-adhd": {
       "pack": "global",
@@ -229,21 +221,13 @@
       "commit": "dae8ba8e8f513ac1be0697c3a8495b8894c82278",
       "hash": "a9d2ca861b36eed2240d0b1cbbe012305931b1ca"
     },
-    "read-working-memory": {
-      "pack": "global",
-      "update": "upstream",
-      "repository": "nowledge-community",
-      "path": "nowledge-mem-npx-skills/skills/read-working-memory",
-      "hash": "c4daedad4a68635fcb15333683cc18d797e3c7a5",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
-    },
     "retro": {
       "pack": "global",
       "update": "upstream",
       "repository": "mattpocock-skills",
       "path": "skills/engineering/retro",
       "hash": "ebaffce062d2cdfad5b9738e5eb921ed8659e120",
-      "commit": "49dd158d1076134a641b33efb035946536778336"
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
     },
     "save-handoff": {
       "pack": "global",
@@ -251,23 +235,7 @@
       "repository": "nowledge-community",
       "path": "nowledge-mem-npx-skills/skills/save-handoff",
       "hash": "cef7e913a185188373782525df550d750418b12b",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
-    },
-    "search-memory": {
-      "pack": "global",
-      "update": "upstream",
-      "repository": "nowledge-community",
-      "path": "nowledge-mem-npx-skills/skills/search-memory",
-      "hash": "30c007de5caa4f8c78ac43be03a7ed71df42bc4d",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
-    },
-    "status": {
-      "pack": "global",
-      "update": "upstream",
-      "repository": "nowledge-community",
-      "path": "nowledge-mem-npx-skills/skills/status",
-      "hash": "96afe579cb42b943b8cf6b3784a5198fbe27b8a5",
-      "commit": "c5fb72fddc0a1fb2c9b90f08c1845512acb335b9"
+      "commit": "081d11695fb0bdbcab8604fa11c509576f0772a2"
     },
     "wayfinder": {
       "pack": "global",
@@ -280,7 +248,7 @@
       "pack": "global",
       "path": "skills/productivity/writing-for-agents",
       "hash": "7ead8d4d4d8c43609caa3fc6d0d66f72e9abe1aa",
-      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
       "update": "upstream"
     }
   }
