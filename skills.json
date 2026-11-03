@@ -16,9 +16,20 @@
     "ljg-skills": {
       "url": "https://github.com/lijigang/ljg-skills.git",
       "ref": "md"
+    },
+    "answer-me-with-html": {
+      "url": "https://github.com/QingYunA/answer-me-with-html.git"
     }
   },
   "skills": {
+    "answer-me-with-html": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "answer-me-with-html",
+      "path": "skills/answer-me-with-html",
+      "hash": "4e6f11dd2a9e0cf33fa4bcdb15445618f6a7f5d5",
+      "commit": "25aeb40c3d33e12ff90e83c858f286223fb65e2c"
+    },
     "archify": {
       "pack": "coding",
       "update": "upstream",
