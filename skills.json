@@ -19,6 +19,9 @@
     },
     "answer-me-with-html": {
       "url": "https://github.com/QingYunA/answer-me-with-html.git"
+    },
+    "janestreet-agent-skills": {
+      "url": "https://github.com/janestreet/agent_skills.git"
     }
   },
   "skills": {
@@ -255,6 +258,14 @@
       "path": "nowledge-mem-npx-skills/skills/save-handoff",
       "hash": "cef7e913a185188373782525df550d750418b12b",
       "commit": "af953e7633e1b09e28745be6a5892f021b9fce35"
+    },
+    "socratic-tutor": {
+      "pack": "global",
+      "update": "upstream",
+      "repository": "janestreet-agent-skills",
+      "path": "socratic-tutor",
+      "hash": "e039e1a7630cbeea34c675138d3af3560feac822",
+      "commit": "7c6715c29548a3b39d4a9545c698ee4fd17a7213"
     },
     "wayfinder": {
       "pack": "global",

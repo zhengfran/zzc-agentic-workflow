@@ -23,12 +23,13 @@ scripts/skills-catalog --pack coding
 | global | check-integration, read-working-memory, save-handoff, search-memory, status | Follow Nowledge's agent-neutral skills |
 | global | i-have-adhd, grilling, handoff, retro, writing-for-agents | Follow upstream |
 | global | answer-me-with-html | Follow upstream |
+| global | socratic-tutor | Follow upstream |
 | coding | archify | Follow upstream |
 | global | wayfinder | Local customization |
 | notes | Existing `ljg` and `ljg-*` skills | Local customization |
 | global | lifeos-vault | Local, original |
 
-The catalog contains 33 skills: 9 following upstream and 24 locally customized.
+The catalog contains 34 skills: 10 following upstream and 24 locally customized.
 The five Nowledge entries are explicitly selected; future additions to their
 repository do not expand this set.
 
@@ -48,6 +49,7 @@ Thanks to the original authors and maintainers for these skills:
 | [ayghri — i-have-adhd](https://github.com/ayghri/i-have-adhd) | i-have-adhd |
 | [Matt Pocock — skills](https://github.com/mattpocock/skills) | grilling, handoff, retro, writing-for-agents; also the source of our customized wayfinder |
 | [QingYunA — answer-me-with-html](https://github.com/QingYunA/answer-me-with-html) | answer-me-with-html |
+| [Jane Street — agent_skills](https://github.com/janestreet/agent_skills) | socratic-tutor |
 | [tt-a1i — archify](https://github.com/tt-a1i/archify) | archify |
 | [op7418 — humanizer-zh](https://github.com/op7418/humanizer-zh) | humanizer-zh |
 | [Li Jigang — ljg-skills](https://github.com/lijigang/ljg-skills) | Source of our locally customized `ljg-*` skills |
